@@ -4,8 +4,8 @@ name: Update fishing data
 
 on:
   schedule:
-    - cron: "17 13 * * *"   # ~06:17 America/Denver (UTC-7); adjust as desired
-  workflow_dispatch: {}       # allow manual runs from the Actions tab
+    - cron: "17 */3 * * *"   # runs at :17 past every 4th hour UTC (00:17, 04:17, 08:17, 12:17, 16:17, 20:17)
+  workflow_dispatch: {}
 
 permissions:
   contents: write             # needed to commit data.json back to the repo
