@@ -1,0 +1,48 @@
+# .github/workflows/update-data.yml
+# Scheduled fetch → writes data.json → commits it so GitHub Pages serves fresh data.
+name: Update fishing data
+
+on:
+  schedule:
+    - cron: "17 13 * * *"   # ~06:17 America/Denver (UTC-7); adjust as desired
+  workflow_dispatch: {}       # allow manual runs from the Actions tab
+
+permissions:
+  contents: write             # needed to commit data.json back to the repo
+
+concurrency:
+  group: update-data
+  cancel-in-progress: true
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"   # built-in fetch; no npm install required
+
+      - name: Fetch & normalize
+        run: node fetch-data.mjs
+
+      - name: Commit if changed
+        run: |
+          if [ -n "$(git status --porcelain data.json)" ]; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add data.json
+            git commit -m "data: refresh $(date -u +%FT%TZ)"
+            git push
+          else
+            echo "No change in data.json"
+          fi
+
+# Deploy note: simplest path is to serve the repo root with GitHub Pages
+# (Settings → Pages → Deploy from branch). The committed data.json is then
+# available at  https://<user>.github.io/<repo>/data.json  for the front-end
+# to fetch(). No secrets are required today — all three sources are keyless.
+# If you later move USGS to the new api.waterdata.usgs.gov/ogcapi (key required,
+# legacy IV decommissions ~Q1 2027), add the key as an Actions repo secret and
+# read it via process.env in fetch-data.mjs.
