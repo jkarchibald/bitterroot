@@ -828,7 +828,7 @@ function boot(usedReal, gen){
 
 // Prefer a live data.json (served over http, e.g. GitHub Pages); fall back to the
 // embedded snapshot when the page is opened locally as a file:// URL.
-fetch('data.json').then(r=>{ if(!r.ok) throw 0; return r.json(); })
+fetch(`data.json?t=${Date.now()}`).then(r=>{ if(!r.ok) throw 0; return r.json(); })
   .then(d=>{ boot(applyRealData(d), (d.generatedAt||'').slice(0,10)); })
   .catch(()=>{ let ok=false,gen=''; try{ if(EMBEDDED_DATA){ ok=applyRealData(EMBEDDED_DATA); gen=(EMBEDDED_DATA.generatedAt||'').slice(0,10);} }catch(e){} boot(ok,gen); });
 
