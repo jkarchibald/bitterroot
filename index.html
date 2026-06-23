@@ -922,7 +922,12 @@ function _bandFor(t){
   // Calibrated against local fly-shop ratings (Jim Mitchell, etc.): 52F snowmelt
   // water in June fishes GOOD-to-very-good, not 85% of prime. Cold freestone bands
   // lifted accordingly so the model agrees with guides who fish this water daily.
-  if(t==null)            return {key:'unknown', mult:0.55, heat:0.30};
+  // Unknown temp: don't punish the gauge as if the water were marginal. In June
+  // snowmelt season these freestone/tailwater reaches fish good-to-very-good
+  // (guides rate the West Fork "prime salmonfly water"), so an unknown temp leans
+  // on a neutral-good assumption — roughly the "good" band — and is flagged
+  // elsewhere as estimated rather than dragging the whole day down to Fair.
+  if(t==null)            return {key:'unknown', mult:0.80, heat:0.22};
   if(t<40)               return {key:'cold',    mult:0.30, heat:0.00};
   if(t<46)               return {key:'cool',    mult:0.60, heat:0.03};
   if(t<50)               return {key:'fishy',   mult:0.74, heat:0.10};  // cold but fishy
@@ -1019,7 +1024,11 @@ function computeBlocks(c){
     else if(precip>=30) precipAdj = 1.05;
 
     let v = 10 * band.mult * light * flowAdj * precipAdj;
-    v = Math.max(0, Math.min(10, Math.round(v)));
+    v = Math.round(v);
+    // A live, flowing trout river is never a literal zero-chance: even the
+    // dead-of-night block on an unknown-temp river floors at 1, not 0. Zero
+    // reads as "impossible," which is wrong and renders as an empty/word-less bar.
+    v = Math.max(1, Math.min(10, v));
     out.push(v);
   }
   return out;
@@ -1102,6 +1111,10 @@ function blockReasons(g, i){
   if (t!=null){
     if (t < 42)      cands.push({ cat:'temp', sev: 42 - t, label:'water too cold' });
     else if (t > 67) cands.push({ cat:'temp', sev: t - 67, label:'water too warm' });
+  } else {
+    // Unknown water temp: say so, rather than leaving the bar word-less. Low
+    // severity so a real temp/flow/dark limiter still wins when present.
+    cands.push({ cat:'temp', sev: 6, label:'water temp estimated' });
   }
   // Flow limiter
   if (ratio >= 1.4)      cands.push({ cat:'flow', sev: (ratio-1)*40, label:'high/off-color flow' });
@@ -1113,6 +1126,9 @@ function blockReasons(g, i){
   else if (i===10)           cands.push({ cat:'light', sev: 16, label:'fading light' });
   else if (i>=4 && i<=8 && cloud!=null && cloud<=20)
                              cands.push({ cat:'light', sev: 12, label:'bright sun' });
+  // Midday plateau (blocks 5-7) is the day's natural lull; if nothing stronger
+  // applies, still caption it so the bar isn't word-less. Lowest severity.
+  else if (i>=5 && i<=7)     cands.push({ cat:'light', sev: 4, label:'midday lull' });
 
   if (!cands.length) return [];
   cands.sort((a,b)=> b.sev - a.sev);
