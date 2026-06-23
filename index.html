@@ -86,6 +86,9 @@ button, .btn { font-size: 12px; font-weight: 500; }
 .score-num { font-size: 22px; line-height: 1; font-weight: 600; border-radius: var(--t3-input-radius); padding: 6px 12px 5px; min-width: 48px; color: var(--t3-neutral-900); display: inline-block; }
 .score-good { background: var(--t3-matcon-fmc); } .score-fair { background: var(--t3-matcon-pmc); } .score-poor { background: var(--t3-matcon-nmc); color: var(--t3-neutral-0); } .score-prime { background: var(--t3-link); color: var(--t3-neutral-0); }
 .score-cap { font-size: 10px; color: var(--t3-text-secondary); margin-top: 3px; letter-spacing: 0.5px; }
+.score-stamp { display: block; font-size: 9.5px; color: var(--t3-text-secondary); margin-top: 4px; white-space: nowrap; letter-spacing: 0.2px; }
+.gauge-link { display: inline-block; margin-top: 5px; font-size: 11px; color: var(--t3-light-blue); text-decoration: none; }
+.gauge-link:hover { text-decoration: underline; }
 .badge { font-size: 11px; padding: 2px 7px; border-radius: 3px; white-space: nowrap; border: 1px solid var(--t3-custodian-blue); color: var(--t3-light-blue); background: color-mix(in srgb, var(--t3-custodian-blue) 22%, transparent); }
 .viewing-pill { font-size: 11px; color: var(--t3-custodian-blue); font-weight: 600; margin-top: 10px; letter-spacing: 0.5px; visibility: hidden; }
 .card.selected .viewing-pill { visibility: visible; }
@@ -1005,6 +1008,29 @@ function renderPlanner(){
 function scoreClass(v){ return v>=9 ? "prime" : v>=7 ? "good" : v>=4 ? "fair" : "poor"; }
 /* daytime fishing index = average bite score across the 6a-8pm blocks
    (block indices 3..9 of the 12 two-hour blocks), to one decimal 0.0-10.0. */
+/* External link to the source agency's page for this gauge.
+   USGS -> the documented monitoring-location page (lands on the recent hydrograph).
+   StAGE -> the DNRC Stream & Gage Explorer report app (user picks the site;
+            we avoid a guessed per-site deep link that could 404, since the
+            StAGE station GUID isn't carried in data.json).
+   Returns null if we can't build a safe link. */
+function gaugeUrl(g){
+  const src = (g._srcType||'').toLowerCase();
+  const code = (g._code||'').trim();
+  if(src==='usgs' && code) return 'https://waterdata.usgs.gov/monitoring-location/USGS-'+encodeURIComponent(code)+'/';
+  if(src==='stage')        return 'https://gis.dnrc.mt.gov/apps/stage/gage-report';
+  return null;
+}
+/* "6/23 - 5:17a" from an ISO-ish timestamp like "2026-06-23T05:15". */
+function fmtStamp(iso){
+  if(!iso) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(String(iso));
+  if(!m) return null;
+  const mo=+m[2], da=+m[3]; let h=+m[4]; const min=m[5];
+  const ap = h<12 ? 'a' : 'p'; let hh=h%12; if(hh===0) hh=12;
+  return mo+'/'+da+' - '+hh+':'+min+ap;
+}
+
 function dayScore(g){
   if(!g.blocks || !g.blocks.length) return null;
   const day = g.blocks.slice(3,10);            // 6-8a through 6-8p
@@ -1023,12 +1049,26 @@ function renderCards(){
     const tu = g.tempEst ? '&deg;F est' : '&deg;F';
     const tCol = g.tempEst ? ' style="color:var(--t3-status-orange)"' : '';
     const ds = dayScore(g);
+    const stamp = fmtStamp(g._liveAt);
     const scoreChip = (ds!=null)
-      ? '<div class="score-chip"><span class="score-num score-'+scoreClass(ds)+'">'+ds.toFixed(1)+'</span></div>'
+      ? '<div class="score-chip"><span class="score-num score-'+scoreClass(ds)+'">'+ds.toFixed(1)+'</span>'
+        + (stamp ? '<span class="score-stamp" title="Last reading used in this score">'+stamp+'</span>' : '')
+        + '</div>'
+      : '';
+    const gurl = gaugeUrl(g);
+    const srcLabel = ((g._srcType||'').toLowerCase()==='usgs') ? 'USGS gauge page'
+                   : ((g._srcType||'').toLowerCase()==='stage') ? 'DNRC StAGE gauge'
+                   : null;
+    const gaugeLink = (gurl && srcLabel)
+      ? '<a class="gauge-link" href="'+gurl+'" target="_blank" rel="noopener" '
+        + 'onclick="event.stopPropagation();" title="Open the source agency page (recent flow)">'
+        + srcLabel+' &#8599;</a>'
       : '';
     return '<div class="card clickable" data-idx="'+idx+'">'
     + '<div class="gauge-top"><div>'
-    + '<div class="gauge-name">'+g.name+'</div><div class="gauge-meta">'+g.meta+'</div></div>'
+    + '<div class="gauge-name">'+g.name+'</div><div class="gauge-meta">'+g.meta+'</div>'
+    + gaugeLink
+    + '</div>'
     + '<div class="top-right">'+scoreChip+'<span class="badge">'+g.source+'</span></div>'
     + '</div>'
     + '<div class="tag-row">'+tags+'</div>'
@@ -1451,6 +1491,9 @@ function alignSeries(g, gd){
   const liveStage= S.stage&&S.stage.latest&&S.stage.latest.value!=null ? S.stage.latest.value : null;
   const liveTemp = wt&&wt.latest&&wt.latest.value!=null ? wt.latest.value : null;
   g._liveAt = (S.flow&&S.flow.latest&&S.flow.latest.ts) || (S.stage&&S.stage.latest&&S.stage.latest.ts) || null;
+  // source identity for the external gauge link (from data.json, not the static config)
+  g._code = gd.code || null;                 // e.g. "76HB 09500" (StAGE) or "12350250" (USGS)
+  g._srcType = gd.source || null;            // "stage" | "usgs"
   const dn = liveFlow!=null ? liveFlow : lastNonNull(cyFlow.slice(0,today+1)); if(dn!=null) g.discharge=Math.round(dn);
   const sn = liveStage!=null ? liveStage : lastNonNull(cyStage.slice(0,today+1)); if(sn!=null) g.stage=sn.toFixed(2);
   const measured=!!(gd.meta&&gd.meta.measuredTemp);
