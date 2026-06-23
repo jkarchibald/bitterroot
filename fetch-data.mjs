@@ -90,15 +90,39 @@ const localStamp = (ms) => {
   return `${p.year}-${p.month}-${p.day}T${hh}:${p.minute}`;
 };
 
+// --- StAGE timestamp normalization -----------------------------------------
+// DNRC's StAGE ArcGIS layer stores LOCAL Mountain wall-clock but tags it as UTC.
+// e.g. a reading the gauge page labels "6/23 4:15 AM" is stored as epoch
+// 2026-06-23T04:15:00Z. Read naively (new Date(ms) → convert to Denver) it lands
+// at 10:15 PM the PREVIOUS day — which is exactly why StAGE "today" rendered a day
+// behind while USGS (genuine UTC) was correct. Verified against the gauge page:
+// the UTC *face components* of the stored epoch ARE the displayed Mountain clock.
+//
+// So for StAGE we DON'T timezone-convert. We read the UTC face directly:
+//   stageDayKey(ms)  -> "YYYY-MM-DD" exactly as DNRC shows it
+//   stageStamp(ms)   -> "YYYY-MM-DDTHH:mm" exactly as DNRC shows it
+// (Trying to convert to America/Denver re-introduces a 1-hour error because DNRC
+//  stamps fixed MST year-round while Denver observes MDT in summer.)
+const _p2 = (n) => String(n).padStart(2, "0");
+const stageDayKey = (ms) => {
+  const d = new Date(ms);
+  return `${d.getUTCFullYear()}-${_p2(d.getUTCMonth() + 1)}-${_p2(d.getUTCDate())}`;
+};
+const stageStamp = (ms) => {
+  const d = new Date(ms);
+  return `${stageDayKey(ms)}T${_p2(d.getUTCHours())}:${_p2(d.getUTCMinutes())}`;
+};
+
 // Newest non-null raw sample → the true "right now" snapshot for the gauge.
-// `samples` are {t, v}; we don't assume they're pre-sorted.
-const latestSample = (samples) => {
+// `samples` are {t, v}; we don't assume they're pre-sorted. `stampFn` formats the
+// display timestamp (StAGE passes stageStamp; USGS defaults to localStamp).
+const latestSample = (samples, stampFn = localStamp) => {
   let best = null;
   for (const s of samples || []) {
     if (s == null || s.v == null || Number.isNaN(s.v)) continue;
     if (!best || s.t > best.t) best = s;
   }
-  return best ? { value: round(best.v), ts: localStamp(best.t), tsUtc: new Date(best.t).toISOString() } : null;
+  return best ? { value: round(best.v), ts: stampFn(best.t), tsUtc: new Date(best.t).toISOString() } : null;
 };
 
 async function fetchJson(url, tries = 3) {
@@ -124,11 +148,11 @@ const ymdLocal = (d) =>
   new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" })
     .format(d instanceof Date ? d : new Date(d));
 
-function toDaily(samples) {
+function toDaily(samples, dayKeyFn = ymdLocal) {
   const buckets = new Map();
   for (const { t, v } of samples) {
     if (v == null || Number.isNaN(v)) continue;
-    const key = ymdLocal(new Date(t));
+    const key = dayKeyFn(t);
     (buckets.get(key) || buckets.set(key, []).get(key)).push(v);
   }
   return [...buckets.entries()]
@@ -242,12 +266,13 @@ async function pullStageGauge(g, win) {
     const ly = await stageSeries(s.sensorId, win.lastYear);
     if (ty.provisional) meta.provisional = true;
     const tyConv = ty.samples.map((x) => ({ t: x.t, v: conv(x.v) }));
+    // StAGE timestamps are local-as-UTC → read by face value, never tz-convert.
     out[key] = {
       unit: key === "watertemp" ? "°F" : (s.unit === "ft^3/s" ? "cfs" : s.unit),
       sensorCode: s.code,
-      latest: latestSample(tyConv),   // newest instantaneous reading = "now" snapshot
-      thisYear: toDaily(tyConv),
-      lastYear: toDaily(ly.samples.map((x) => ({ t: x.t, v: conv(x.v) }))),
+      latest: latestSample(tyConv, stageStamp),   // newest instantaneous reading = "now" snapshot
+      thisYear: toDaily(tyConv, stageDayKey),
+      lastYear: toDaily(ly.samples.map((x) => ({ t: x.t, v: conv(x.v) })), stageDayKey),
     };
   }
   return { series: out, meta };
