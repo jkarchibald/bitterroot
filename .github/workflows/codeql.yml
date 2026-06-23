@@ -1,0 +1,30 @@
+# CodeQL — static security analysis for the JavaScript in this repo.
+# Runs on pushes/PRs to main and weekly, so if you return in 6 months any newly
+# discovered issue class gets flagged in the Security tab without you doing anything.
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "23 6 * * 1"   # weekly, Monday 06:23 UTC
+
+permissions:
+  contents: read
+  security-events: write   # required to upload results to the Security tab
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
