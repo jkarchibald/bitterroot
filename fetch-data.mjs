@@ -59,6 +59,13 @@ const DAY = 86400_000;
 const cToF = (c) => (c == null ? null : c * 9 / 5 + 32);
 const round = (n, p = 2) => (n == null ? null : Math.round(n * 10 ** p) / 10 ** p);
 const ymd = (d) => d.toISOString().slice(0, 10);
+// "Today" in the gauge's timezone (America/Denver), as YYYY-MM-DD. Using UTC here would
+// roll over to tomorrow in the evening and mis-anchor the forecast, so resolve it in the
+// same timezone Open-Meteo returns its daily rows in.
+const TZ = "America/Denver";
+const todayLocal = () =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" })
+    .format(new Date()); // en-CA → YYYY-MM-DD
 const median = (xs) => {
   const a = xs.filter((x) => x != null).sort((p, q) => p - q);
   if (!a.length) return null;
@@ -390,8 +397,22 @@ async function main() {
 
     // ---- forecasts (modeled, clearly flagged — never presented as measured) ----
     const wd = weather?.daily || [];
-    const anchorDate = wd[PAST_WX_DAYS]?.date;                 // == today
-    const fcDates = wd.slice(PAST_WX_DAYS + 1).map((d) => d.date);  // tomorrow → horizon
+    // Resolve "today" by DATE MATCH, not by positional index. Open-Meteo's daily array is
+    // not guaranteed to put today at index PAST_WX_DAYS — the count can shift, which was
+    // making the whole dashboard read one day behind (anchor, forecast split, and the
+    // front-end "today" marker all derive from this). Find today's actual row; if the
+    // exact date isn't present yet (early-run race), fall back to the latest past row.
+    const TODAY = todayLocal();
+    let anchorIdx = wd.findIndex((d) => d.date === TODAY);
+    if (anchorIdx < 0) {
+      // today's row not present — use the most recent row that is <= today
+      for (let i = wd.length - 1; i >= 0; i--) {
+        if (wd[i].date <= TODAY) { anchorIdx = i; break; }
+      }
+    }
+    if (anchorIdx < 0) anchorIdx = Math.min(PAST_WX_DAYS, wd.length - 1); // last resort
+    const anchorDate = wd[anchorIdx]?.date;                    // == today (date-matched)
+    const fcDates = wd.slice(anchorIdx + 1).map((d) => d.date);     // tomorrow → horizon
     if (fcDates.length) {
       const flood = await floodForecast(g.lat, g.lon);
       const latestFlow = lastMean(base.series.flow?.thisYear);
@@ -405,7 +426,7 @@ async function main() {
       if (base.series.watertemp) {
         if (base.series.watertemp.estimated) {
           base.series.watertemp.forecast = estimateWaterTemp(weather.daily)
-            .slice(PAST_WX_DAYS + 1).map((x) => ({ ...x, forecast: true }));
+            .slice(anchorIdx + 1).map((x) => ({ ...x, forecast: true }));
         } else {
           const tFc = waterTempForecast(base.series.watertemp.thisYear, weather.daily, fcDates);
           if (tFc) base.series.watertemp.forecast = tFc;
@@ -426,6 +447,10 @@ async function main() {
 
   const data = {
     generatedAt: new Date().toISOString(),
+    today: todayLocal(),            // YYYY-MM-DD in America/Denver — the front-end should
+                                    // use THIS to place the "today" marker and split
+                                    // history/forecast, never derive it from generatedAt (UTC).
+    timezone: TZ,
     constants: { hootOwlThresholdF: HOOT_OWL_F, lethalF: 77, wadeCfs: WADE_CFS },
     windows: {
       historyDays: HISTORY_DAYS, forecastDays: FORECAST_DAYS,
