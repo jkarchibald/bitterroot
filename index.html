@@ -73,14 +73,14 @@ button, .btn { font-size: 12px; font-weight: 500; }
 .section { margin-bottom: 26px; }
 .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; gap: 12px; }
 .section-head .hint { font-size: 12px; color: var(--t3-text-secondary); }
-/* collapsible chart cards: header stays, everything below it hides on collapse */
-.chart-wrap .section-head.collapsible { cursor: pointer; align-items: center; user-select: none; }
-.chart-wrap .section-head.collapsible .head-left { display: flex; align-items: baseline; gap: 12px; }
-.chart-wrap .collapse-arrow { font-size: 12px; color: var(--t3-text-secondary); transition: transform 0.18s ease; flex: 0 0 auto; margin-left: 8px; }
-.chart-wrap.collapsed .collapse-arrow { transform: rotate(-90deg); }
-.chart-wrap.collapsed .section-head { margin-bottom: 0; }
-.chart-wrap .collapse-body { overflow: hidden; transition: max-height 0.22s ease, opacity 0.18s ease; max-height: 1200px; opacity: 1; }
-.chart-wrap.collapsed .collapse-body { max-height: 0; opacity: 0; }
+/* collapsible cards: header stays, everything below it hides on collapse */
+.card .section-head.collapsible, .chart-wrap .section-head.collapsible { cursor: pointer; align-items: center; user-select: none; }
+.card .section-head.collapsible .head-left, .chart-wrap .section-head.collapsible .head-left { display: flex; align-items: baseline; gap: 12px; }
+.collapse-arrow { font-size: 12px; color: var(--t3-text-secondary); transition: transform 0.18s ease; flex: 0 0 auto; margin-left: 8px; }
+.collapsed .collapse-arrow { transform: rotate(-90deg); }
+.collapsed .section-head { margin-bottom: 0; }
+.collapse-body { overflow: hidden; transition: max-height 0.28s ease, opacity 0.18s ease; max-height: 3000px; opacity: 1; }
+.collapsed .collapse-body { max-height: 0; opacity: 0; }
 .gauge-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
 .card { background: var(--t3-bg-card); border: 1px solid var(--t3-border-card); border-radius: var(--t3-input-radius); padding: 14px 15px; }
 .card.clickable { cursor: pointer; transition: border-color .12s ease, background-color .12s ease; }
@@ -244,6 +244,39 @@ table.cal { width: 100%; border-collapse: collapse; font-size: 12px; }
       <div id="dataNote" class="hint" style="margin-top:10px;opacity:.85"></div>
   </div>
 
+  <div class="section bite-pair">
+    <div class="card">
+      <div class="section-head"><h2 id="bitesTitle">Today's bite windows</h2><span class="hint">2-hour blocks</span></div>
+      <div class="bite-legend">
+        <span><i class="bar-poor"></i>0-3 poor</span>
+        <span><i class="bar-fair"></i>4-6 fair</span>
+        <span><i class="bar-good"></i>7-8 good</span>
+        <span><i class="bar-prime"></i>9-10 prime</span>
+      </div>
+      <div class="blocks" id="bitesHolder"></div>
+      <div class="optimum-note" id="optimumNote"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-head"><h2>Where to fish</h2><span class="hint">Best primary &amp; backup by time you have &middot; across all gauges</span></div>
+      <div class="planner" id="plannerHolder"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="card" id="rigWrap">
+      <div class="section-head collapsible" onclick="toggleCard('rigWrap')">
+        <span class="head-left"><h2 id="hatchTitle">What's working now</h2><span class="hint">Per-gauge rig &middot; keyed to current water temp</span></span>
+        <span class="collapse-arrow" aria-hidden="true">&#9660;</span>
+      </div>
+      <div class="collapse-body">
+        <div class="context-line" id="hatchContext"></div>
+        <div class="rig" id="rigHolder"></div>
+        <div class="universal" id="universalBox"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="section">
     <div class="card chart-wrap collapsed" id="chartWrap1">
       <div class="section-head collapsible" onclick="toggleChart(1)">
@@ -284,39 +317,16 @@ table.cal { width: 100%; border-collapse: collapse; font-size: 12px; }
     </div>
   </div>
 
-  <div class="section bite-pair">
-    <div class="card">
-      <div class="section-head"><h2 id="bitesTitle">Today's bite windows</h2><span class="hint">2-hour blocks</span></div>
-      <div class="bite-legend">
-        <span><i class="bar-poor"></i>0-3 poor</span>
-        <span><i class="bar-fair"></i>4-6 fair</span>
-        <span><i class="bar-good"></i>7-8 good</span>
-        <span><i class="bar-prime"></i>9-10 prime</span>
+  <div class="section">
+    <div class="card collapsed" id="calWrap">
+      <div class="section-head collapsible" onclick="toggleCard('calWrap')">
+        <span class="head-left"><h2>Bitterroot hatch calendar</h2><span class="hint">Drainage-wide &middot; current month highlighted</span></span>
+        <span class="collapse-arrow" aria-hidden="true">&#9660;</span>
       </div>
-      <div class="blocks" id="bitesHolder"></div>
-      <div class="optimum-note" id="optimumNote"></div>
-    </div>
-
-    <div class="card">
-      <div class="section-head"><h2>Where to fish</h2><span class="hint">Best primary &amp; backup by time you have &middot; across all gauges</span></div>
-      <div class="planner" id="plannerHolder"></div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="card">
-      <div class="section-head"><h2 id="hatchTitle">What's working now</h2><span class="hint">Per-gauge rig &middot; keyed to current water temp</span></div>
-      <div class="context-line" id="hatchContext"></div>
-      <div class="rig" id="rigHolder"></div>
-      <div class="universal" id="universalBox"></div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="card">
-      <div class="section-head"><h2>Bitterroot hatch calendar</h2><span class="hint">Drainage-wide &middot; current month highlighted</span></div>
-      <div style="overflow-x:auto;">
-        <table class="cal"><thead id="calHead"></thead><tbody id="calBody"></tbody></table>
+      <div class="collapse-body">
+        <div style="overflow-x:auto;">
+          <table class="cal"><thead id="calHead"></thead><tbody id="calBody"></tbody></table>
+        </div>
       </div>
     </div>
   </div>
@@ -1250,12 +1260,13 @@ function recCell(cat){
     + '</div>';
 }
 
-function toggleChart(n){
-  // collapse/expand a chart card. CSS-only hide (the chart-holder stays in the
-  // DOM so select()'s re-render still targets it); we just toggle a class.
-  var w = document.getElementById('chartWrap'+n);
-  if(w) w.classList.toggle('collapsed');
+function toggleCard(id){
+  // collapse/expand any card by id. CSS-only hide (content stays in the DOM so
+  // re-renders still target it); we just toggle the class.
+  var el = document.getElementById(id);
+  if(el) el.classList.toggle('collapsed');
 }
+function toggleChart(n){ toggleCard('chartWrap'+n); }
 
 function select(idx){
   document.querySelectorAll('#gaugeGrid .card').forEach((c,i)=> c.classList.toggle('selected', i===idx));
