@@ -1929,7 +1929,7 @@ function boot(usedReal, gen){
   const note=document.getElementById('dataNote');
   if(note){
     note.innerHTML = usedReal
-      ? ('\u25CF Live gauge &amp; weather data'+(gen?(' &middot; '+String(gen).slice(0,10)):'')+' &middot; provisional. Forecast (right of TODAY) is modeled from recession trend, last-year shape &amp; the weather forecast \u2014 see per-chart confidence. Scoring, bite windows, and fly picks are sample content.')
+      ? ('\u25CF Live gauge &amp; weather data \u2014 provisional. Forecast (right of TODAY) is modeled from recession trend, last-year shape &amp; the weather forecast \u2014 see per-chart confidence.')
       : '\u25CB Showing sample data (could not load data.json).';
   }
 }
