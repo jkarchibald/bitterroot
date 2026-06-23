@@ -1,0 +1,75 @@
+# health-check.yml — verifies the data pipeline still produces valid output.
+#
+# This is the scan that matters most for "I came back after 6 months." It runs
+# fetch-data.mjs in a throwaway way (does NOT commit), then asserts that the resulting
+# data.json is well-formed and that every gauge actually got recent readings. If USGS
+# goes keyed, a StAGE endpoint moves, or Open-Meteo changes shape, this fails LOUDLY on a
+# schedule instead of silently serving stale data.
+name: Pipeline health check
+
+on:
+  schedule:
+    - cron: "41 13 * * 1"   # weekly, Monday 13:41 UTC
+  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    paths:
+      - "fetch-data.mjs"
+      - ".github/workflows/health-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Fetch & normalize (no commit)
+        run: node fetch-data.mjs
+
+      - name: Validate data.json
+        run: |
+          node --input-type=module <<'EOF'
+          import { readFile } from "node:fs/promises";
+
+          const raw = await readFile("data.json", "utf8");
+          let data;
+          try { data = JSON.parse(raw); }
+          catch (e) { console.error("data.json is not valid JSON:", e.message); process.exit(1); }
+
+          const problems = [];
+
+          if (!data.generatedAt) problems.push("missing generatedAt");
+          if (!Array.isArray(data.gauges) || data.gauges.length === 0)
+            problems.push("no gauges in output");
+
+          const MAX_STALE_DAYS = 4;          // every gauge should have a reading this recent
+          const now = Date.now();
+
+          for (const g of data.gauges || []) {
+            const label = g.id || g.name || "unknown";
+            const flow = g.series?.flow?.thisYear;
+            if (!flow || flow.length === 0) {
+              problems.push(`${label}: no flow data`);
+              continue;
+            }
+            const last = flow[flow.length - 1]?.date;
+            if (!last) { problems.push(`${label}: last flow point has no date`); continue; }
+            const ageDays = (now - Date.parse(last)) / 86400000;
+            if (ageDays > MAX_STALE_DAYS)
+              problems.push(`${label}: newest flow is ${ageDays.toFixed(1)}d old (> ${MAX_STALE_DAYS}d)`);
+          }
+
+          if (problems.length) {
+            console.error("Health check FAILED:");
+            for (const p of problems) console.error("  - " + p);
+            process.exit(1);
+          }
+          console.log(`OK — ${data.gauges.length} gauges, all fresh, generated ${data.generatedAt}`);
+          EOF
