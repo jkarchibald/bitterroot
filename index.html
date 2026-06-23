@@ -1179,12 +1179,12 @@ function optimumNote(g){
   if(!b || b.length!==12) return '';
   const HR = h=>{ let hh=((h%24)+24)%24; const ap=hh<12?'AM':'PM'; let d=hh%12; if(d===0)d=12; return {d,ap}; };
   const span = (s,e)=>{ const a=HR(2*s), z=HR(2*(e+1)); return (a.ap===z.ap)?(a.d+'&ndash;'+z.d+' '+z.ap):(a.d+' '+a.ap+'&ndash;'+z.d+' '+z.ap); };
-  // Best 6-hour window = the contiguous 3-block (6-hour) span with the highest
-  // average bite score. Scan every 3-block window, earliest wins on exact ties
-  // (no dawn/dusk bias). This is a true best-average window, not a peak grown
-  // outward, so it reports the genuinely strongest 6 hours of the day.
-  let s=0, bestAvg=-1;
-  for(let i=0;i+3<=12;i++){
+  // Best 6-hour window WITHIN 6a-8p = the contiguous 3-block (6-hour) span with
+  // the highest average bite score, restricted to fishable daytime. Block i covers
+  // hours [2i,2i+2]; a 3-block window [2i,2i+6] stays inside 6a-8p (hours 6-20)
+  // when i runs 3..7. Earliest wins on exact ties (no dawn/dusk bias).
+  let s=3, bestAvg=-1;
+  for(let i=3;i<=7;i++){
     const avg=(b[i]+b[i+1]+b[i+2])/3;
     if(avg>bestAvg){ bestAvg=avg; s=i; }
   }
@@ -1318,8 +1318,8 @@ function dayScore(g){
   const day = b.slice(3,10);                    // 6-8a through 6-8p
   if(!day.length) return null;
   const avg = day.reduce((a,x)=>a+x,0)/day.length;
-  let best = 0;                                 // best contiguous 4-hr (2-block) window in daylight
-  for(let i=3;i<=9;i++){ const w=(b[i]+b[i+1])/2; if(w>best) best=w; }
+  let best = 0;                                 // best contiguous 4-hr (2-block) window, both blocks within 6a-8p
+  for(let i=3;i<=8;i++){ const w=(b[i]+b[i+1])/2; if(w>best) best=w; }
   return Math.round((0.35*best + 0.65*avg)*10)/10;
 }
 function chiclet(label, status, est){
