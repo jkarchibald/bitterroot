@@ -113,6 +113,18 @@ const stageStamp = (ms) => {
   return `${stageDayKey(ms)}T${_p2(d.getUTCHours())}:${_p2(d.getUTCMinutes())}`;
 };
 
+// --- StAGE clock-time correction (DST) -------------------------------------
+// DNRC's UTC face holds a FIXED MST (UTC-7) wall-clock year-round. Reading it
+// raw (stageStamp) therefore yields MST, which in summer is 1h behind the MDT
+// clock the DNRC gauge page actually displays — the source of the -1h skew on
+// the "now" reading (page 8:15a -> card 7:15a). To show the correct Mountain
+// wall-clock, recover the TRUE UTC instant of the reading (MST face + 7h) and
+// run it through the DST-aware localStamp. We do this ONLY for the displayed
+// "latest" clock; stageDayKey stays on the raw face so daily bucketing (which
+// was fixed to match DNRC's day) is unaffected and can't roll across midnight.
+const STAGE_MST_OFFSET_MS = 7 * 3600 * 1000;
+const stageLatestStamp = (ms) => localStamp(ms + STAGE_MST_OFFSET_MS);
+
 // Newest non-null raw sample → the true "right now" snapshot for the gauge.
 // `samples` are {t, v}; we don't assume they're pre-sorted. `stampFn` formats the
 // display timestamp (StAGE passes stageStamp; USGS defaults to localStamp).
@@ -270,7 +282,7 @@ async function pullStageGauge(g, win) {
     out[key] = {
       unit: key === "watertemp" ? "°F" : (s.unit === "ft^3/s" ? "cfs" : s.unit),
       sensorCode: s.code,
-      latest: latestSample(tyConv, stageStamp),   // newest instantaneous reading = "now" snapshot
+      latest: latestSample(tyConv, stageLatestStamp),   // newest instantaneous reading = "now" snapshot (DST-aware clock)
       thisYear: toDaily(tyConv, stageDayKey),
       lastYear: toDaily(ly.samples.map((x) => ({ t: x.t, v: conv(x.v) })), stageDayKey),
     };
