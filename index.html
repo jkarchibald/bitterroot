@@ -189,7 +189,7 @@ table.cal { width: 100%; border-collapse: collapse; font-size: 12px; }
   <div class="page-head">
     <div>
       <h1>Bitterroot Fishing Conditions</h1>
-      <div class="head-sub">Bitterroot drainage &middot; 5 gauges &middot; last updated Mon Jun 22, 2026 &middot; 10:15 AM MDT</div>
+       <div class="head-sub" id="lastUpdated">Bitterroot drainage &middot; 5 gauges &middot; last updated <span id="updateTime">—</span></div>
     </div>
     <div class="range-controls">
       <span class="pseudo-select">History: last 10 days</span>
@@ -283,6 +283,22 @@ table.cal { width: 100%; border-collapse: collapse; font-size: 12px; }
 const CUR_MONTH = 6;
 const MONTHS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
 const N = 20, TODAY = 9;
+
+// Format generatedAt nicely
+function formatUpdateTime(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  const options = { 
+    weekday: 'short', 
+    month: 'short', 
+    day: 'numeric', 
+    year: 'numeric', 
+    hour: 'numeric', 
+    minute: '2-digit', 
+    timeZoneName: 'short' 
+  };
+  return d.toLocaleString('en-US', options).replace(/, /g, ' ').replace(' MDT', '');
+}
 
 const FLY_COLORS = { Orange:'--t3-fly-orange', Gold:'--t3-fly-gold', Tan:'--t3-fly-tan', Olive:'--t3-fly-olive', Brown:'--t3-fly-brown', Black:'--t3-fly-black', Natural:'--t3-fly-natural', Cream:'--t3-fly-cream', Gray:'--t3-fly-gray', Yellow:'--t3-fly-yellow', Purple:'--t3-fly-purple', Red:'--t3-red' };
 function swatch(name){ const v = FLY_COLORS[name] || '--t3-text-secondary'; return '<span class="fly-sw" style="background:var('+v+')"></span>'; }
@@ -831,9 +847,24 @@ function boot(usedReal, gen){
 
 // Prefer a live data.json (served over http, e.g. GitHub Pages); fall back to the
 // embedded snapshot when the page is opened locally as a file:// URL.
-fetch(`data.json?t=${Date.now()}`).then(r=>{ if(!r.ok) throw 0; return r.json(); })
-  .then(d=>{ boot(applyRealData(d), (d.generatedAt||'').slice(0,10)); })
-  .catch(()=>{ let ok=false,gen=''; try{ if(EMBEDDED_DATA){ ok=applyRealData(EMBEDDED_DATA); gen=(EMBEDDED_DATA.generatedAt||'').slice(0,10);} }catch(e){} boot(ok,gen); });
+fetch(`data.json?t=${Date.now()}`).then(r=>{ 
+  if(!r.ok) throw 0; 
+  return r.json(); 
+})
+.then(d => { 
+  window.currentData = d;                    // store full data
+  boot(applyRealData(d), d.generatedAt); 
+})
+.catch(()=>{ 
+  let ok=false, gen=''; 
+  try{ 
+    if(EMBEDDED_DATA){ 
+      ok=applyRealData(EMBEDDED_DATA); 
+      gen=EMBEDDED_DATA.generatedAt; 
+    } 
+  }catch(e){}
+  boot(ok, gen); 
+});
 
 </script>
 </body>
