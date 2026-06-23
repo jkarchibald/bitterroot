@@ -932,7 +932,7 @@ function renderCards(){
     + '<div class="tag-row">'+tags+'</div>'
     + '<div class="chiclets">'+chiclet('Height',g.chiclets.h,false)+chiclet('Flow',g.chiclets.f,false)+chiclet('Temp',g.chiclets.t,g.tempEst)+'</div>'
     + '<div class="stats">'
-    + '<div><div class="stat-group-label">Water (now)</div>'
+    + '<div><div class="stat-group-label">Water'+(g._liveAt? ' (now \\u00b7 '+fmtClock(g._liveAt)+')' : ' (now)')+'</div>'
     + '<div class="reading"><span class="rl">Discharge</span><span class="rv">'+g.discharge+'</span><span class="ru">cfs</span></div>'
     + '<div class="reading"><span class="rl">Stage</span><span class="rv">'+g.stage+'</span><span class="ru">ft</span></div>'
     + '<div class="reading"><span class="rl">Temp</span><span class="rv"'+tCol+'>'+g.temp+'</span><span class="ru"'+tCol+'>'+tu+'</span></div>'
@@ -1264,10 +1264,19 @@ function alignSeries(g, gd){
   if(wt && LY(wt).length) lyTemp=lyLine(LY(wt));
 
   // ---- OUR forecast (replaces the implausible GloFAS forecast tail) ----
-  // history values up to & including today, in plain-array form for the engine
+  // history values up to & including today, in plain-array form for the engine.
+  // Anchor the final (today) point on the live latest snapshot when present: the
+  // forecast recession must start from what the gauge reads NOW, not today's
+  // partial-day mean, or every predicted day inherits a stale high anchor.
   const flowHist = cyFlow.slice(0, today+1);
   const stageHist = cyStage.slice(0, today+1);
   const tempHist  = cyTemp? cyTemp.slice(0, today+1) : [];
+  if(S.flow&&S.flow.latest&&S.flow.latest.value!=null && flowHist.length)
+    flowHist[flowHist.length-1]=S.flow.latest.value;
+  if(S.stage&&S.stage.latest&&S.stage.latest.value!=null && stageHist.length)
+    stageHist[stageHist.length-1]=S.stage.latest.value;
+  if(wt&&wt.latest&&wt.latest.value!=null && tempHist.length)
+    tempHist[tempHist.length-1]=wt.latest.value;
   const lyFlowMap = mapBy(LY(S.flow)), lyStageMap = mapBy(LY(S.stage));
   const weather = gd.weather || {};
   const normalFlow = (gd.normal&&gd.normal.flow!=null)?gd.normal.flow:null;
@@ -1331,12 +1340,19 @@ function alignSeries(g, gd){
   g._flowMin=Math.max(0,Math.floor((fmin-fp)/25)*25); g._flowMax=Math.ceil((fmax+fp)/25)*25; g._flowMin=Math.min(g._flowMin,150);
   const St=[cyStage,fcStage,lyStage].flat().filter(v=>v!=null); let smin=Math.min(...St),smax=Math.max(...St);
   g._stageMin=Math.max(0,+(Math.floor((smin-0.2)/0.5)*0.5).toFixed(1)); g._stageMax=+(Math.ceil((smax+0.2)/0.5)*0.5).toFixed(1);
-  // card "now" values from the latest measured day (today)
+  // card "now" values: prefer the live latest snapshot (the newest instantaneous
+  // gauge reading) over the in-progress day's daily MEAN. Today is a partial day,
+  // so its mean is an average of a few hours, not "what the gauge reads now" —
+  // the snapshot is. Fall back to the last daily mean only when no snapshot exists.
   const todayStr=histDates[histDates.length-1];
-  const dn=lastNonNull(cyFlow.slice(0,today+1)); if(dn!=null) g.discharge=Math.round(dn);
-  const sn=lastNonNull(cyStage.slice(0,today+1)); if(sn!=null) g.stage=sn.toFixed(2);
+  const liveFlow = S.flow&&S.flow.latest&&S.flow.latest.value!=null ? S.flow.latest.value : null;
+  const liveStage= S.stage&&S.stage.latest&&S.stage.latest.value!=null ? S.stage.latest.value : null;
+  const liveTemp = wt&&wt.latest&&wt.latest.value!=null ? wt.latest.value : null;
+  g._liveAt = (S.flow&&S.flow.latest&&S.flow.latest.ts) || (S.stage&&S.stage.latest&&S.stage.latest.ts) || null;
+  const dn = liveFlow!=null ? liveFlow : lastNonNull(cyFlow.slice(0,today+1)); if(dn!=null) g.discharge=Math.round(dn);
+  const sn = liveStage!=null ? liveStage : lastNonNull(cyStage.slice(0,today+1)); if(sn!=null) g.stage=sn.toFixed(2);
   const measured=!!(gd.meta&&gd.meta.measuredTemp);
-  const tn = cyTemp?lastNonNull(cyTemp.slice(0,today+1)):(gd.normal&&gd.normal.watertemp!=null?gd.normal.watertemp:null);
+  const tn = liveTemp!=null ? liveTemp : (cyTemp?lastNonNull(cyTemp.slice(0,today+1)):(gd.normal&&gd.normal.watertemp!=null?gd.normal.watertemp:null));
   if(tn!=null){ g.temp=String(Math.round(tn)); g.tempEst=!measured; g.chiclets.t=measured?'green':'orange'; }
   else { g.temp='\u2014'; g.tempEst=false; g.chiclets.t='red'; }
   g.chiclets.h='green'; g.chiclets.f='green';

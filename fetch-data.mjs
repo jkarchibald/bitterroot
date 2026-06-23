@@ -78,6 +78,29 @@ const lastMean = (arr) => {
   return null;
 };
 
+// Local wall-clock ISO-ish timestamp ("YYYY-MM-DDTHH:mm") in the gauge timezone,
+// so the front-end (which parses the T..:.. clock literally) shows the reading's
+// Mountain time, not UTC.
+const localStamp = (ms) => {
+  const p = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+  }).formatToParts(new Date(ms)).reduce((o, x) => (o[x.type] = x.value, o), {});
+  let hh = p.hour === "24" ? "00" : p.hour;
+  return `${p.year}-${p.month}-${p.day}T${hh}:${p.minute}`;
+};
+
+// Newest non-null raw sample → the true "right now" snapshot for the gauge.
+// `samples` are {t, v}; we don't assume they're pre-sorted.
+const latestSample = (samples) => {
+  let best = null;
+  for (const s of samples || []) {
+    if (s == null || s.v == null || Number.isNaN(s.v)) continue;
+    if (!best || s.t > best.t) best = s;
+  }
+  return best ? { value: round(best.v), ts: localStamp(best.t), tsUtc: new Date(best.t).toISOString() } : null;
+};
+
 async function fetchJson(url, tries = 3) {
   for (let i = 0; i < tries; i++) {
     try {
@@ -94,11 +117,18 @@ async function fetchJson(url, tries = 3) {
 }
 
 // Aggregate irregular {t(ms), v} samples into per-day {date, min, mean, max, n}.
+// Day key in the gauge's local timezone (America/Denver). Using ymd() (UTC) here
+// misfiles samples near the day boundary into the wrong day, which is how an
+// in-progress "today" bucket can fail to form / land under the prior day.
+const ymdLocal = (d) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" })
+    .format(d instanceof Date ? d : new Date(d));
+
 function toDaily(samples) {
   const buckets = new Map();
   for (const { t, v } of samples) {
     if (v == null || Number.isNaN(v)) continue;
-    const key = ymd(new Date(t));
+    const key = ymdLocal(new Date(t));
     (buckets.get(key) || buckets.set(key, []).get(key)).push(v);
   }
   return [...buckets.entries()]
@@ -177,10 +207,12 @@ async function pullStageGauge(g, win) {
     const ty = await stageSeries(s.sensorId, win.thisYear);
     const ly = await stageSeries(s.sensorId, win.lastYear);
     if (ty.provisional) meta.provisional = true;
+    const tyConv = ty.samples.map((x) => ({ t: x.t, v: conv(x.v) }));
     out[key] = {
       unit: key === "watertemp" ? "°F" : (s.unit === "ft^3/s" ? "cfs" : s.unit),
       sensorCode: s.code,
-      thisYear: toDaily(ty.samples.map((x) => ({ t: x.t, v: conv(x.v) }))),
+      latest: latestSample(tyConv),   // newest instantaneous reading = "now" snapshot
+      thisYear: toDaily(tyConv),
       lastYear: toDaily(ly.samples.map((x) => ({ t: x.t, v: conv(x.v) }))),
     };
   }
@@ -216,13 +248,14 @@ async function pullUsgsGauge(g, win) {
   const tmpTy  = usgsValues(ty, "00010");
   const provisional = flowTy.provisional || stgTy.provisional;
   const series = {
-    flow:  { unit: "cfs", thisYear: toDaily(flowTy.samples), lastYear: toDaily(flowLy.samples) },
-    stage: { unit: "ft",  thisYear: toDaily(stgTy.samples),  lastYear: toDaily(stgLy.samples) },
+    flow:  { unit: "cfs", latest: latestSample(flowTy.samples), thisYear: toDaily(flowTy.samples), lastYear: toDaily(flowLy.samples) },
+    stage: { unit: "ft",  latest: latestSample(stgTy.samples),  thisYear: toDaily(stgTy.samples),  lastYear: toDaily(stgLy.samples) },
     watertemp: null,
   };
   const hasMeasuredTemp = tmpTy.samples.some((s) => s.v != null);
   if (hasMeasuredTemp) {
-    series.watertemp = { unit: "°F", thisYear: toDaily(tmpTy.samples.map((s) => ({ t: s.t, v: cToF(s.v) }))), lastYear: [] };
+    const tmpConv = tmpTy.samples.map((s) => ({ t: s.t, v: cToF(s.v) }));
+    series.watertemp = { unit: "°F", latest: latestSample(tmpConv), thisYear: toDaily(tmpConv), lastYear: [] };
   }
   return { series, meta: { measuredTemp: hasMeasuredTemp, provisional }, _needsTempEstimate: !hasMeasuredTemp };
 }
@@ -415,7 +448,9 @@ async function main() {
     const fcDates = wd.slice(anchorIdx + 1).map((d) => d.date);     // tomorrow → horizon
     if (fcDates.length) {
       const flood = await floodForecast(g.lat, g.lon);
-      const latestFlow = lastMean(base.series.flow?.thisYear);
+      // Anchor on the true current snapshot when we have it; the in-progress day's
+      // daily mean is a partial-day average and mis-anchors every prediction.
+      const latestFlow = base.series.flow?.latest?.value ?? lastMean(base.series.flow?.thisYear);
       const flowFc = anchorFlow(flood, latestFlow, anchorDate, fcDates);
       if (flowFc && base.series.flow) {
         base.series.flow.forecast = flowFc;
