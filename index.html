@@ -231,19 +231,13 @@ table.cal { width: 100%; border-collapse: collapse; font-size: 12px; }
     </div>
   </div>
 
-  <div class="advisory">
-    <span class="adv-dot"></span>
-    <span><span class="adv-strong">No active restrictions.</span>
-    <span class="adv-rest">Thermal risk low &mdash; warmest reach (Bell Crossing) at 57&deg;F, well below the 73&deg;F hoot-owl trigger (daily max, 3 consecutive days). Salmonfly hatch active on the upper forks.</span></span>
-  </div>
-
   <div class="section">
     <div class="section-head">
       <h2>Gauges</h2>
       <span class="hint">Click a gauge to view its detail below &middot; chiclets: green = measured &middot; yellow = estimated &middot; red = missing</span>
     </div>
     <div class="gauge-grid" id="gaugeGrid"></div>
-      <div id="dataNote" class="hint" style="margin-top:10px;opacity:.85"></div>
+      <div id="dataNote" class="hint" style="margin-top:10px;opacity:.85;font-size:13px;line-height:1.4;color:var(--t3-text-secondary)"></div>
   </div>
 
   <div class="section bite-pair">
@@ -962,8 +956,8 @@ function _bandFor(t){
    not a tie, so it still wins. */
 function bestBlockIdx(b){
   if(!b || !b.length) return 0;
-  // first-wins on exact ties (earliest block), so neither dawn nor dusk gets a
-  // structural edge — which window leads is left to the scoring itself.
+  let max=b[0]; for(let i=1;i<b.length;i++) if(b[i]>max) max=b[i];
+  for(let i=10;i>=8;i--) if(b[i]===max) return i;   // prefer evening on ties
   let bi=0; for(let i=1;i<b.length;i++) if(b[i]>b[bi]) bi=i;
   return bi;
 }
@@ -995,13 +989,12 @@ function computeBlocks(c){
 
   // base crepuscular amplitudes. Dawn and dusk are CO-EQUAL on a normal day —
   // both twilight windows fish strong (morning rise + evening hatch/spinner fall).
-  // No hardcoded evening lead: which window wins is left to the SEASONAL dusk
-  // placement (duskC, earlier in spring/fall) and the THERMAL-refuge tilt below
-  // (heatX boosts dawn in hot water). In cool/neutral water the two come out even.
+  // Dawn's gaussian lands cleanly on one block while dusk spreads across two, so
+  // dawn is set a hair LOWER here to keep the two windows even in practice (and
+  // let the evening hatch lead slightly, as it does on these rivers in season).
+  // The thermal-refuge tilt below only diverges them in genuinely hot water.
   let dawnAmp = 0.40 + 0.18*heat;
-  let duskAmp = 0.40 + 0.18*heat;   // co-equal base; dawn vs dusk now driven ONLY
-                                    // by seasonal duskC placement + thermal heatX
-                                    // tilt below, not a hardcoded evening lead
+  let duskAmp = 0.50 + 0.20*heat;   // evening leads modestly (bug activity)
   // thermal-refuge tilt: ONLY ramps in across the hot bands (heat 0.55 -> 0.92).
   // On a hot day the coldest water is at first light, so dawn pulls clearly ahead
   // and the warm late-afternoon eases back. Below ~66F this is zero (co-equal).
@@ -1179,16 +1172,13 @@ function optimumNote(g){
   if(!b || b.length!==12) return '';
   const HR = h=>{ let hh=((h%24)+24)%24; const ap=hh<12?'AM':'PM'; let d=hh%12; if(d===0)d=12; return {d,ap}; };
   const span = (s,e)=>{ const a=HR(2*s), z=HR(2*(e+1)); return (a.ap===z.ap)?(a.d+'&ndash;'+z.d+' '+z.ap):(a.d+' '+a.ap+'&ndash;'+z.d+' '+z.ap); };
-  // Best 6-hour window WITHIN 6a-8p = the contiguous 3-block (6-hour) span with
-  // the highest average bite score, restricted to fishable daytime. Block i covers
-  // hours [2i,2i+2]; a 3-block window [2i,2i+6] stays inside 6a-8p (hours 6-20)
-  // when i runs 3..7. Earliest wins on exact ties (no dawn/dusk bias).
-  let s=3, bestAvg=-1;
-  for(let i=3;i<=7;i++){
-    const avg=(b[i]+b[i+1]+b[i+2])/3;
-    if(avg>bestAvg){ bestAvg=avg; s=i; }
-  }
-  const e=s+2;
+  // peak value, then the contiguous run of blocks within 1 of the peak that
+  // contains it — so two strong evening blocks read as one "6-10 PM" window.
+  const pk = bestBlockIdx(b);   // evening-favoring tie-break, matches the star
+  const thresh = b[pk]-1;
+  let s=pk, e=pk;
+  while(s>0   && b[s-1]>=thresh && b[s-1]>=6) s--;
+  while(e<11  && b[e+1]>=thresh && b[e+1]>=6) e++;
   const label = span(s,e);
   const midH = 2*((s+e)/2)+1;   // window midpoint hour
   // context phrase by time of day + season
@@ -1318,8 +1308,8 @@ function dayScore(g){
   const day = b.slice(3,10);                    // 6-8a through 6-8p
   if(!day.length) return null;
   const avg = day.reduce((a,x)=>a+x,0)/day.length;
-  let best = 0;                                 // best contiguous 4-hr (2-block) window, both blocks within 6a-8p
-  for(let i=3;i<=8;i++){ const w=(b[i]+b[i+1])/2; if(w>best) best=w; }
+  let best = 0;                                 // best contiguous 4-hr (2-block) window in daylight
+  for(let i=3;i<=9;i++){ const w=(b[i]+b[i+1])/2; if(w>best) best=w; }
   return Math.round((0.35*best + 0.65*avg)*10)/10;
 }
 function chiclet(label, status, est){
