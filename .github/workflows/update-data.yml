@@ -4,7 +4,7 @@ name: Update fishing data
 
 on:
   schedule:
-    - cron: "17 */3 * * *"   # runs at :17 past every 4th hour UTC (00:17, 04:17, 08:17, 12:17, 16:17, 20:17)
+    - cron: "17 */3 * * *"   # runs at :17 past every 3rd hour UTC (00:17, 03:17, 06:17 … 21:17) — 8x/day
   workflow_dispatch: {}
 
 permissions:
@@ -12,11 +12,14 @@ permissions:
 
 concurrency:
   group: update-data
-  cancel-in-progress: true
+  cancel-in-progress: false    # this job writes to the repo — let an in-flight run finish
+                               # its commit/push rather than risk cancelling mid-write.
 
 jobs:
   fetch:
     runs-on: ubuntu-latest
+    timeout-minutes: 10        # a hung data source (e.g. DNRC StAGE 504s) can't drag the
+                               # run on indefinitely — GitHub kills it after 10 min.
     steps:
       - uses: actions/checkout@v4
 
@@ -27,11 +30,34 @@ jobs:
       - name: Fetch & normalize
         run: node fetch-data.mjs
 
+      - name: Verify data is fresh
+        # Fail loudly if data.json's "today" isn't actually today (UTC date check is fine
+        # here — if the stamped local date is yesterday, it won't match either bound).
+        # This is the guard against silently serving stale data, which was the original bug.
+        run: |
+          node --input-type=module <<'EOF'
+          import { readFile } from "node:fs/promises";
+          const d = JSON.parse(await readFile("data.json", "utf8"));
+          if (!d.today) { console.error("data.json has no 'today' field"); process.exit(1); }
+          // Accept today or yesterday in UTC terms, since 'today' is America/Denver-local
+          // and may legitimately trail UTC by a calendar day in the evening.
+          const fmt = (dt) => dt.toISOString().slice(0, 10);
+          const now = new Date();
+          const yest = new Date(now.getTime() - 86400000);
+          const ok = d.today === fmt(now) || d.today === fmt(yest);
+          if (!ok) {
+            console.error(`STALE: data.json today=${d.today}, expected ${fmt(yest)} or ${fmt(now)}`);
+            process.exit(1);
+          }
+          console.log(`fresh — data.json today=${d.today}`);
+          EOF
+
       - name: Commit if changed
         run: |
           if [ -n "$(git status --porcelain data.json)" ]; then
             git config user.name  "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
+            git pull --rebase --autostash   # avoid push rejection if main moved since checkout
             git add data.json
             git commit -m "data: refresh $(date -u +%FT%TZ)"
             git push
@@ -46,3 +72,9 @@ jobs:
 # If you later move USGS to the new api.waterdata.usgs.gov/ogcapi (key required,
 # legacy IV decommissions ~Q1 2027), add the key as an Actions repo secret and
 # read it via process.env in fetch-data.mjs.
+#
+# Scheduled-cron notes:
+#  • A failed/cancelled run does NOT auto-retry — GitHub just fires the next slot.
+#  • Cron is best-effort: runs may be delayed or skipped under load (not exact).
+#  • Scheduled workflows auto-DISABLE after 60 days of no repo activity; a commit
+#    or a manual "Run workflow" re-enables them.
