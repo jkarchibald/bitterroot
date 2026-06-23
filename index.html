@@ -751,7 +751,7 @@ function generateSeries(g){
   // bite blocks from the fabricated card conditions, via the same live engine —
   // never the old static placeholder array (which is now null).
   {
-    const hrDec=(clk)=>{ const m=/(\d{1,2}):(\d{2})/.exec(clk||''); return m? (+m[1]+(+m[2])/60) : null; };
+    const hrDec=(clk)=>{ const m=/(\d{1,2}):(\d{2})\s*([ap])?/i.exec(clk||''); if(!m) return null; let h=+m[1]; const ap=m[3]?m[3].toLowerCase():null; if(ap==='p'&&h<12)h+=12; else if(ap==='a'&&h===12)h=0; return h+(+m[2])/60; };
     const tF = (g.temp!=='\u2014') ? +g.temp : null;
     const fr = (g.gen&&g.gen.normalFlow) ? g.discharge/g.gen.normalFlow : 1;
     const cond = {
@@ -765,7 +765,7 @@ function generateSeries(g){
     const blk = computeBlocks(cond);
     if(blk && blk.length===12){
       g.blocks = blk;
-      let bi=0; for(let i=1;i<12;i++) if(blk[i]>blk[bi]) bi=i; g.optIdx=bi;
+      g.optIdx = bestBlockIdx(blk);
     }
     g._cond = { waterTempF: tF, flowRatio: fr, cloudPct: cond.cloudPct };
   }
@@ -951,6 +951,22 @@ function _bandFor(t){
    cooling — the real refuge on a hot day — while the late afternoon is the
    day's warmest, lowest-margin water. This dawn tilt is BLENDED in (only above
    ~66F via heatX), not a hard flip, so the dusk bug-bump is preserved at prime. */
+
+/* Pick the index of the best 2-hour block for the "optimal" star + window note.
+   Dawn (block 3) and dusk (blocks 9/10) are designed to be co-equal, so they tie
+   often. A naive max() returns the FIRST max — dawn — wrongly putting the star and
+   window in the morning ("4-10am"). These rivers lead in the evening in season, so
+   ties break toward the evening: if any evening block (8-10, i.e. 4pm-10pm) reaches
+   the top score, return the LATEST such block. A genuine morning peak (e.g. hot-
+   water thermal refuge, where dawn outscores dusk outright) is a strict max and is
+   not a tie, so it still wins. */
+function bestBlockIdx(b){
+  if(!b || !b.length) return 0;
+  let max=b[0]; for(let i=1;i<b.length;i++) if(b[i]>max) max=b[i];
+  for(let i=10;i>=8;i--) if(b[i]===max) return i;   // prefer evening on ties
+  let bi=0; for(let i=1;i<b.length;i++) if(b[i]>b[bi]) bi=i;
+  return bi;
+}
 function computeBlocks(c){
   const band   = _bandFor(c.waterTempF==null?null:+c.waterTempF);
   const heat   = band.heat;
@@ -1164,7 +1180,7 @@ function optimumNote(g){
   const span = (s,e)=>{ const a=HR(2*s), z=HR(2*(e+1)); return (a.ap===z.ap)?(a.d+'&ndash;'+z.d+' '+z.ap):(a.d+' '+a.ap+'&ndash;'+z.d+' '+z.ap); };
   // peak value, then the contiguous run of blocks within 1 of the peak that
   // contains it — so two strong evening blocks read as one "6-10 PM" window.
-  let pk=0; for(let i=1;i<12;i++) if(b[i]>b[pk]) pk=i;
+  const pk = bestBlockIdx(b);   // evening-favoring tie-break, matches the star
   const thresh = b[pk]-1;
   let s=pk, e=pk;
   while(s>0   && b[s-1]>=thresh && b[s-1]>=6) s--;
@@ -1821,7 +1837,19 @@ function alignSeries(g, gd){
   //      dayScore, and trip planner reflect actual current water. Pure function,
   //      same engine that will score forecast days. Sunrise/sunset are decimal
   //      hours parsed from today's "HH:MM" strings; cloud is today's daytime mean.
-  const hrDec = (clk)=>{ const m=/(\d{1,2}):(\d{2})/.exec(clk||''); return m? (+m[1] + (+m[2])/60) : null; };
+  // Parse a clock string to a decimal hour. Handles BOTH 24-hour ISO times
+  // ("21:34") and the 12-hour am/pm form produced by fmtClock ("9:34p"). The
+  // old version ignored the a/p suffix, so a 9:34 PM sunset parsed as 9.57
+  // (9:34 AM) — which collapsed the whole afternoon/evening to darkness and
+  // flattened every block after ~10am to 1. The suffix is now respected.
+  const hrDec = (clk)=>{
+    const m=/(\d{1,2}):(\d{2})\s*([ap])?/i.exec(clk||'');
+    if(!m) return null;
+    let h=+m[1]; const min=+m[2]; const ap=m[3]?m[3].toLowerCase():null;
+    if(ap==='p' && h<12) h+=12;
+    else if(ap==='a' && h===12) h=0;
+    return h + min/60;
+  };
   const liveTempF = liveTemp!=null ? liveTemp : (g.temp!=='\u2014'? +g.temp : null);
   const flowNow   = liveFlow!=null ? liveFlow : (dn!=null?dn:null);
   const flowRatio = (flowNow!=null && g._normalFlow) ? flowNow/g._normalFlow : 1;
@@ -1844,8 +1872,7 @@ function alignSeries(g, gd){
   const liveBlocks = computeBlocks(condToday);
   if(liveBlocks && liveBlocks.length===12){
     g.blocks = liveBlocks;
-    let bi=0; for(let i=1;i<12;i++) if(g.blocks[i]>g.blocks[bi]) bi=i;
-    g.optIdx = bi;                       // best 2-hour block, for the "optimal" star
+    g.optIdx = bestBlockIdx(g.blocks);   // best 2-hour block, for the "optimal" star
   }
   // stash resolved live conditions so blockReasons can name the real limiter
   g._cond = { waterTempF: liveTempF, flowRatio: flowRatio, cloudPct: condToday.cloudPct };
@@ -1896,8 +1923,7 @@ function alignSeries(g, gd){
     const tBlocks = computeBlocks(condTomorrow);
     if(tBlocks && tBlocks.length===12){
       g._tomorrowBlocks = tBlocks;
-      let bi=0; for(let i=1;i<12;i++) if(tBlocks[i]>tBlocks[bi]) bi=i;
-      g._tomorrowOptIdx = bi;
+      g._tomorrowOptIdx = bestBlockIdx(tBlocks);
     }
     g._condTomorrow = { waterTempF: tmrwTempF, flowRatio: tmrwFlowRatio, cloudPct: tCloud };
   }
