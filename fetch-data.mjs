@@ -177,19 +177,53 @@ async function stageSensors(locationId) {
 async function stageSeries(sensorId, { start, end }) {
   // The Timestamp field is a Date — ArcGIS standardized queries reject raw epoch-ms,
   // so compare against date literals:  Timestamp >= timestamp 'YYYY-MM-DD HH:MM:SS'.
-  // (Times are UTC per the layer's timeReference.) 15-min data → 10 days ≈ 960 rows.
+  // (Times are UTC per the layer's timeReference.)
+  //
+  // IMPORTANT: some StAGE gauges log far more than the once-assumed ~96/day. Lolo
+  // runs ~530–570 samples/day, so a 10-day window is ~5,000–6,000 rows. The old
+  // single request with resultRecordCount=2000 and NO orderBy returned the OLDEST
+  // 2000 rows (service default order) and silently dropped the newest days — which
+  // is exactly why "today" never appeared for high-frequency StAGE gauges while
+  // lower-frequency USGS gauges were fine. Fix: order Timestamp DESC (so any cap
+  // keeps the NEWEST rows) and page through with resultOffset until the window is
+  // exhausted, so neither end is ever truncated.
   const lit = (ms) => `timestamp '${new Date(ms).toISOString().slice(0, 19).replace("T", " ")}'`;
   const where = encodeURIComponent(
     `SensorID='${sensorId}' AND Timestamp >= ${lit(start)} AND Timestamp <= ${lit(end)}`
   );
-  const url = `${STAGE_BASE}/2/query?where=${where}&outFields=Timestamp,RecordedValue,ApprovalName,GradeName&resultRecordCount=2000&f=json`;
-  const j = await fetchJson(url);
+  const PAGE = 2000;          // request size; service may clamp to its own maxRecordCount
+  const MAX_ROWS = 24000;     // hard stop (~40 days at Lolo's rate) so a bad response can't loop forever
+  const order = encodeURIComponent("Timestamp DESC");
   let provisional = false;
-  const samples = (j?.features || []).map((f) => {
-    const a = f.attributes;
-    if (/provisional/i.test(a.ApprovalName || "")) provisional = true;
-    return { t: a.Timestamp, v: a.RecordedValue };
-  }).sort((p, q) => p.t - q.t);   // sort client-side (avoids orderBy edge cases)
+  const seen = new Set();      // dedupe by timestamp (guards layers that ignore resultOffset)
+  const samples = [];
+  // Advance the offset by the number of rows the service ACTUALLY returned, not by
+  // PAGE — if the layer clamps pages to a smaller maxRecordCount (e.g. 1000), a fixed
+  // +PAGE step would skip half the window and punch gaps in the series.
+  let offset = 0;
+  while (samples.length < MAX_ROWS) {
+    const url = `${STAGE_BASE}/2/query?where=${where}`
+      + `&outFields=Timestamp,RecordedValue,ApprovalName,GradeName`
+      + `&orderByFields=${order}`
+      + `&resultOffset=${offset}&resultRecordCount=${PAGE}&f=json`;
+    const j = await fetchJson(url);
+    const feats = j?.features || [];
+    let added = 0;
+    for (const f of feats) {
+      const a = f.attributes;
+      if (seen.has(a.Timestamp)) continue;   // skip rows a non-paging layer re-sent
+      seen.add(a.Timestamp);
+      if (/provisional/i.test(a.ApprovalName || "")) provisional = true;
+      samples.push({ t: a.Timestamp, v: a.RecordedValue });
+      added++;
+    }
+    // Stop when: empty page, or no NEW rows (layer ignored offset → would otherwise loop).
+    if (feats.length === 0 || added === 0) break;
+    offset += feats.length;                  // step by rows returned, not by PAGE
+    // Stop when the service signals no more pages AND it gave us a short page.
+    if (!j?.exceededTransferLimit && feats.length < PAGE) break;
+  }
+  samples.sort((p, q) => p.t - q.t);   // normalize to ascending for downstream bucketing
   return { samples, provisional };
 }
 
