@@ -35,6 +35,8 @@ const HOOT_OWL_F    = 66;   // MT cutthroat/bull-trout thermal threshold (NOT th
 const GAUGES = [
   { id: "lolo",      name: "Lolo Creek abv Sleeman Creek",      type: "freestone", source: "stage",
     locationId: "bfc4c4ef7d2d41b49f4fc3d2014584f7", code: "76HB 09500", lat: 46.742963, lon: -114.154763 },
+  { id: "lolo-hwy93", name: "Lolo Creek below Highway 93", type: "freestone", source: "stage",
+    locationId: "06a40d2c83a146618b6e1892ced47849", code: "76HB 09600", lat: 46.75, lon: -114.08 },
   { id: "wf-painted",name: "West Fork Bitterroot abv Painted Rocks", type: "freestone", source: "stage",
     locationId: "9cb056deb6004e67b3bc577f9a532969", code: "76H 1200",  lat: 45.668306, lon: -114.304849 },
   { id: "ef-connor", name: "East Fork Bitterroot nr Conner",    type: "freestone", source: "stage",
