@@ -1061,7 +1061,7 @@ function biteRow(label, v, reasonsArr, star){
   const cls = scoreClass(v), w = v*10;
   let why = '';
   if ((cls==='poor' || cls==='fair') && reasonsArr && reasonsArr.length){
-    const txt = reasonsArr.filter(Boolean).slice(0,2).join(' &middot; ');
+    const txt = reasonsArr.filter(Boolean).slice(0,1).join('');
     const left = (cls==='poor') ? ('calc('+w+'% + 6px)') : '8px';
     why = '<span class="block-why" style="left:'+left+'">'+txt+'</span>';
   }
@@ -1070,14 +1070,33 @@ function biteRow(label, v, reasonsArr, star){
     + '<span class="block-val">'+v+'</span><span class="block-opt">'+(star?'&#9733;':'')+'</span></div>';
 }
 
-// top two reasons a 2-hour block isn't rating higher, by time of day + gauge condition
+// Single dominant limiter for a 2-hour block, drawn from the three categories
+// that actually drive the bite score: Water temp, Flow, Light. Picks the one
+// worst factor; never names air temp (it doesn't affect the score).
 function blockReasons(g, i){
-  if (i<=2) return ["dark", "cold water"];           // 12-6a
-  if (i===3) return ["dim light", "cool water"];     // 6-8a
-  if (i>=4 && i<=8) return ["bright sun", g.dayFactor]; // 8a-6p
-  if (i===10) return ["fading light", g.dayFactor];     // 8-10p
-  if (i===11) return ["dark", "cooling water"];      // 10p-12a
-  return [];
+  const c = (g && g._cond) || {};
+  const t = c.waterTempF, ratio = (c.flowRatio!=null ? c.flowRatio : 1), cloud = c.cloudPct;
+  const cands = [];
+
+  // Water temp limiter (dominant driver)
+  if (t!=null){
+    if (t < 42)      cands.push({ cat:'temp', sev: 42 - t, label:'water too cold' });
+    else if (t > 67) cands.push({ cat:'temp', sev: t - 67, label:'water too warm' });
+  }
+  // Flow limiter
+  if (ratio >= 1.4)      cands.push({ cat:'flow', sev: (ratio-1)*40, label:'high/off-color flow' });
+  else if (ratio <= 0.6) cands.push({ cat:'flow', sev: (1-ratio)*40, label:'low/clear flow' });
+
+  // Light limiter — time of day, then sun
+  if (i<=2 || i===11)        cands.push({ cat:'light', sev: 30, label:'dark' });
+  else if (i===3)            cands.push({ cat:'light', sev: 16, label:'dim light' });
+  else if (i===10)           cands.push({ cat:'light', sev: 16, label:'fading light' });
+  else if (i>=4 && i<=8 && cloud!=null && cloud<=20)
+                             cands.push({ cat:'light', sev: 12, label:'bright sun' });
+
+  if (!cands.length) return [];
+  cands.sort((a,b)=> b.sev - a.sev);
+  return [cands[0].label];   // one reason, one category
 }
 
 /* ---- trip planner: best primary + backup by time budget, today and tomorrow ---- */
@@ -1724,6 +1743,8 @@ function alignSeries(g, gd){
     let bi=0; for(let i=1;i<12;i++) if(g.blocks[i]>g.blocks[bi]) bi=i;
     g.optIdx = bi;                       // best 2-hour block, for the "optimal" star
   }
+  // stash resolved live conditions so blockReasons can name the real limiter
+  g._cond = { waterTempF: liveTempF, flowRatio: flowRatio, cloudPct: condToday.cloudPct };
 }
 
 function applyRealData(data){
