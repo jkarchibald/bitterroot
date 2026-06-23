@@ -73,6 +73,14 @@ button, .btn { font-size: 12px; font-weight: 500; }
 .section { margin-bottom: 26px; }
 .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; gap: 12px; }
 .section-head .hint { font-size: 12px; color: var(--t3-text-secondary); }
+/* collapsible chart cards: header stays, everything below it hides on collapse */
+.chart-wrap .section-head.collapsible { cursor: pointer; align-items: center; user-select: none; }
+.chart-wrap .section-head.collapsible .head-left { display: flex; align-items: baseline; gap: 12px; }
+.chart-wrap .collapse-arrow { font-size: 12px; color: var(--t3-text-secondary); transition: transform 0.18s ease; flex: 0 0 auto; margin-left: 8px; }
+.chart-wrap.collapsed .collapse-arrow { transform: rotate(-90deg); }
+.chart-wrap.collapsed .section-head { margin-bottom: 0; }
+.chart-wrap .collapse-body { overflow: hidden; transition: max-height 0.22s ease, opacity 0.18s ease; max-height: 1200px; opacity: 1; }
+.chart-wrap.collapsed .collapse-body { max-height: 0; opacity: 0; }
 .gauge-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
 .card { background: var(--t3-bg-card); border: 1px solid var(--t3-border-card); border-radius: var(--t3-input-radius); padding: 14px 15px; }
 .card.clickable { cursor: pointer; transition: border-color .12s ease, background-color .12s ease; }
@@ -237,8 +245,12 @@ table.cal { width: 100%; border-collapse: collapse; font-size: 12px; }
   </div>
 
   <div class="section">
-    <div class="card chart-wrap">
-      <div class="section-head"><h2 id="chartTitle1">Flow &amp; water temp</h2><span class="hint">~10-day history + forecast vs. last year &middot; hover for values</span></div>
+    <div class="card chart-wrap collapsed" id="chartWrap1">
+      <div class="section-head collapsible" onclick="toggleChart(1)">
+        <span class="head-left"><h2 id="chartTitle1">Flow &amp; water temp</h2><span class="hint">~10-day history + forecast vs. last year &middot; hover for values</span></span>
+        <span class="collapse-arrow" aria-hidden="true">&#9660;</span>
+      </div>
+      <div class="collapse-body">
       <div class="legend">
         <span class="key"><span class="swatch" style="background:var(--t3-custodian-blue)"></span>Flow (cfs)</span>
         <span class="key"><span class="swatch" style="background:var(--t3-status-orange)"></span>Water temp (&deg;F)</span>
@@ -248,12 +260,17 @@ table.cal { width: 100%; border-collapse: collapse; font-size: 12px; }
       <div class="legend-status" id="chartStatus1"></div>
       <div class="chart-holder" id="chartHolder1"></div>
       <div class="chart-readout" id="readout1"></div>
+      </div>
     </div>
   </div>
 
   <div class="section">
-    <div class="card chart-wrap">
-      <div class="section-head"><h2 id="chartTitle2">Flow &amp; gauge height</h2><span class="hint">~10-day history + forecast vs. last year &middot; hover for values</span></div>
+    <div class="card chart-wrap collapsed" id="chartWrap2">
+      <div class="section-head collapsible" onclick="toggleChart(2)">
+        <span class="head-left"><h2 id="chartTitle2">Flow &amp; gauge height</h2><span class="hint">~10-day history + forecast vs. last year &middot; hover for values</span></span>
+        <span class="collapse-arrow" aria-hidden="true">&#9660;</span>
+      </div>
+      <div class="collapse-body">
       <div class="legend">
         <span class="key"><span class="swatch" style="background:var(--t3-custodian-blue)"></span>Flow (cfs)</span>
         <span class="key"><span class="swatch" style="background:var(--t3-status-light-green)"></span>Gauge height (ft)</span>
@@ -263,6 +280,7 @@ table.cal { width: 100%; border-collapse: collapse; font-size: 12px; }
       <div class="legend-status" id="chartStatus2"></div>
       <div class="chart-holder" id="chartHolder2"></div>
       <div class="chart-readout" id="readout2"></div>
+      </div>
     </div>
   </div>
 
@@ -1230,6 +1248,13 @@ function recCell(cat){
     + rigPick('cpri', cat.calcPri)
     + rigPick('calt', cat.calcAlt)
     + '</div>';
+}
+
+function toggleChart(n){
+  // collapse/expand a chart card. CSS-only hide (the chart-holder stays in the
+  // DOM so select()'s re-render still targets it); we just toggle a class.
+  var w = document.getElementById('chartWrap'+n);
+  if(w) w.classList.toggle('collapsed');
 }
 
 function select(idx){

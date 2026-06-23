@@ -391,6 +391,142 @@ function estimateWaterTemp(weatherDaily) {
   return est;
 }
 
+// ===================== water-temp estimator v2 =====================
+// Replaces the crude air-minus-4 proxy, which ran 5-9F too hot on snowmelt
+// rivers (Bell read ~60F when the Bitterroot was ~52F, throwing off every
+// downstream score). v2 anchors estimates to the drainage's MEASURED water
+// signal instead of air. Chain, per gauge per date:
+//   1. mainstem / dead-probe freestone -> simple avg of working freestone probes
+//   2. tailwater                       -> dam cold-release setpoint (seasonal,
+//                                         capped below stress; never hoot-owl)
+//   3. measured freestone whose own probe is dead but has last-year temp ->
+//        last year's temp on this date, shifted by the SIGN of flow spacing
+//        (this vs last year; higher flow -> colder), small & capped
+//   4. nothing usable -> seasonal normal -> air-minus-offset (true last resort)
+// All results stay flagged estimated:true.
+const STRESS_CAP_F = 60;   // tailwater estimate ceiling (below HOOT_OWL_F=66)
+const LY_SHIFT_STEP = 2;   // fallback #3 directional step, degrees (capped, not proportional)
+
+// pass-1 product: measured freestone water temp averaged across reporting probes,
+// keyed by date. Built only from freestone gauges that actually measure temp.
+function measuredFreestoneAvgByDate(gaugeList) {
+  const acc = {};
+  for (const g of gaugeList) {
+    if (g.type !== "freestone") continue;
+    if (!(g.meta && g.meta.measuredTemp)) continue;
+    const ty = (g.series && g.series.watertemp && g.series.watertemp.thisYear) || [];
+    for (const row of ty) {
+      if (row && row.date != null && row.mean != null) {
+        (acc[row.date] = acc[row.date] || { sum: 0, n: 0 });
+        acc[row.date].sum += row.mean; acc[row.date].n += 1;
+      }
+    }
+  }
+  const out = {};
+  for (const d in acc) out[d] = round(acc[d].sum / acc[d].n);
+  return out;
+}
+
+// dam release: stable, cold, seasonal nudge; hard-capped below stress so it can
+// never be estimated into the hoot-owl zone (matches observed "never goes hoot owl").
+function tailwaterSetpoint(ymd) {
+  const mo = +String(ymd).slice(5, 7);
+  let base;
+  if (mo >= 6 && mo <= 9) base = 48;        // Jun-Sep cold releases
+  else if (mo === 5 || mo === 10) base = 46; // shoulder
+  else base = 44;                            // winter
+  return Math.min(base, STRESS_CAP_F - 1);
+}
+
+// fallback #3: shift last-year temp by the SIGN of the year-over-year flow gap
+// (snowmelt proxy). Higher flow than last year -> colder water -> shift down.
+// Air gap is a backup signal when last-year flow is unavailable. Directional &
+// capped — a nudge in the right direction, not a precise prediction.
+function shiftLastYearTemp(lyTemp, flowThis, flowLast, airThis, airLast) {
+  if (lyTemp == null) return null;
+  let dir = 0;
+  if (flowThis != null && flowLast != null && flowLast > 0) {
+    const rel = (flowThis - flowLast) / flowLast;
+    if (rel > 0.08) dir = -1;
+    else if (rel < -0.08) dir = +1;
+  } else if (airThis != null && airLast != null) {
+    if (airThis - airLast > 3) dir = +1;
+    else if (airThis - airLast < -3) dir = -1;
+  }
+  return round(lyTemp + dir * LY_SHIFT_STEP);
+}
+
+// estimate one gauge's water temp for a single date. ctx supplies the drainage
+// average plus the per-gauge fallback inputs. Returns {mean, via} or {mean:null}.
+function estimateWaterTempV2(ctx) {
+  const type = ctx.gauge.type;
+  const avg = ctx.freestoneAvg[ctx.date];
+
+  if (type === "tailwater") return { mean: tailwaterSetpoint(ctx.date), via: "tailwater-setpoint" };
+
+  if (type === "mainstem" || type === "freestone") {
+    if (avg != null) return { mean: avg, via: "freestone-avg" };
+    const shifted = shiftLastYearTemp(ctx.lyTempOnDate, ctx.flowThisYr, ctx.flowLastYr, ctx.airThisYr, ctx.airLastYr);
+    if (shifted != null) return { mean: shifted, via: "ly-shift" };
+  }
+
+  if (ctx.normalWaterT != null) return { mean: round(ctx.normalWaterT), via: "normal" };
+  if (ctx.airMeanToday != null) return { mean: round(Math.max(33, ctx.airMeanToday - 4)), via: "air-fallback" };
+  return { mean: null, via: "none" };
+}
+
+// build a full estimated series (history + forecast) for one gauge over the
+// supplied weather-daily date axis, using the drainage average + fallbacks.
+// HISTORY uses the measured-freestone average (the real water signal). FORECAST
+// dates have no future probe data, so instead of reverting to raw air (which
+// reads 5-9F too hot), we anchor on the gauge's today value and carry it forward
+// along the AIR-temp trend (preserving the water-minus-air offset we observed
+// today). Tailwater stays flat at its setpoint regardless.
+function buildEstimatedTempSeries(gauge, weatherDaily, freestoneAvg, anchorIdx) {
+  const wd = weatherDaily || [];
+  const airOf = (d) => (d && d.hiF != null && d.loF != null) ? (d.hiF + d.loF) / 2 : null;
+
+  // resolve the HISTORY series first (this is what's been QA'd and approved)
+  const histRows = wd.slice(0, anchorIdx + 1).map((d) => {
+    const r = estimateWaterTempV2({
+      gauge, date: d.date, freestoneAvg,
+      airThisYr: airOf(d), airMeanToday: airOf(d),
+      normalWaterT: gauge.normal && gauge.normal.watertemp,
+    });
+    return { date: d.date, mean: r.mean, _via: r.via };
+  });
+
+  // today's anchor value + today's air, to carry the offset into the forecast
+  const todayRow = histRows[histRows.length - 1] || {};
+  const todayVal = todayRow.mean;
+  const todayAir = airOf(wd[anchorIdx]);
+  const isTail = gauge.type === "tailwater";
+
+  const mk = (mean) => ({ mean: round(mean), min: mean != null ? round(mean - 3) : null,
+                          max: mean != null ? round(mean + 3) : null, n: 0 });
+
+  const thisYear = histRows.map((r) => mk(r.mean));
+
+  const forecast = wd.slice(anchorIdx + 1).map((d) => {
+    let mean;
+    if (isTail) {
+      mean = tailwaterSetpoint(d.date);                 // dam release: stays flat
+    } else if (todayVal != null && todayAir != null && airOf(d) != null) {
+      mean = todayVal + (airOf(d) - todayAir) * 0.5;    // ride air trend, damped 0.5x,
+      mean = Math.max(33, mean);                        // anchored on today's real value
+    } else {
+      const r = estimateWaterTempV2({ gauge, date: d.date, freestoneAvg,
+        airThisYr: airOf(d), airMeanToday: airOf(d),
+        normalWaterT: gauge.normal && gauge.normal.watertemp });
+      mean = r.mean;
+    }
+    return { ...mk(mean), forecast: true };
+  });
+
+  return { thisYear, forecast };
+}
+// =================== end water-temp estimator v2 ===================
+
 // --------------------- river discharge forecast --------------------
 // Open-Meteo Flood API = GloFAS v4 (5 km, NOT bias-corrected). It is reliable
 // for the SHAPE of the hydrograph (rising/falling and roughly how fast), not for
@@ -493,13 +629,13 @@ async function main() {
       await weatherForecast(g.lat, g.lon),
       await weatherArchive(g.lat, g.lon, win.lastYear),
     );
-    // Fill estimated water temp for USGS gauges that have no probe.
-    if (base._needsTempEstimate && weather?.daily) {
-      base.series.watertemp = { unit: "°F", estimated: true, thisYear: estimateWaterTemp(weather.daily), lastYear: [] };
-      base.meta.measuredTemp = false;
-    }
+    // NOTE: temp estimation is DEFERRED to pass 2 — it needs the drainage-wide
+    // measured-freestone average, which doesn't exist until every gauge is pulled.
+    // Here we only record that this gauge will need an estimate.
+    const needsTempEstimate = !!base._needsTempEstimate;
 
     // ---- forecasts (modeled, clearly flagged — never presented as measured) ----
+    // Flow/stage forecasts do NOT depend on temp, so they run here in pass 1.
     const wd = weather?.daily || [];
     // Resolve "today" by DATE MATCH, not by positional index. Open-Meteo's daily array is
     // not guaranteed to put today at index PAST_WX_DAYS — the count can shift, which was
@@ -529,14 +665,11 @@ async function main() {
         const stageFc = stageForecastFrom(flowFc, fitRating(base.series.flow.thisYear, base.series.stage?.thisYear));
         if (stageFc && base.series.stage) base.series.stage.forecast = stageFc;
       }
-      if (base.series.watertemp) {
-        if (base.series.watertemp.estimated) {
-          base.series.watertemp.forecast = estimateWaterTemp(weather.daily)
-            .slice(anchorIdx + 1).map((x) => ({ ...x, forecast: true }));
-        } else {
-          const tFc = waterTempForecast(base.series.watertemp.thisYear, weather.daily, fcDates);
-          if (tFc) base.series.watertemp.forecast = tFc;
-        }
+      // Temp forecast for MEASURED gauges only (model from their own probe history).
+      // Estimated gauges get both history + forecast filled in pass 2.
+      if (base.series.watertemp && !needsTempEstimate) {
+        const tFc = waterTempForecast(base.series.watertemp.thisYear, weather.daily, fcDates);
+        if (tFc) base.series.watertemp.forecast = tFc;
       }
     }
 
@@ -548,8 +681,28 @@ async function main() {
       series: base.series,        // { stage, flow, watertemp } each {unit, thisYear[], lastYear[]}
       weather,                    // { hourly[], daily[], lastYearDaily[] | null }
       normal,                     // { flow, stage, watertemp } baselines
+      _needsTempEstimate: needsTempEstimate,   // pass-2 marker (stripped before output)
+      _anchorIdx: anchorIdx,                   // pass-2: where history ends / forecast begins
     });
   }
+
+  // ===================== PASS 2: water-temp estimation =====================
+  // Now that every gauge is pulled, build the drainage's measured-freestone
+  // average (the real snowmelt-water signal) and fill the estimated gauges from
+  // it (mainstem/dead-probe freestone), the tailwater setpoint, or the last-year
+  // shift fallback — never from air unless nothing else is available.
+  const freestoneAvg = measuredFreestoneAvgByDate(gauges);
+  for (const G of gauges) {
+    if (!G._needsTempEstimate) continue;
+    const { thisYear, forecast } = buildEstimatedTempSeries(G, G.weather?.daily, freestoneAvg, G._anchorIdx);
+    G.series.watertemp = { unit: "°F", estimated: true, thisYear, lastYear: [] };
+    if (forecast.length) G.series.watertemp.forecast = forecast;
+    G.meta.measuredTemp = false;
+    // recompute the temp normal now that the estimated history exists
+    G.normal = computeNormal(G.series);
+  }
+  // strip pass-2 scratch fields so they don't leak into data.json
+  for (const G of gauges) { delete G._needsTempEstimate; delete G._anchorIdx; }
 
   const data = {
     generatedAt: new Date().toISOString(),
