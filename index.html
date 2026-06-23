@@ -755,14 +755,7 @@ function buildChart(g, mode){
     svg += '<rect x="'+(divX-23)+'" y="6" width="46" height="16" rx="3" fill="var(--t3-neutral-300)"/>';
     svg += '<text x="'+divX+'" y="18" text-anchor="middle" font-size="10" font-weight="600" fill="var(--t3-neutral-900)">TODAY</text>';
   }
-  // forecast confidence, upper-right (only when a forecast exists)
-  if (TODAY < N-1 && g._forecastConf && g._forecastConf.overall!=null){
-    const cf=g._forecastConf.overall;
-    const ccol = cf>=70?'var(--t3-matcon-fmc)':cf>=50?'var(--t3-matcon-pmc)':'var(--t3-matcon-nmc)';
-    svg += '<text x="740" y="18" text-anchor="end" font-size="11">'
-        +  '<tspan fill="var(--t3-text-secondary)">forecast confidence </tspan>'
-        +  '<tspan fill="'+ccol+'" font-weight="600">'+cf+'%</tspan></text>';
-  }
+  // (forecast confidence is shown per-day in the hover readout, not pinned to the chart)
   for (let i=0;i<N;i++){
     const xt = xFor(i), d = g._dates[i], dn = d.getDate(), isT = (i===TODAY);
     svg += '<line x1="'+xt.toFixed(1)+'" y1="258" x2="'+xt.toFixed(1)+'" y2="264" stroke="var(--t3-text-secondary)" opacity="0.55"/>';
@@ -818,9 +811,19 @@ function attachHover(holderId, readoutId, g, mode){
     const sv=pick(secCy, secFc, idx);
     if(sv!=null){ hdS.setAttribute('cx', x); hdS.setAttribute('cy', ySec(sv).toFixed(1)); hdS.setAttribute('opacity','1'); } else hdS.setAttribute('opacity','0');
     const d = g._dates[idx], when = idx===TODAY ? ' (today)' : (idx>TODAY ? ' (forecast)' : '');
+    let confRow = '';
+    if (idx>TODAY && g._forecastConf && g._forecastConf.per){
+      const cval = g._forecastConf.per[idx-TODAY-1];
+      if (cval!=null){
+        const ccol = cval>=70?'var(--t3-matcon-fmc)':cval>=50?'var(--t3-matcon-pmc)':'var(--t3-matcon-nmc)';
+        confRow = '<div class="ro-row"><span class="ro-l">Confidence</span>'
+          + '<span class="ro-cy" style="color:'+ccol+'">'+cval+'%</span><span class="ro-ly"></span></div>';
+      }
+    }
     readout.innerHTML = '<div class="ro-date">'+(d.getMonth()+1)+'/'+d.getDate()+when+'</div>'
       + row('Flow', cf, S.lyFlow?S.lyFlow[idx]:null, 'cfs')
-      + row(secLabel, sv, secLy?secLy[idx]:null, secUnit);
+      + row(secLabel, sv, secLy?secLy[idx]:null, secUnit)
+      + confRow;
     readout.style.opacity = '1';
   };
   holder.onmouseleave = () => {
