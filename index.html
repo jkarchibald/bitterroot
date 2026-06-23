@@ -759,7 +759,8 @@ function generateSeries(g){
       cloudPct: (g.wx&&g.wx.cloud!=null)? g.wx.cloud : null,
       precipPct: (g.wx&&g.wx.precip!=null)? Math.min(100, +g.wx.precip*100) : 0,
       sunriseHr: (g.wx&&g.wx.sr)? hrDec(g.wx.sr) : null,
-      sunsetHr:  (g.wx&&g.wx.ss)? hrDec(g.wx.ss) : null
+      sunsetHr:  (g.wx&&g.wx.ss)? hrDec(g.wx.ss) : null,
+      month: CUR_MONTH
     };
     const blk = computeBlocks(cond);
     if(blk && blk.length===12){
@@ -963,16 +964,33 @@ function computeBlocks(c){
 
   // peak centers push toward the twilight edges as it heats; widths tighten
   const dawnC = srHr + (1.7 - 1.3*heat);
-  const duskC = ssHr - (2.8 - 2.6*heat);
+  // Evening-hatch center is SEASONAL. Spring bugs come off earlier (mid-evening);
+  // mid-summer the real activity is right at last light; fall pulls back earlier
+  // again as days shorten and evenings cool. `month` is 1-12 (defaults to current).
+  // springLate=0 at mid-summer, ->1 toward spring/fall edges, pulls the dusk peak
+  // earlier (away from last light) by up to ~1.5h.
+  const mon = (c.month!=null && isFinite(c.month)) ? +c.month : 6;
+  const summerness = Math.max(0, 1 - Math.abs(mon - 7) / 3);   // 1 at Jul, 0 by Apr/Oct
+  const springFall = 1 - summerness;
+  // base dusk offset back from sunset: ~1.0h at high summer (last light), ~2.5h in
+  // spring/fall (mid-evening). Heat nudges it slightly later still.
+  const duskC = ssHr - ((1.0 + 1.5*springFall) - 0.8*heat);
   const pw    = 1.9 - 0.5*heat;
 
-  // base crepuscular amplitudes (dusk slightly ahead at low heat = bug activity)
-  let dawnAmp = 0.30 + 0.26*heat;
-  let duskAmp = 0.30 + 0.48*heat;
-  // thermal-refuge tilt: only ramps in across the hot bands (heat 0.55 -> 0.92)
+  // base crepuscular amplitudes. Dawn and dusk are CO-EQUAL on a normal day —
+  // both twilight windows fish strong (morning rise + evening hatch/spinner fall).
+  // Dawn's gaussian lands cleanly on one block while dusk spreads across two, so
+  // dawn is set a hair LOWER here to keep the two windows even in practice (and
+  // let the evening hatch lead slightly, as it does on these rivers in season).
+  // The thermal-refuge tilt below only diverges them in genuinely hot water.
+  let dawnAmp = 0.40 + 0.18*heat;
+  let duskAmp = 0.50 + 0.20*heat;   // evening leads modestly (bug activity)
+  // thermal-refuge tilt: ONLY ramps in across the hot bands (heat 0.55 -> 0.92).
+  // On a hot day the coldest water is at first light, so dawn pulls clearly ahead
+  // and the warm late-afternoon eases back. Below ~66F this is zero (co-equal).
   const heatX = Math.max(0, Math.min(1, (heat-0.55)/0.37));
-  dawnAmp += 0.30*heatX;   // dawn = coldest water of the day -> boosted in heat
-  duskAmp -= 0.12*heatX;   // late day = warmest water -> eased back in heat
+  dawnAmp += 0.34*heatX;   // dawn = coldest water of the day -> boosted in heat
+  duskAmp -= 0.20*heatX;   // late day = warmest water -> eased back in heat
 
   const midBase = 0.52 - 0.26*heat;   // midday plateau (cool-water midday still fishes; floats 2-4)
 
@@ -1133,6 +1151,51 @@ function blockReasons(g, i){
   if (!cands.length) return [];
   cands.sort((a,b)=> b.sev - a.sev);
   return [cands[0].label];   // one reason, one category
+}
+
+/* Optimum-window note, DERIVED from the live blocks (not a static string). Finds
+   the best contiguous run of strong daytime blocks, formats it as a clock range,
+   and writes a context-aware sentence (evening hatch / dawn window / midday),
+   season-aware so the same wording tracks the seasonal evening-peak shift. */
+function optimumNote(g){
+  const b = g && g.blocks;
+  if(!b || b.length!==12) return '';
+  const HR = h=>{ let hh=((h%24)+24)%24; const ap=hh<12?'AM':'PM'; let d=hh%12; if(d===0)d=12; return {d,ap}; };
+  const span = (s,e)=>{ const a=HR(2*s), z=HR(2*(e+1)); return (a.ap===z.ap)?(a.d+'&ndash;'+z.d+' '+z.ap):(a.d+' '+a.ap+'&ndash;'+z.d+' '+z.ap); };
+  // peak value, then the contiguous run of blocks within 1 of the peak that
+  // contains it — so two strong evening blocks read as one "6-10 PM" window.
+  let pk=0; for(let i=1;i<12;i++) if(b[i]>b[pk]) pk=i;
+  const thresh = b[pk]-1;
+  let s=pk, e=pk;
+  while(s>0   && b[s-1]>=thresh && b[s-1]>=6) s--;
+  while(e<11  && b[e+1]>=thresh && b[e+1]>=6) e++;
+  const label = span(s,e);
+  const midH = 2*((s+e)/2)+1;   // window midpoint hour
+  // context phrase by time of day + season
+  const mon = (g._dates && g._today!=null && g._dates[g._today]) ? (g._dates[g._today].getMonth()+1) : (typeof CUR_MONTH!=='undefined'?CUR_MONTH:6);
+  const season = (mon>=5&&mon<=6)?'spring':(mon>=7&&mon<=8)?'summer':(mon>=9&&mon<=10)?'fall':'winter';
+  const t = g._cond && g._cond.waterTempF;
+  let note;
+  if(midH>=18){
+    note = (season==='summer')
+      ? 'Last-light evening hatch &mdash; the prime window in mid-summer. Spinner falls and emergers right up to dark.'
+      : (season==='spring')
+        ? 'Mid-evening hatch window &mdash; spring bugs come off earlier, so the bite peaks before last light.'
+        : 'Evening hatch window, pulled earlier as fall days shorten and evenings cool.';
+  } else if(midH<=8){
+    note = (t!=null && t>=66)
+      ? 'Dawn window &mdash; the river is at its daily temperature minimum at first light, the real refuge on a warm day.'
+      : 'Morning rise &mdash; cool, low-light water fishes well right after sunrise.';
+  } else {
+    note = (t!=null && t>=66)
+      ? 'Mid-day is the warmest, lowest-margin water today; fish the edges instead if you can.'
+      : 'Steady mid-day window &mdash; overcast or cooler water keeps fish looking up through the middle of the day.';
+  }
+  // co-equal twilight reminder on normal days
+  const dawnStrong = Math.max(b[3],b[4])>=7, duskStrong = Math.max(b[9],b[10])>=7;
+  const both = (dawnStrong && duskStrong && (t==null || t<66))
+    ? ' Dawn fishes nearly as well &mdash; both twilight windows are strong today.' : '';
+  return '<strong>Optimum window: '+label+'.</strong> '+note+both;
 }
 
 /* ---- trip planner: best primary + backup by time budget, today and tomorrow ---- */
@@ -1363,7 +1426,7 @@ function renderDetail(g){
   document.getElementById('bitesHolder').innerHTML = (g.blocks && g.blocks.length)
     ? g.blocks.map((v,i)=> biteRow(labels[i], v, blockReasons(g,i), i===g.optIdx)).join('')
     : '<div class="block-row" style="opacity:.6">Waiting for live water data&hellip;</div>';
-  document.getElementById('optimumNote').innerHTML = '<strong>Optimum window: '+g.optLabel+'.</strong> '+g.optNote;
+  document.getElementById('optimumNote').innerHTML = optimumNote(g);
 
   document.getElementById('hatchTitle').innerHTML = "What's working now &mdash; " + shortName;
   const rec = buildRecommendation(g, CUR_MONTH);
@@ -1765,6 +1828,8 @@ function alignSeries(g, gd){
   const FS = g._series || {};
   const flowTrend = flowTrendFrom(FS.cyFlow, FS.fcFlow, g._normalFlow, g._today);
   g._flowTrend = flowTrend;   // stash for tooltips / context line
+  const _todayDate = (g._dates && g._today!=null && g._dates[g._today]) ? g._dates[g._today] : null;
+  const _todayMon  = _todayDate ? (_todayDate.getMonth()+1) : CUR_MONTH;
   const condToday = {
     waterTempF: liveTempF,
     flowRatio : flowRatio,
@@ -1773,7 +1838,8 @@ function alignSeries(g, gd){
     precipPct : (g.wx&&g.wx.precip!=null)? Math.min(100, +g.wx.precip*100) : 0,
     waterType : g._waterType,
     sunriseHr : (g.wx&&g.wx.sr)? hrDec(g.wx.sr) : null,
-    sunsetHr  : (g.wx&&g.wx.ss)? hrDec(g.wx.ss) : null
+    sunsetHr  : (g.wx&&g.wx.ss)? hrDec(g.wx.ss) : null,
+    month     : _todayMon
   };
   const liveBlocks = computeBlocks(condToday);
   if(liveBlocks && liveBlocks.length===12){
@@ -1824,7 +1890,8 @@ function alignSeries(g, gd){
       precipPct : tPrecip,
       waterType : g._waterType,
       sunriseHr : tSr,
-      sunsetHr  : tSs
+      sunsetHr  : tSs,
+      month     : tmrwDate ? (tmrwDate.getMonth()+1) : _todayMon
     };
     const tBlocks = computeBlocks(condTomorrow);
     if(tBlocks && tBlocks.length===12){
