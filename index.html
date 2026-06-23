@@ -1009,16 +1009,27 @@ function scoreClass(v){ return v>=9 ? "prime" : v>=7 ? "good" : v>=4 ? "fair" : 
 /* daytime fishing index = average bite score across the 6a-8pm blocks
    (block indices 3..9 of the 12 two-hour blocks), to one decimal 0.0-10.0. */
 /* External link to the source agency's page for this gauge.
-   USGS -> the documented monitoring-location page (lands on the recent hydrograph).
-   StAGE -> the DNRC Stream & Gage Explorer report app (user picks the site;
-            we avoid a guessed per-site deep link that could 404, since the
-            StAGE station GUID isn't carried in data.json).
+   USGS  -> the documented monitoring-location page (lands on the recent hydrograph).
+   StAGE -> the DNRC Stream & Gage Explorer report for the SPECIFIC station, via its
+            locationId GUID: .../gage-report/location/{GUID}. The GUID comes from
+            data.json (g._locId); if a stale data.json predates that field, we fall
+            back to a code->GUID map, and finally to the StAGE landing page.
    Returns null if we can't build a safe link. */
+const STAGE_LOC_BY_CODE = {
+  "76HB 09500": "bfc4c4ef7d2d41b49f4fc3d2014584f7", // Lolo Creek abv Sleeman Creek
+  "76HB 09600": "06a40d2c83a146618b6e1892ced47849", // Lolo Creek below Highway 93
+  "76H 1200":   "9cb056deb6004e67b3bc577f9a532969", // West Fork Bitterroot abv Painted Rocks
+  "76HE 09000": "87e6c0581c47413fbbf2333afa396adc"  // East Fork Bitterroot nr Conner
+};
 function gaugeUrl(g){
   const src = (g._srcType||'').toLowerCase();
   const code = (g._code||'').trim();
   if(src==='usgs' && code) return 'https://waterdata.usgs.gov/monitoring-location/USGS-'+encodeURIComponent(code)+'/';
-  if(src==='stage')        return 'https://gis.dnrc.mt.gov/apps/stage/gage-report';
+  if(src==='stage'){
+    const loc = g._locId || STAGE_LOC_BY_CODE[code] || null;
+    return loc ? 'https://gis.dnrc.mt.gov/apps/stage/gage-report/location/'+encodeURIComponent(loc)
+               : 'https://gis.dnrc.mt.gov/apps/stage/gage-report';
+  }
   return null;
 }
 /* "6/23 - 5:17a" from an ISO-ish timestamp like "2026-06-23T05:15". */
@@ -1494,6 +1505,7 @@ function alignSeries(g, gd){
   // source identity for the external gauge link (from data.json, not the static config)
   g._code = gd.code || null;                 // e.g. "76HB 09500" (StAGE) or "12350250" (USGS)
   g._srcType = gd.source || null;            // "stage" | "usgs"
+  g._locId = gd.locationId || null;          // StAGE station GUID (for deep-link), when present
   const dn = liveFlow!=null ? liveFlow : lastNonNull(cyFlow.slice(0,today+1)); if(dn!=null) g.discharge=Math.round(dn);
   const sn = liveStage!=null ? liveStage : lastNonNull(cyStage.slice(0,today+1)); if(sn!=null) g.stage=sn.toFixed(2);
   const measured=!!(gd.meta&&gd.meta.measuredTemp);

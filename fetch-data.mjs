@@ -531,7 +531,7 @@ async function main() {
     const normal = computeNormal(base.series);
     gauges.push({
       id: g.id, name: g.name, type: g.type, source: g.source,
-      code: g.code || g.site, lat: g.lat, lon: g.lon,
+      code: g.code || g.site, locationId: g.locationId || null, lat: g.lat, lon: g.lon,
       meta: base.meta,            // { measuredTemp, provisional }
       series: base.series,        // { stage, flow, watertemp } each {unit, thisYear[], lastYear[]}
       weather,                    // { hourly[], daily[], lastYearDaily[] | null }
