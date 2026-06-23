@@ -8,6 +8,30 @@ It is written to be followed top to bottom. Each step is small and reversible. N
 here is destructive until Step 9 (deleting the old hardcoded gauge list), and git history
 keeps everything recoverable anyway.
 
+---
+
+> **Accuracy check (verified against the current `fetch-data.mjs`).** This runbook has
+> **not** been started yet, and all of its premises still hold:
+> - The gauge list is still a hardcoded `const GAUGES = [ … ]` (line ~35) — Step 1/2 apply
+>   unchanged. It currently holds the six Bitterroot gauges (`lolo`, `lolo-hwy93`,
+>   `wf-painted`, `ef-connor`, `wf-conner`, `bell`).
+> - The engine still writes a single root `writeFile("data.json", …)` (line ~721) — Step 2's
+>   target-path change still applies.
+> - Only `writeFile` is imported from `node:fs/promises` (line ~23); Step 2 adds `readFile`
+>   and `mkdir` — **merge them into that existing import line** rather than adding a second
+>   `import` statement.
+> - There is no `DRAINAGE` env var anywhere yet.
+> - The workflows the matrix steps edit (`update-data.yml`, `health-check.yml`) and the
+>   other CI files (`codeql.yml`, `dependabot.yml`) already exist, so Steps 5–6 are
+>   *edits to existing files*, not new files.
+>
+> One note vs. older design docs: the engine's flow forecast is the **GloFAS-trend** model
+> (`forecastFlow_i = latestRealFlow × glofas_i/glofas_today`) and temp is the
+> **water-minus-air offset** model. The migration deliberately does **not** touch
+> forecasting (Step 2 leaves the entire model untouched), so this changes no step here — it
+> only matters if you cross-reference the `logic/` docs, which describe a different (stale)
+> forecast engine. The README is the accurate one.
+
 **Design decision (already made):** folder-per-drainage on ONE branch, not branch-per-
 drainage. Branches drift and force you to cherry-pick engine fixes across six places
 forever. One branch + one `drainages/<name>/gauges.json` per drainage + a matrix build
@@ -97,11 +121,21 @@ In `fetch-data.mjs`, make two small changes. The goal is: the engine is told WHI
 drainage to build via an env var, loads that drainage's gauges, and writes `data.json`
 into that drainage's output folder.
 
-Near the top, after the imports, add:
+**Imports.** The file currently imports only `writeFile`:
 
 ```js
-import { readFile, mkdir } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
+```
 
+Extend that existing line — don't add a second `import` from the same module:
+
+```js
+import { writeFile, readFile, mkdir } from "node:fs/promises";
+```
+
+Then, after the imports, add the drainage resolution:
+
+```js
 // Which drainage to build — set by the workflow matrix (or default to bitterroot locally).
 const DRAINAGE = process.env.DRAINAGE || "bitterroot";
 const CONFIG_PATH = `drainages/${DRAINAGE}/gauges.json`;
@@ -115,25 +149,31 @@ const cfg = JSON.parse(await readFile(CONFIG_PATH, "utf8"));
 const GAUGES = cfg.gauges;
 ```
 
-Find the `writeFile("data.json", …)` call near the end of `main()` and change the target,
-making sure the folder exists first:
+Find the `writeFile("data.json", …)` call near the end of `main()` (around line 721) and
+change the target, making sure the folder exists first. The existing log line already uses
+the local `gauges` variable, so keep that:
 
 ```js
-await mkdir(`${DRAINAGE}`, { recursive: true });
+await mkdir(DRAINAGE, { recursive: true });
 await writeFile(OUTPUT_PATH, JSON.stringify(data, null, 2));
-console.log(`✓ wrote ${OUTPUT_PATH} — ${gauges.length} gauges`);
+console.log(`\n✓ wrote ${OUTPUT_PATH} — ${gauges.length} gauges`);
 ```
 
-Optionally stamp the drainage into the output so the front-end can label itself:
+Optionally stamp the drainage into the output so the front-end can label itself. The `data`
+object already exists (with `generatedAt`, `today`, `timezone`, `constants`, `windows`,
+`gauges`) — just add two fields at the top of it:
 
 ```js
 const data = {
   drainage: DRAINAGE,
   displayName: cfg.displayName || DRAINAGE,
   generatedAt: new Date().toISOString(),
-  // … existing fields …
+  today: todayLocal(),
+  // … the rest of the existing fields, unchanged …
 };
 ```
+
+(The front-end already relies on `data.today` for the today-marker — don't disturb it.)
 
 That is the entire engine change. Everything else — normalization, forecasting, "normal" —
 is untouched.
@@ -155,7 +195,10 @@ the gauge list, units, and structure should match):
 node -e "const a=require('./bitterroot/data.json'); console.log(a.gauges.map(g=>g.id))"
 ```
 
-If the gauge ids match what the site showed before, the extraction is correct.
+You should see the six Bitterroot ids:
+`[ 'lolo', 'lolo-hwy93', 'wf-painted', 'ef-connor', 'wf-conner', 'bell' ]`. If that matches
+what the site showed before, the extraction is correct. (Note `require()` needs the JSON to
+exist; if you prefer, `node --input-type=module` with `readFile` works the same way.)
 
 ---
 
@@ -295,13 +338,18 @@ The check logic is identical to the existing one; only the path becomes drainage
    ```
 3. Pull the title/subheader from the data file (`data.displayName`) instead of hardcoding.
 4. **Hatch calendar:** this is the one piece that's genuinely per-drainage content, not
-   just config. Two options:
+   just config. In `index.html` it lives as authored tables (`HATCH_CALENDAR`, `HATCH_FLY`,
+   and friends — see `logic/05-whats-working-now.md` for how they're consumed), not in
+   `data.json`. Two options:
    - Simplest: move each drainage's hatch table into its `drainages/<name>/` folder as
-     `hatch.json`, and have the front-end fetch it alongside `data.json`.
-   - Or, if the hatch charts are similar enough, keep one shared chart and accept minor
-     inaccuracy until you have per-drainage charts in hand.
+     `hatch.json`, and have the front-end fetch it alongside `data.json`, replacing the
+     inline tables with the fetched ones.
+   - Or, if the hatch charts are similar enough across drainages, keep one shared chart and
+     accept minor inaccuracy until you have per-drainage charts in hand.
 
    Don't block the migration on perfect hatch data — wire the structure, fill charts later.
+   Note the per-gauge `rig` arrays are also authored in `index.html`; if a new drainage's
+   gauges need their own rigs, they travel with the hatch content, not the gauge config.
 
 Test locally over HTTP (the file:// fallback won't load `data.json`):
 
