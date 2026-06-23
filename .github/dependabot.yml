@@ -1,0 +1,14 @@
+# Dependabot — keeps the *GitHub Actions* used in workflows up to date.
+# (There are no npm dependencies; fetch-data.mjs uses Node's built-in fetch. If you ever
+#  add a package.json, add an "npm" ecosystem block here too.)
+#
+# This matters for the 6-month-later case: pinned actions like actions/checkout@v4 or the
+# codeql-action go stale and eventually warn or break. Dependabot opens PRs to bump them.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
