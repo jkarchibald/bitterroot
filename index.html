@@ -1150,9 +1150,13 @@ function bestWindow(blocks,k){
   return { start:bi, score:Math.round(bs), span:planSpan(bi,k) };
 }
 function tomorrowBlocks(g){
+  // Prefer the real engine-computed forecast for tomorrow (from forecast water
+  // temp / flow / weather, set in alignSeries). Fall back to the offset-shifted
+  // estimate only when there's no live forecast (synthetic/offline mode).
+  if(g._tomorrowBlocks && g._tomorrowBlocks.length===12) return g._tomorrowBlocks;
   const avg = g.blocks.reduce((a,b)=>a+b,0)/g.blocks.length;
-  const off = g.next10[0] - avg;
-  return g.blocks.map(v=> Math.max(0, Math.min(10, Math.round(v+off))));
+  const off = (g.next10 ? g.next10[0] : avg) - avg;
+  return g.blocks.map(v=> Math.max(1, Math.min(10, Math.round(v+off))));
 }
 function rankPicks(dayBlocksFn, k){
   return GAUGES.map(g=>{ const w=bestWindow(dayBlocksFn(g),k); return {name:g.short, span:w.span, score:w.score}; })
@@ -1173,11 +1177,9 @@ function planColumn(headLabel, dayBlocksFn){
   return html + '</div>';
 }
 function renderPlanner(){
-  const WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const t = new Date(2026,5,23);
   document.getElementById('plannerHolder').innerHTML =
       planColumn('Today', g=>g.blocks)
-    + planColumn('Tomorrow &middot; '+WD[t.getDay()]+' '+(t.getMonth()+1)+'/'+t.getDate(), g=>tomorrowBlocks(g));
+    + planColumn('Tomorrow', g=>tomorrowBlocks(g));
 }
 
 /* 5-tier quality ladder matching local fly-shop scales (Poor..Hot, low->high).
@@ -1781,6 +1783,57 @@ function alignSeries(g, gd){
   }
   // stash resolved live conditions so blockReasons can name the real limiter
   g._cond = { waterTempF: liveTempF, flowRatio: flowRatio, cloudPct: condToday.cloudPct };
+
+  // ---- TOMORROW bite scores: run the SAME engine on tomorrow's FORECAST
+  //      conditions (forecast water temp, forecast flow ratio, tomorrow's
+  //      weather), instead of nudging today's curve by a guessed offset. Tomorrow
+  //      is the next index after today. For any piece the forecast doesn't carry,
+  //      fall back to today's resolved value for just that piece.
+  {
+    const tIdx = (g._today!=null) ? g._today + 1 : null;
+    const at = (arr,i)=> (arr && i!=null && i>=0 && i<arr.length && arr[i]!=null && isFinite(arr[i])) ? +arr[i] : null;
+    // forecast water temp tomorrow -> today's resolved temp if absent
+    const fcTempTmrw = at(FS.fcTemp, tIdx);
+    const tmrwTempF  = (fcTempTmrw!=null) ? fcTempTmrw : liveTempF;
+    // forecast flow tomorrow -> today's flow if absent; ratio vs normal
+    const fcFlowTmrw = at(FS.fcFlow, tIdx);
+    const flowTmrw   = (fcFlowTmrw!=null) ? fcFlowTmrw : flowNow;
+    const tmrwFlowRatio = (flowTmrw!=null && g._normalFlow) ? flowTmrw/g._normalFlow : flowRatio;
+    // tomorrow's weather from the daily forecast (cloud/precip/sun) -> today's if absent
+    const tmrwDate = (g._dates && tIdx!=null && g._dates[tIdx]) ? g._dates[tIdx] : null;
+    const tmrwStr  = tmrwDate ? tmrwDate.toISOString().slice(0,10) : null;
+    let tCloud=condToday.cloudPct, tPrecip=condToday.precipPct, tSr=condToday.sunriseHr, tSs=condToday.sunsetHr;
+    const W = gd.weather||{};
+    if(tmrwStr && W.daily && W.daily.length){
+      const wd = W.daily.find(d=>d.date===tmrwStr);
+      if(wd){
+        if(wd.sunrise) tSr = hrDec(fmtClock(wd.sunrise));
+        if(wd.sunset)  tSs = hrDec(fmtClock(wd.sunset));
+        if(wd.precipIn!=null) tPrecip = Math.min(100, +wd.precipIn*100);
+        if(W.hourly){
+          const hs=W.hourly.filter(h=>h.t&&String(h.t).slice(0,10)===tmrwStr&&h.cloudPct!=null);
+          if(hs.length) tCloud = Math.round(hs.reduce((a,b)=>a+b.cloudPct,0)/hs.length);
+        }
+      }
+    }
+    const condTomorrow = {
+      waterTempF: tmrwTempF,
+      flowRatio : tmrwFlowRatio,
+      flowTrend : flowTrend,   // same multi-day trend signal (spike/clearing) applies
+      cloudPct  : tCloud,
+      precipPct : tPrecip,
+      waterType : g._waterType,
+      sunriseHr : tSr,
+      sunsetHr  : tSs
+    };
+    const tBlocks = computeBlocks(condTomorrow);
+    if(tBlocks && tBlocks.length===12){
+      g._tomorrowBlocks = tBlocks;
+      let bi=0; for(let i=1;i<12;i++) if(tBlocks[i]>tBlocks[bi]) bi=i;
+      g._tomorrowOptIdx = bi;
+    }
+    g._condTomorrow = { waterTempF: tmrwTempF, flowRatio: tmrwFlowRatio, cloudPct: tCloud };
+  }
 }
 
 function applyRealData(data){
