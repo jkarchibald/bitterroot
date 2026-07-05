@@ -1177,8 +1177,14 @@ function blockReasons(g, i){
     // severity so a real temp/flow/dark limiter still wins when present.
     cands.push({ cat:'temp', sev: 6, label:'water temp estimated' });
   }
-  // Flow limiter
-  if (ratio >= 1.4)      cands.push({ cat:'flow', sev: (ratio-1)*40, label:'high/off-color flow' });
+  // Flow limiter — the off-color claim comes from the DYNAMICS signal (spike),
+  // not the level (logic/03 factor 4b). Genuinely rising/dirty water is the
+  // story of the whole day, so it can outrank dark; big-but-green water is a
+  // mild limiter that must NOT beat dark/dim light.
+  const ftr = (g && g._flowTrend) || {};
+  const spikeR = +ftr.spike || 0;
+  if (spikeR >= 0.35)    cands.push({ cat:'flow', sev: 18 + 22*spikeR, label:'rising/off-color flow' });
+  else if (ratio >= 1.4) cands.push({ cat:'flow', sev: Math.min(22, 10 + (ratio-1.4)*10), label:'big water' });
   else if (ratio <= 0.6) cands.push({ cat:'flow', sev: (1-ratio)*40, label:'low/clear flow' });
 
   // Light limiter — time of day, then sun
