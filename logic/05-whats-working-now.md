@@ -35,7 +35,11 @@ two engines agree.
 - **Temperature band** (largest weight) — e.g. <40 °F loads nymph, zeroes dries;
   50–60 °F (prime) loads dries + dry-dropper; hoot-owl/lethal collapse everything
   and flag "minimize / don't fish."
-- **Flow & clarity** — high/off-color (≥1.4×) pushes streamer, trims dries;
+- **Flow & clarity** — clarity keys off the `flowTrend` **spike** signal
+  (`03` factor 4b), not the ratio level: rising/off-color water (spike ≥ 0.35)
+  pushes streamer hard and trims dries; big-but-green water (≥1.4× with low
+  spike) gets a milder bigger-profile / fish-the-edges nudge, tagged
+  "dropping & clearing" when the clearing signal is ≥ 0.3;
   low/clear (≤0.8×) favors smaller subtle dries.
 - **Light** — overcast (≥65%) lifts dries/emergers; bright sun (≤20%) pushes deeper
   nymphs and bank terrestrials.
