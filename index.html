@@ -609,7 +609,13 @@ function categoryScores(g){
   else if(t<77){ s.nymph+=26; s.streamer+=20; s.dd+=10; s.dry+=6; notes.push("hoot-owl (73-77\u00b0F): minimize \u2014 morning only, or rest the fish"); }
   else { s.nymph+=8; s.streamer+=6; s.dd+=2; s.dry+=2; notes.push("lethal (\u226577\u00b0F): don't fish \u2014 trout mortality is high"); }
   // --- flow vs normal & clarity ---
-  if(c.flowRatio>=1.4){ s.streamer+=28; s.nymph+=14; s.dry-=14; s.dd-=8; notes.push("high/off-color flow ("+(c.flowRatio).toFixed(2)+"\u00d7 normal): streamer"); }
+  // Clarity comes from the DYNAMICS signal (flowTrend spike), not the level:
+  // big-but-green water is not "off-color" (see logic/03 factor 4b).
+  const ft = g._flowTrend || {};
+  const spikeNow = +ft.spike || 0, clearingNow = +ft.clearing || 0;
+  if(spikeNow>=0.35){ s.streamer+=28; s.nymph+=14; s.dry-=14; s.dd-=8; notes.push("rising/off-color water: streamer"); }
+  else if(c.flowRatio>=1.4){ s.streamer+=16; s.nymph+=10; s.dry-=6; s.dd-=2;
+    notes.push("big water ("+(c.flowRatio).toFixed(2)+"\u00d7 normal)"+(clearingNow>=0.3?", dropping & clearing":"")+": bigger profile, fish the edges"); }
   else if(c.flowRatio>=1.2){ s.streamer+=16; s.nymph+=8; s.dry-=4; notes.push("elevated flow ("+(c.flowRatio).toFixed(2)+"\u00d7): bigger profile"); }
   else if(c.flowRatio<=0.8){ s.dry+=12; s.dd+=8; s.nymph+=4; s.streamer-=6; notes.push("low/clear flow ("+(c.flowRatio).toFixed(2)+"\u00d7): downsize, go subtle"); }
   // --- light ---
