@@ -1064,54 +1064,81 @@ function computeBlocks(c){
 
 /* Derive a rain-driven flow-trend signal for TODAY from the aligned flow series.
    Inputs: cyFlow (history through `today`), fcFlow (forecast incl. today onward),
-   and normal flow. Returns {spike, clearing} each 0..1.
+   and normal flow (used ONLY for the returned informational `ratio`).
+   Returns {spike, clearing, ratio} — spike/clearing each 0..1.
 
-   Mechanism mirrors the field reality (and the guide reports): a sharp runoff
-   spike puts the river over normal and rising with a sediment load -> unfishable
-   until it drops and clears, which takes ~a day or two. So:
-     spike    grows with (a) how far above normal flow sits now, and
-              (b) how fast it rose over the last ~2 days (rising = still dirty).
-     clearing grows when flow is FALLING and is descending back toward/through
-              normal after having been elevated in the recent window — the prime
-              window. It's gated off while still well above normal & rising. */
+   Turbidity is a DYNAMICS problem, not a level problem. Where flow sits vs the
+   seasonal normal says nothing about clarity — a fat snowpack year runs 2x
+   median for weeks and fishes fine, and mud settles out on a falling river even
+   at elevated absolute flow. So everything here is SELF-relative to the gauge's
+   own recent trace (up to 10 days back):
+     spike    = (a) rising hard right now (day-over-day rise as a fraction of
+                    yesterday's flow: +10%/day starts to matter, +60% = blown), or
+                (b) residual murk after a genuine runoff EVENT — a recent crest
+                    that rose >=1.30x off its pre-rise base. Residual scales with
+                    event severity (1.3x->0 .. 2.2x->1) and decays on a clock of
+                    falling days (or half-speed if merely plateaued): full at the
+                    crest, ~half after 1 falling day, gone after 2.
+     clearing = the prime post-storm window. Requires a genuine event AND falling
+                water: ramps in on falling day 1 (0.5), prime days 2-3 (1.0),
+                tapers out by day 6 as the recession goes stale. Scaled by event
+                severity and suppressed by any remaining spike.
+   A smooth seasonal recession (no rise in the lookback) produces NO event —
+   spike and clearing both stay 0 and only the static flowRatio dampener applies. */
 function flowTrendFrom(cyFlow, fcFlow, normal, todayIdx){
-  if(!normal || normal<=0) return null;
   const at = (arr,i)=> (arr && i>=0 && i<arr.length && arr[i]!=null && isFinite(arr[i])) ? +arr[i] : null;
-  const now  = at(cyFlow, todayIdx);
-  if(now==null) return null;
-  const d1   = at(cyFlow, todayIdx-1);   // yesterday
-  const d2   = at(cyFlow, todayIdx-2);   // 2 days ago
-  const tmrw = at(fcFlow, todayIdx+1);   // forecast tomorrow (direction)
+  const now = at(cyFlow, todayIdx);
+  if(now==null || now<=0) return null;
+  const d1  = at(cyFlow, todayIdx-1);    // yesterday
+  const r   = (normal>0) ? now/normal : null;   // informational only (context line)
 
-  const r   = now/normal;                              // today's ratio to normal
-  const rMax2 = Math.max(r, d1!=null?d1/normal:0, d2!=null?d2/normal:0); // recent peak
+  // day-over-day rise, as a fraction of yesterday's own flow (self-relative)
+  const riseFrac = (d1!=null && d1>0) ? (now - d1)/d1 : 0;
 
-  // rise/fall over the last day (fractional change vs normal-scaled flow)
-  const slopeUp   = (d1!=null) ? Math.max(0, (now - d1)/normal) : 0;     // rising today
-  const slopeDown = (d1!=null) ? Math.max(0, (d1 - now)/normal) : 0;     // falling today
-  const fallTmrw  = (tmrw!=null) ? Math.max(0, (now - tmrw)/normal) : 0; // still dropping
+  // consecutive falling days ending today. A "falling day" needs a real drop
+  // (>=2% below the prior day) — sensor wobble on a high plateau isn't clearing.
+  let daysFalling = 0;
+  for(let i=todayIdx; i>0; i--){
+    const a = at(cyFlow,i), b = at(cyFlow,i-1);
+    if(a==null || b==null || a >= b*0.98) break;
+    daysFalling++;
+  }
 
-  // SPIKE: blown out. Above ~1.3x normal starts to matter; full blowout ~2.2x+.
-  // Rising water (slopeUp) adds turbidity even at a given level.
-  let spike = 0;
-  if(r > 1.3)      spike += Math.min(1, (r - 1.3) / 0.9);   // level term: 1.3->0, 2.2->1
-  spike += Math.min(0.6, slopeUp * 2.2);                    // rising/dirty term
+  // recent crest within the lookback, and the pre-rise base BEFORE that crest.
+  // In a pure recession the peak is the oldest sample, no base precedes it,
+  // eventMag stays 1, and no event fires.
+  const lb = Math.max(0, todayIdx-10);
+  let peak = now, peakIdx = todayIdx;
+  for(let i=lb; i<=todayIdx; i++){ const v=at(cyFlow,i); if(v!=null && v>peak){ peak=v; peakIdx=i; } }
+  let base = peak;
+  for(let i=lb; i<peakIdx; i++){ const v=at(cyFlow,i); if(v!=null && v<base) base=v; }
+  const eventMag = base>0 ? peak/base : 1;
+  const isEvent  = eventMag >= 1.30;
+  const sev      = Math.max(0, Math.min(1, (eventMag - 1.30)/0.90)); // 1.3x->0 .. 2.2x->1
+
+  // SPIKE — rising/dirty term...
+  let spike = Math.max(0, Math.min(1, (riseFrac - 0.10)/0.50));
+  // ...plus residual post-crest murk, decaying on a falling-day clock
+  // (plateaus count at half speed — sediment settles even without a drop)
+  if(isEvent){
+    const clock    = Math.max(daysFalling, 0.5*(todayIdx - peakIdx));
+    const residual = Math.max(0, 1 - 0.5*clock);
+    spike = Math.max(spike, sev*residual);
+  }
   spike = Math.max(0, Math.min(1, spike));
 
-  // CLEARING: the good window. Requires a recent elevated peak AND that we're now
-  // falling. Strongest as flow descends through ~1.0-1.3x normal. Suppressed while
-  // still high (>1.6x) or while rising.
+  // CLEARING — the dropping-and-greening bonus window after a genuine event
   let clearing = 0;
-  if(rMax2 >= 1.25 && (slopeDown > 0 || fallTmrw > 0) && r < 1.6){
-    const dropping = Math.min(1, (slopeDown + fallTmrw) * 2.5);
-    // sweet spot band: best near normal, tapering above 1.4x and below 0.85x
-    const band = (r <= 1.4 && r >= 0.85) ? 1 : (r > 1.4 ? Math.max(0,(1.6-r)/0.2) : Math.max(0,(r-0.7)/0.15));
-    clearing = Math.max(0, Math.min(1, dropping * band));
+  if(isEvent && daysFalling>=1){
+    const shape = daysFalling<=1 ? 0.5
+                : daysFalling<=3 ? 1
+                : Math.max(0, (6 - daysFalling)/3);   // stale by day 6
+    clearing = sev*shape;
   }
-  // a fully-blown river is not "clearing" yet, regardless
+  // still-murky water isn't "clearing" yet, regardless
   clearing *= (1 - spike);
 
-  return { spike:+spike.toFixed(3), clearing:+clearing.toFixed(3), ratio:+r.toFixed(2) };
+  return { spike:+spike.toFixed(3), clearing:+clearing.toFixed(3), ratio:(r!=null?+r.toFixed(2):null) };
 }
 
 function biteRow(label, v, reasonsArr, star){
