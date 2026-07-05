@@ -63,7 +63,7 @@ data into the packet the engines understand.
 conditions = {
   waterTempF,    // °F, water temperature for the day
   flowRatio,     // day's flow ÷ gauge normal flow (1.0 = normal)
-  flowTrend,     // multi-day direction signal (spiking / clearing / steady)
+  flowTrend,     // {spike, clearing} 0..1 — self-relative runoff-event signal (see 03)
   cloudPct,      // 0–100, daytime mean cloud cover
   precipPct,     // 0–100 proxy, chance/intensity of rain
   waterType,     // freestone / tailwater / mainstem
@@ -79,7 +79,7 @@ conditions = {
 |-------|---------------|--------------------|-------------------------------|
 | `waterTempF` | `series.watertemp.latest.value` | `g._series.fcTemp[i]` | → last `series.watertemp.thisYear[].mean` → `normal.watertemp` → **null** (engine uses neutral "unknown" temp band, 0.55×). Full detail in `01`. |
 | `flowRatio` | `series.flow.latest.value ÷ normal.flow` | `g._series.fcFlow[i] ÷ normal.flow` | flow → last `series.flow.thisYear[].mean`; if `normal.flow` missing → **ratio defaults to 1.0** (treated as normal). |
-| `flowTrend` | derived from this-year vs forecast flow slope | same | → **steady** if insufficient points. |
+| `flowTrend` | `flowTrendFrom()` — self-relative to the gauge's own ~10-day flow trace: rise rate, recent crest vs pre-rise base, consecutive falling days. **Does not use `normal.flow`** (only the informational `ratio` field does). | same signal reused for forecast days | → **null** (no adjustment) if today's flow is missing; with a short trace it degrades to `{spike:0, clearing:0}` (steady). |
 | `cloudPct` | daytime (~8 AM–8 PM) mean of `weather.hourly[].cloudPct` | same (hourly runs ~9 days forward) | **Only `weather.hourly` carries cloud; daily does not.** → if hourly absent → **default 40%** (mild, neutral). |
 | `precipPct` | proxy from `weather.daily[].precipIn`, or aggregated `weather.hourly[].precipIn` | same | → **0%** (dry) if neither present. |
 | `waterType` | `type` | `type` | → treated as **freestone** (the local default) if absent. |

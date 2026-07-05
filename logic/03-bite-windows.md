@@ -77,6 +77,37 @@ generally (the BWO/emerger effect).
 **4. Flow vs normal** (`flowRatio`): ≥1.5× → ×0.80, ≥1.25× → ×0.90 (off-color high
 water dampens the sight bite); very low clear water (≤0.7×) trims harsh midday.
 
+**4b. Flow dynamics** (`flowTrend`, from `flowTrendFrom()`): turbidity is a
+dynamics problem, not a level problem — a fat snowpack year runs 2× the median
+for weeks and fishes fine, and mud settles on a falling river even at elevated
+absolute flow. So this signal is entirely **self-relative** to the gauge's own
+recent trace (~10-day lookback); it never compares against `normal.flow`.
+
+- **`spike`** (0..1, whole-day ×`(1 − 0.55·spike)`): fires on (a) rising hard
+  *right now* — day-over-day rise as a fraction of yesterday's own flow, +10%/day
+  starts, +60%/day = fully blown — or (b) residual murk after a genuine runoff
+  **event**: a recent crest ≥1.30× its pre-rise base. Residual scales with event
+  severity (1.30× → 0 … 2.20× → 1) and decays on a falling-day clock: full at the
+  crest, ~half after 1 falling day, gone after 2 (plateaus decay at half speed —
+  sediment settles even without a drop).
+- **`clearing`** (0..1, whole-day ×`(1 + 0.18·clearing)`): the prime post-storm
+  window. Requires a genuine event **and** real falling days (a falling day is a
+  ≥2% drop below the prior day, so plateau wobble can't fake it): 0.5 on falling
+  day 1, prime (1.0) on days 2–3, tapering to 0 by day 6 as the recession goes
+  stale. Scaled by event severity and multiplied by `(1 − spike)` — still-murky
+  water isn't clearing yet.
+- A **smooth seasonal recession** (no rise anywhere in the lookback) produces no
+  event: spike = clearing = 0 and only the static factor-4 dampener applies.
+- Today's `flowTrend` is **reused unchanged for forecast days** — it's a
+  multi-day condition, not a per-block one.
+
+*History:* the original formulation keyed spike off `flowRatio` level (≥1.3× normal
+started it, ≥2.2× pinned it at 1.0) and gated clearing at ratio < 1.6. That pinned
+"blown out" onto every gauge for days after a storm crested — and onto rivers with
+no storm at all whenever a low prior year dragged `normal` down (July 2026: five
+days into a clean recession, whole drainage scoring 2s while fishing Good). Replaced
+2026-07-05 with the self-relative event model above.
+
 **5. Precip:** light chance (30–69%) → ×1.05 (bugs knocked down, low light); heavy
 (≥70%) → ×0.92 (muddies, suppresses).
 
