@@ -782,7 +782,7 @@ function buildChart(g, mode){
   if (mode==='temp'){
     secCy=S.cyTemp; secLy=S.lyTemp; secFc=S.fcTemp; secColor='var(--t3-status-orange)';
     ySec = t => 30 + (78 - t)/(78-45)*(250-30);
-    rightLabels=[['77',ySec(77)],['73',ySec(73)],['45',ySec(45)]]; threshold=ySec(73);
+    rightLabels=[['77',ySec(77)],[String(HOOT_OWL_F),ySec(HOOT_OWL_F)],['45',ySec(45)]]; threshold=ySec(HOOT_OWL_F);
     secTitle='Water temp (\u00b0F)'; secTitleColor='var(--t3-status-orange)';
   } else {
     secCy=S.cyStage; secLy=S.lyStage; secFc=S.fcStage; secColor='var(--t3-status-light-green)';
@@ -922,24 +922,95 @@ function attachHover(holderId, readoutId, g, mode){
    biology, so a hot-day last-light/dawn window that genuinely fishes well still
    scores well; legality is shown separately. */
 function _bandFor(t){
-  // Calibrated against local fly-shop ratings (Jim Mitchell, etc.): 52F snowmelt
-  // water in June fishes GOOD-to-very-good, not 85% of prime. Cold freestone bands
-  // lifted accordingly so the model agrees with guides who fish this water daily.
-  // Unknown temp: don't punish the gauge as if the water were marginal. In June
-  // snowmelt season these freestone/tailwater reaches fish good-to-very-good
-  // (guides rate the West Fork "prime salmonfly water"), so an unknown temp leans
-  // on a neutral-good assumption — roughly the "good" band — and is flagged
-  // elsewhere as estimated rather than dragging the whole day down to Fair.
-  if(t==null)            return {key:'unknown', mult:0.80, heat:0.22};
-  if(t<40)               return {key:'cold',    mult:0.30, heat:0.00};
-  if(t<46)               return {key:'cool',    mult:0.60, heat:0.03};
-  if(t<50)               return {key:'fishy',   mult:0.74, heat:0.10};  // cold but fishy
-  if(t<54)               return {key:'good',    mult:0.80, heat:0.18};  // 50-54 near-prime
-  if(t<66)               return {key:'prime',   mult:0.88, heat:0.40};  // core feeding, widened to 66
-  if(t<69)               return {key:'upper',   mult:0.80, heat:0.72};  // warm but active
-  if(t<72)               return {key:'stress',  mult:0.55, heat:0.92};  // O2 dropping; dawn-patrol bite
-  if(t<75)               return {key:'hotwater',mult:0.33, heat:1.00};  // warm WATER = poor (not the "Hot" rating)
-  return                        {key:'lethal',  mult:0.12, heat:1.00};
+  // WESTSLOPE-CUTTHROAT THERMAL RESPONSE CURVE.
+  // Anchored on published salmonid thermal biology for O. clarkii lewisi, the
+  // species that defines these Bitterroot-drainage reaches:
+  //   • optimum growth 13-15C (55-59F)      — Bear et al. 2007 (TAFS 136:1113)
+  //   • aerobic-scope peak ~15C, declines beyond — Macnaughton et al. 2021
+  //   • chronic upper-incipient-lethal 19.6C (~67F) — Bear et al. 2007
+  //   • acute lethal ~25C (~77F)            — Macnaughton et al. 2021
+  // `mult` (feeding / catchability, 0..~0.88) is now a CONTINUOUS curve instead
+  // of step-bands: it rises out of the cold, PEAKS across the 55-59F optimum,
+  // eases off past 59F as aerobic scope falls, crosses the ~67F chronic-lethal
+  // line into real stress, and bottoms toward the 77F acute-lethal. Being
+  // continuous, two reaches a few degrees apart now score differently rather
+  // than snapping to one shared band (the old bug where every gauge in 50-66F
+  // returned an identical 0.88).
+  // Peak is held at 0.88 to preserve the existing fly-shop calibration
+  // (guide "Good" ~3.5-4/5 => our dawn/dusk 7-8; 52F snowmelt fishes good).
+  // `heat` (0..1) is the thermal-stress index that drives the crepuscular
+  // dawn/dusk tilt downstream; it climbs with water temp.
+  if(t==null) return {key:'unknown', mult:0.80, heat:0.22};
+  const clamp01=x=>Math.max(0,Math.min(1,x));
+  const pw=(x,pts)=>{                       // piecewise-linear over [temp,val] anchors
+    if(x<=pts[0][0]) return pts[0][1];
+    for(let i=1;i<pts.length;i++){
+      if(x<=pts[i][0]){ const f=(x-pts[i-1][0])/(pts[i][0]-pts[i-1][0]); return pts[i-1][1]+(pts[i][1]-pts[i-1][1])*f; }
+    }
+    return pts[pts.length-1][1];
+  };
+  const MULT=[[36,0.28],[44,0.58],[48,0.72],[52,0.80],[56,0.88],[59,0.88],[62,0.80],[65,0.66],[67,0.54],[70,0.40],[73,0.25],[75,0.16],[77,0.10],[82,0.06]];
+  const HEAT=[[40,0.00],[50,0.12],[54,0.20],[56,0.30],[60,0.45],[64,0.62],[66,0.72],[69,0.85],[72,0.95],[76,1.00]];
+  const mult=+pw(t,MULT).toFixed(3);
+  const heat=+clamp01(pw(t,HEAT)).toFixed(3);
+  // descriptive zone (kept for compatibility; block captions read raw temp, not key)
+  const key = t<44?'cold' : t<50?'fishy' : t<55?'good' : t<60?'prime'
+            : t<64?'upper': t<67?'warm'  : t<73?'stress': t<77?'hotwater' : 'lethal';
+  return {key, mult, heat};
+}
+
+/* ---- THERMAL-STRESS LADDER (fish-welfare indicator, NOT a legal call) ----
+   Pure function of a gauge's water-temp series. Returns {level,label,reason}.
+   This is a STRESS signal only — it never claims a reach is open or closed;
+   FWP's hoot-owl determinations fold in gauges, manual readings, flow and
+   pressure we can't mirror, so we don't imply legality. We just read our own
+   daily-MAX water temp and report thermal stress to the fish.
+
+   Rule (cutthroat-tuned, cumulative like FWP's own 3-consecutive-day logic):
+     • RED    — daily max >= 70F on 3 consecutive days anywhere in the
+                trailing-10 U forecast window (the "you should be off" line;
+                also where FWP hoot-owl becomes likely as it climbs toward 73).
+     • ORANGE — recent/near-term daily max >= 68F but not the sustained red.
+     • GREEN  — comfortably below the cutthroat stress band.
+   The unreliable TERMINAL forecast day is dropped (edge-artifact guard), and
+   forecast max is derived from forecast mean + the gauge's own observed diel
+   (max-mean) spread when the forecast carries only a mean.
+   Estimated/missing temp -> label "Status (est.)" (same chiclet format). */
+// LEGAL / CHART reference, locked to FWP (NOT a welfare call). Montana's
+// statewide hoot-owl trigger is 73F daily max on 3 consecutive days; 77F is
+// lethal. This is the single source of truth for the red chart line and any
+// "hoot-owl likely" reference. Feeding/welfare degradation is NOT keyed off
+// this number -- it lives entirely in _bandFor's continuous response curve,
+// and the conservative cutthroat welfare red is STRESS_RED_F (70) below.
+const HOOT_OWL_F = 73;        // FWP legal/chart line (fixed) -- do not tie feeding logic to this
+const STRESS_ORANGE_F = 68;   // single/near-term days at/above -> elevated
+const STRESS_RED_F    = 70;   // welfare red (tunable, on-the-water number)
+const STRESS_RED_DAYS = 3;    // consecutive days >= RED_F -> red
+const STRESS_FC_DROP  = 1;    // ignore the last N forecast days (edge artifact)
+function waterStress(wt){
+  if(!wt || !wt.thisYear || !wt.thisYear.length)
+    return {level:'unknown', label:'Status (est.)', reason:'no water-temp data'};
+  const estimated = !!wt.estimated;
+  const label = estimated ? 'Status (est.)' : 'Stress';
+
+  const trail = wt.thisYear.slice(-10).map(x=>({date:x.date, max:x.max}));
+  const spreads = wt.thisYear.filter(x=>x.max!=null&&x.mean!=null).map(x=>x.max-x.mean);
+  const bump = spreads.length ? spreads.reduce((a,b)=>a+b,0)/spreads.length : 3.5;
+  let fc = (wt.forecast||[]).map(x=>({date:x.date, max:(x.max!=null?x.max:(x.mean!=null?x.mean+bump:null))}));
+  if(STRESS_FC_DROP>0) fc = fc.slice(0, Math.max(0, fc.length-STRESS_FC_DROP));
+  const series=[...trail,...fc];
+
+  let run=0, redHit=null;
+  for(const d of series){
+    if(d.max!=null && d.max>=STRESS_RED_F){ run++; if(run>=STRESS_RED_DAYS && !redHit) redHit=d.date; }
+    else run=0;
+  }
+  const nearVals=series.slice(Math.max(0,trail.length-1), trail.length+2).map(x=>x.max).filter(v=>v!=null);
+  const nearMax = nearVals.length ? Math.max(...nearVals) : null;
+
+  if(redHit) return {level:'red', label, reason:'water \u2265'+STRESS_RED_F+'\u00b0F for '+STRESS_RED_DAYS+'+ days \u2014 rest the fish'};
+  if(nearMax!=null && nearMax>=STRESS_ORANGE_F) return {level:'orange', label, reason:'daily max ~'+Math.round(nearMax)+'\u00b0F \u2014 approaching stress band'};
+  return {level:'green', label, reason:(nearMax!=null?('daily max ~'+Math.round(nearMax)+'\u00b0F \u2014 '):'')+'below stress band'};
 }
 
 /* Temp-aware DAWN + DUSK ("Dawn Patrol") time-of-day model.
@@ -1358,6 +1429,21 @@ function chiclet(label, status, est){
   return '<div class="chiclet"><span class="dot dot-'+status+'"></span>'+label+sub+'</div>';
 }
 
+/* Thermal-stress indicator chiclet - same visual format as Height/Flow/Temp.
+   Green/orange/red from waterStress(); labeled "Stress" when measured. When the
+   water temp is estimated/missing it renders "Status" + the same ".sub est"
+   suffix the Temp chiclet uses (not "(est.)"), so the two tags are formatted
+   identically and fit on one line. Welfare signal only - never a legal/hoot-owl
+   claim. waterStress() still returns "Status (est.)" for the tooltip/reason. */
+function stressChiclet(g){
+  const s = waterStress(g && g._wt);
+  const dot = (s.level==='unknown') ? 'orange' : s.level;
+  const est = /\(est\.?\)/.test(s.label);
+  const base = 'Stress';   // metric name is always "Stress"; the est tag carries provenance
+  const sub  = est ? ' <span class="sub" style="color:var(--t3-status-orange)">est</span>' : '';
+  return '<div class="chiclet" title="'+s.reason+'"><span class="dot dot-'+dot+'"></span>'+base+sub+'</div>';
+}
+
 function renderCards(){
   const grid = document.getElementById('gaugeGrid');
   grid.innerHTML = GAUGES.map((g, idx) => {
@@ -1388,7 +1474,7 @@ function renderCards(){
     + '<div class="top-right">'+scoreChip+'<span class="badge">'+g.source+'</span></div>'
     + '</div>'
     + '<div class="tag-row">'+tags+'</div>'
-    + '<div class="chiclets">'+chiclet('Height',g.chiclets.h,false)+chiclet('Flow',g.chiclets.f,false)+chiclet('Temp',g.chiclets.t,g.tempEst)+'</div>'
+    + '<div class="chiclets">'+chiclet('Height',g.chiclets.h,false)+chiclet('Flow',g.chiclets.f,false)+chiclet('Temp',g.chiclets.t,g.tempEst)+stressChiclet(g)+'</div>'
     + '<div class="stats">'
     + '<div><div class="stat-group-label">Water'+(g._liveAt? ' (now \\u00b7 '+fmtClock(g._liveAt)+')' : ' (now)')+'</div>'
     + '<div class="reading"><span class="rl">Discharge</span><span class="rv">'+g.discharge+'</span><span class="ru">cfs</span></div>'
@@ -1830,6 +1916,7 @@ function alignSeries(g, gd){
   const measured=!!(gd.meta&&gd.meta.measuredTemp);
   const tn = liveTemp!=null ? liveTemp : (cyTemp?lastNonNull(cyTemp.slice(0,today+1)):(gd.normal&&gd.normal.watertemp!=null?gd.normal.watertemp:null));
   g._tempF = (tn!=null) ? tn : null;   // numeric live temp for the scorers — never parse the display string
+  g._wt = wt || null;                  // raw water-temp series (thisYear/forecast/estimated) for the stress ladder
   if(tn!=null){ g.temp=String(Math.round(tn)); g.tempEst=!measured; g.chiclets.t=measured?'green':'orange'; }
   else { g.temp='\u2014'; g.tempEst=false; g.chiclets.t='red'; }
   g.chiclets.h='green'; g.chiclets.f='green';
