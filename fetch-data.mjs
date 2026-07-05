@@ -287,7 +287,9 @@ async function pullStageGauge(g, win) {
       lastYear: toDaily(ly.samples.map((x) => ({ t: x.t, v: conv(x.v) })), stageDayKey),
     };
   }
-  return { series: out, meta };
+  // A StAGE site without a temp sensor needs the pass-2 estimate, same as the
+  // USGS path — omitting this left wf-painted with watertemp:null forever.
+  return { series: out, meta, _needsTempEstimate: !sensors.temp };
 }
 
 // ----------------------------- USGS --------------------------------
@@ -502,10 +504,13 @@ function buildEstimatedTempSeries(gauge, weatherDaily, freestoneAvg, anchorIdx) 
   const todayAir = airOf(wd[anchorIdx]);
   const isTail = gauge.type === "tailwater";
 
-  const mk = (mean) => ({ mean: round(mean), min: mean != null ? round(mean - 3) : null,
+  // NOTE: `date` is REQUIRED on every row — the front-end aligns all series by
+  // date (alignSeries), so a date-less estimated row silently fails to align and
+  // the gauge renders "temp missing" even though the estimate exists.
+  const mk = (mean, date) => ({ date, mean: round(mean), min: mean != null ? round(mean - 3) : null,
                           max: mean != null ? round(mean + 3) : null, n: 0 });
 
-  const thisYear = histRows.map((r) => mk(r.mean));
+  const thisYear = histRows.map((r) => mk(r.mean, r.date));
 
   const forecast = wd.slice(anchorIdx + 1).map((d) => {
     let mean;
@@ -520,7 +525,7 @@ function buildEstimatedTempSeries(gauge, weatherDaily, freestoneAvg, anchorIdx) 
         normalWaterT: gauge.normal && gauge.normal.watertemp });
       mean = r.mean;
     }
-    return { ...mk(mean), forecast: true };
+    return { ...mk(mean, d.date), forecast: true };
   });
 
   return { thisYear, forecast };
