@@ -590,21 +590,50 @@ function stageForecastFrom(flowForecast, rating) {
   }));
 }
 
-// Water-temp forecast from forecast air temp. Measured gauges: carry the recent
-// (water − airMean) offset forward. Estimated gauges are handled by the estimator.
+// Water-temp forecast from forecast air temp. Measured gauges: anchor on today's
+// real reading and ride the air-temp *trend* forward at this gauge's own damped
+// air→water coupling slope. A flat (water − air) offset tracks air 1:1, which badly
+// over-warms buffered freestone forks on hot days — Bitterroot forks empirically
+// couple at ~0.4, not 1.0 (observed: air swung 49→72°F while water held low 60s).
+// So we learn the slope from the gauge's own history (least-squares water~air),
+// clamp it to a physical range, and carry today's value along the air change only.
+// Estimated gauges are handled by the estimator (already damps 0.5x).
 function waterTempForecast(measuredThisYear, weatherDaily, forecastDates) {
   if (!weatherDaily?.length || !measuredThisYear?.length) return null;
   const airBy = new Map(weatherDaily.map((d) =>
     [d.date, (d.hiF != null && d.loF != null) ? (d.hiF + d.loF) / 2 : null]));
-  const offs = [];
+
+  // learn this gauge's air→water coupling from its own history (slope of water_mean
+  // on air_mean). Clamp to [0.2, 0.6]; fall back to 0.4 (measured Bitterroot forks
+  // cluster ~0.38–0.41) when the sample is too thin to trust.
+  const pts = [];
   for (const w of measuredThisYear) {
-    const air = airBy.get(w.date);
-    if (air != null && w.mean != null) offs.push(w.mean - air);
+    const a = airBy.get(w.date);
+    if (a != null && w.mean != null) pts.push([a, w.mean]);
   }
-  const offset = offs.length ? offs.reduce((a, x) => a + x, 0) / offs.length : -4;
+  let slope = 0.4;
+  if (pts.length >= 4) {
+    const n = pts.length;
+    const mx = pts.reduce((s, p) => s + p[0], 0) / n;
+    const my = pts.reduce((s, p) => s + p[1], 0) / n;
+    let sxy = 0, sxx = 0;
+    for (const [a, w] of pts) { sxy += (a - mx) * (w - my); sxx += (a - mx) * (a - mx); }
+    if (sxx > 0) slope = Math.min(0.6, Math.max(0.2, sxy / sxx));
+  }
+
+  // anchor on the most recent real reading + its air; ride the air change from there.
+  let anchor = null;
+  for (let i = measuredThisYear.length - 1; i >= 0; i--) {
+    const w = measuredThisYear[i];
+    if (w && w.mean != null && airBy.get(w.date) != null) { anchor = w; break; }
+  }
+  if (!anchor) return null;
+  const anchorAir = airBy.get(anchor.date), anchorWater = anchor.mean;
+
   return forecastDates.map((date) => {
     const air = airBy.get(date);
-    return { date, mean: air == null ? null : round(Math.max(33, air + offset)), forecast: true };
+    return { date, mean: air == null ? null
+      : round(Math.max(33, anchorWater + slope * (air - anchorAir))), forecast: true };
   });
 }
 
