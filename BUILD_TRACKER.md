@@ -166,22 +166,27 @@ re-opened, just re-checked).
    *Touches:* every temp-driven output; Tomorrow column; banner; makes the Phase-2
    `unknown` branch dead code.
 
-4. **Flow** · rigor **B** · ☐
-   `flowRatio` response in both engines, clarity/turbidity via `flowTrend`, drift
-   concentration & holding-water effects, blown-out/clearing logic. **Fix the
-   ≥1.4× band-flattening here** (everything ≥1.5× currently flattens to `flowAdj=0.80`
-   — confirmed live: Lolo above 1.89× and Lolo below 2.72× score the same flow term,
-   so flow can't differentiate gauges). Build a response that scales with the multiple
-   across ALL rivers (2×, 2.7×, 4×… should differ), per the Lolo discussion.
-   **CRITICAL data caveat — "normal" is NOT a true normal.** `computeNormal`
-   (`fetch-data.mjs` L611–613) = median of daily means over **this year + last year
-   only**; the USGS last-year window "may be empty beyond retention," so it can lean
-   almost entirely on this year. So `flowRatio` really means "vs a ~2-year median /
-   roughly last year," and any "X× normal" label is misleading. A true climatological
-   normal requires pulling and **storing** several prior years ourselves (raw APIs
-   won't reliably serve them) — a data-architecture decision to make in/around this
-   phase before leaning hard on absolute multiples.
-   *Touches:* both engines; blown-out penalty / clearing bonus; the normal baseline.
+4. **Flow** · rigor **B** · ☐ **(REFRAMED — dynamics-first, not level-vs-normal)**
+   **DESIGN REFRAME (Uber, 2026-07-05):** flow *level* mostly **relocates** fish
+   (high → edges/seams; low → deep holds), it does NOT gate feeding — so a static
+   "high flow → lower score" penalty is conceptually wrong. The real feeding signal is
+   **dynamics**: a fast rise mobilizes sediment and clouds the water → fish can't see
+   the fly → bite suppressed; the falling/clearing window right after is often the best
+   fishing of the week. These are **self-relative** (measured vs the river's OWN recent
+   flow), which sidesteps the broken "normal" baseline entirely.
+   *Work:* demote the static level-vs-normal `flowAdj` bands (the `≥1.5×→0.80` step that
+   pins the score); make `flowTrend.spike` (blowout, −55%) and `flowTrend.clearing`
+   (dropping & clearing, +18%) the PRIMARY flow signal — and first verify they're even
+   firing (a dead `flowTrend` is a prime suspect for the day score being frozen across
+   days of changing flow). Keep absolute level only as a guardrail at the extremes
+   (true unfishable blowout; very low water × thermal). Turbidity is inferred from rise
+   rate (no sensor).
+   *Consequence:* "normal" demotes to informational context, not a scoring driver —
+   which largely **defuses the multi-year-storage question** (may not need a true
+   climatological normal for the bite at all). The "big water" caption + the
+   ≥1.4× band-flattening fold into this rework.
+   *Touches:* both engines; block-caption flow logic; `flowTrend`; dayScore
+   responsiveness.
 
 5. **Light & time-of-day** · rigor **B** · ☐
    Cloud response + the crepuscular block engine: dawn/dusk amplitudes, `duskC`
@@ -204,6 +209,32 @@ re-opened, just re-checked).
 8. **Current fly recommendations from a local shop** · **external / user-owned** · ☐
    Uber pulls current shop fly ratings and real-water observations; these are the
    ground-truth the model calibrates against (and the eventual input to Phase 7).
+
+---
+
+## 4b. Section → phase readiness map
+
+*Which on-screen section becomes trustworthy after which phase. Rule of thumb: DATA
+sections settle early (Phase 2–3); every SCORE section improves as drivers land but
+only LOCKS at Phase 6 (recalibration). Freshness ≠ correctness — the header timestamp
+tells you if data refreshed; the phase tells you if the logic is final.*
+
+| App section | Settles / focused after | Watch for |
+|---|---|---|
+| Raw readings (discharge, stage, temp, weather) | **Phase 3** | Every gauge real-or-estimated, no "missing," full-length series. Temp-forecast fix already improved this. |
+| Chiclets — Height/Flow/Temp/**Stress** dots | **Phase 3** (Stress shape confirmed **Phase 2**) | Already moving from temp fix: East Fork red→green, Lolo-below orange→green once deployed. |
+| Temp value + forecast line | **Phase 3** (curve was Phase 1) | Forecast stops over-warming (East Fork no longer projects 70°F). Mostly done. |
+| **Day score** (0–10 badge) | Responsive after **Phase 4**; final at **Phase 6** | After 4 it should move day-to-day (today frozen by pinned flow). After 6, re-anchored to guide "Good ≈ 7–8." |
+| Today's bite windows (bars + captions) | Shape right after **Phase 5**; final **Phase 6** | Phase 4: "big water" becomes magnitude/dynamics-aware. Phase 5: dawn/dusk shape. |
+| Where to fish (Today/Tomorrow ranking) | **Phase 6** (needs Phase 4 first) | Phase 4: gauges stop tying, start differentiating. Phase 6: ranking stable/calibrated. |
+| What's working now (dry/nymph/DD/streamer) | **Phase 6** (patterns at **Phase 7**) | The "four identical scores" section — on the OLD rig engine BY DESIGN until Phase 6. Expect it unchanged/static until then; not a new bug. |
+| Chart forecast lines | temp **Phase 3** · flow **Phase 4** | Temp line already corrected; flow/clearing dynamics arrive with Phase 4. |
+
+**Quick read:** *Now* (once `fetch-data.mjs` is committed + a run fires) only the Temp
+forecast line and Stress chiclet should visibly change — that's the deploy check.
+*After Phase 4* is the big unlock: day score starts responding, gauges differentiate,
+"big water" gets smart. *After Phase 6* all score sections settle to final calibrated
+values and "what's working now" finally comes right.
 
 ---
 
@@ -251,6 +282,24 @@ re-opened, just re-checked).
 ---
 
 ## ── STATUS LOG (living — newest on top) ──
+
+### 2026-07-05 (g) · Flow model reframed (Phase 4) + day-score staticness diagnosed
+- **Day score frozen 3 days despite fresh `data.json`** traced to flow: each block is
+  `10·tempMult·light·flowAdj·precipAdj`; tempMult/light/precip were ~flat, and
+  `flowAdj` is a step function pinned at 0.80 (ratio ≥1.5) — so a river that's actually
+  dropping/clearing doesn't move the score. Not the averaging window (that change won't
+  unfreeze it; in summer `[sunrise+1,sunset−1]` ≈ the same blocks).
+- **DECISION — flow is dynamics-first, not level-vs-normal (Uber).** Level relocates
+  fish, doesn't gate feeding; the bite signal is the rise→turbidity→can't-see-fly
+  suppression and the clearing rebound. Self-relative, so it sidesteps the bad
+  "normal" baseline and largely defuses the multi-year-storage question. See Phase 4.
+  `flowTrend` spike/clearing become primary; static bands demoted; verify `flowTrend`
+  is firing.
+- **dayScore weight (0.35 best-4hr / 0.65 daytime avg):** confirmed a hand-tuned
+  calibration knob (rigor C), set to hit "guide Good ≈ 7–8", not a derived constant —
+  re-justify at Phase 6. Uber's `[sunrise+1, sunset−1]` averaging-window idea also
+  pulls dawn/dusk OUT of the average (best-4hr term still catches them); do it WITH the
+  Phase-6 weight re-anchor, not piecemeal.
 
 ### 2026-07-05 (f) · Phase-3 lead fix pulled forward — measured-gauge temp forecast
 - **File delivered:** `/mnt/user-data/outputs/fetch-data.mjs`. `waterTempForecast`
