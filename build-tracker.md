@@ -1,4 +1,4 @@
-<!-- version: build-tracker-9.md -->
+<!-- version: build-tracker-10.md -->
 # Bitterroot Dashboard — Build Tracker & Handoff
 
 *Single source of truth for the fly-fishing conditions engine. Feed this file at
@@ -413,7 +413,7 @@ values and "what's working now" finally comes right.
   | `01-temperature` | No update needed (estimation model unchanged; band is presentation). |
   | `02-chart-forecasts` | Rewritten `-3-3` (real observed-spread band; callout consumer; `[S4]`). |
   | `06-thermal-response-and-stress` | **REWRITTEN → `-3-3`** — §3 stress ladder redefined to current-only (today's peak, `STRESS_TODAY_ORANGE_F=70` / `STRESS_TODAY_RED_F=73`); new §3b documents the forecast-warning callout (`tempCallout`, card pill + chart chiclet + hover); §3a trace re-run against live 8-gauge data; §5 `unknown→orange` marked dead code (Phase 3 closed); §6 Phase 3 → ☑ CLOSED. DO grounding (§4), curve (§1), citations (§7) untouched. |
-  | `build-tracker` | This file → `-9`. |
+  | `build-tracker` | This file → `-10` (bumped for the `06` rewrite + close-out edits; `-9` was the prior in-session version). |
   | `00`, `03`, `04`, `05`, `README`, `MIGRATION` | No update needed. |
 - **Placeholder debt (owed to Phase 7):** Darby + Missoula carry Bell's mainstem rig
   verbatim as placeholders — real per-gauge rigs are a Phase-7 (fly selection) item, logged
