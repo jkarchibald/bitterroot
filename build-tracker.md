@@ -40,10 +40,14 @@ phase is in flight.*
    newest; always re-upload the highest one.
 6. **Commit-message rule (standing):** every file Claude delivers that goes into the
    repo (`index.html`, `fetch-data.mjs`, `update-data.yml`, logic `.md`s, and the
-   tracker) ships with a paste-ready commit message in a copy block — a Conventional-
-   Commits subject (`fix:` / `feat:` / `docs:` / `chore:`) plus a short body saying what
-   changed and why, so git history reads as a real changelog. (Switch to plain-English
-   subjects if the repo history uses those.)
+   tracker) ships with a paste-ready commit message in a copy block — a subject line plus a
+   short body saying what changed and why, so git history reads as a real changelog.
+   **Subject format (Uber, 2026-07-10):** `type: (versioned-filename.ext): subject`, e.g.
+   `feat: (fetch-data-3-3.mjs): emit real forecast diel band`. Type is Conventional-Commits
+   (`feat:` / `fix:` / `docs:` / `chore:`); the versioned filename goes in parens; then the
+   subject. Body follows as a separate block (plain ASCII, ~72-col wrap, so it pastes into a
+   terminal cleanly). Files commit under their plain repo names — the version lives in the
+   in-file stamp and the commit subject, not the committed filename.
 7. **Citation rule (standing):** every logic-doc assumption points to a **cited**
    published source where one exists (author/agency, year, venue, and a locator —
    DOI / doc number). Values Claude computes from the app's own data are labeled
@@ -154,7 +158,7 @@ re-opened, just re-checked).
 |---|---|---|---|
 | 1 · Response curve | **☑ PROVISIONAL** — *not fully closed* | `_bandFor` literature-locked to westslope cutthroat, integrated in the bite engine, chart red line, banner/warnings. | Two downstream couplings, not Phase-1 defects: **Phase 6** recalibration (`categoryScores` still on parallel step-bands — the "four identical scores") and the **Phase 3** `t==null` null branch. Flips to full ☑ when those land. |
 | 2 · DO + stress ladder | **☑ CLOSED (done & integrated)** | Gap A: 68/70 confirmed science-shaped (O₂ scissors, not DO-sat numbers); elevation analyzed, deliberately not wired; two-tier 70/73 split reinforced. Validated headless; DO-grounded doc `06-…-2-3` (cited). No index/fetch change. | Nothing in Phase-2 remit. Gap B (coupling) **relocated to Phase 3** — it was pipeline work, never Phase-2 science. |
-| 3 · Temp estimation & forecast | **☑ (done & integrated; live-pull confirmed + measured-gauge forecast band shipped, 2026-07-10)** | Lead fix (measured `waterTempForecast`) + **all four items**: (1) 8-vs-11-day window fixed (`PAST_WX_DAYS=HISTORY_DAYS`); (2) diel decision resolved — single daily model kept, but estimated `max` from real neighbours not flat `+3`, **and (new, `-3-3`) measured-gauge forecast rows now carry a real diel band from each gauge's own observed spread** (closes the render-time bump gap; ladder + callout key on `max`); (3) Open-Meteo warm-bias characterised + terminal-day guard upstream; (4) no-unknown mandate closed (seasonal floor). **Mainstem:** Darby + Missoula added as measured temp gauges; **Bell = Darby↔Missoula gradient**. **Confirmed against the live 8-gauge `data.json` (generatedAt 2026-07-10 14:48Z):** Darby/Missoula probes real, Bell `estMethod:"mainstem-gradient"`. `01`/`02` rewritten (`02-3-3` records the real band). | Nothing in Phase-3 remit. Flips Phase 1 (null branch dead code) and finalises Phase 2's coupling at Phase 6. |
+| 3 · Temp estimation & forecast | **☑ CLOSED (done, integrated, live-deploy verified 2026-07-10)** | Lead fix (measured `waterTempForecast`) + **all four items**: (1) 8-vs-11-day window fixed; (2) diel decision resolved + **measured-gauge forecast rows carry a real diel band from observed spread** (`-3-3`); (3) Open-Meteo warm-bias characterised + terminal-day guard; (4) no-unknown mandate closed. **Mainstem:** Darby + Missoula added (measured); **Bell = Darby↔Missoula gradient**. Frontend: 6→8 roster, forecast-warning callout (card pill + chart legend chiclet with temps+dates hover), stress chiclet redefined to **current-only (today's peak, 70/73)**. **Live deploy verified:** 8 gauges render, chart hover works, Missoula shows green Stress + amber callout (no contradiction). `01`/`02` rewritten; `06` stress-meaning patch specced (below). | **Nothing in Phase-3 remit.** Flips Phase 1's `t==null` branch to dead code and satisfies Phase 2's coupling — both re-checked at Phase 6. Darby/Missoula placeholder rigs (Bell's, copied) owed to Phase 7. |
 | 4 · Flow | ☐ not started (reframed dynamics-first) | — | Whole phase. |
 | 5 · Light/time-of-day | ☐ not started | — | Whole phase. |
 | 6 · Integration & recalibration | ☐ not started | — | Re-anchors `categoryScores`; flips Phase 1 to full ☑. |
@@ -162,9 +166,11 @@ re-opened, just re-checked).
 | 8 · Shop reports (external) | ☐ user-owned | — | — |
 | 9 · Doc/IP consolidation | ☐ final (after Phase 6) | — | — |
 
-**Read:** exactly one phase is fully **CLOSED** (Phase 2). Phase 1 is complete as
-biology and live, but **provisional** — it cannot close until Phase 3 (null branch)
-and Phase 6 (recalibration) land. Don't mark Phase 1 ☑ before then.
+**Read:** two phases are fully **CLOSED** (Phase 2, Phase 3). Phase 1 is complete as
+biology and live, but **provisional** — it cannot close until Phase 6 (recalibration)
+lands (its `t==null` null branch is now dead code as of Phase 3, but the `categoryScores`
+re-anchor is still owed). Don't mark Phase 1 ☑ before Phase 6. **Next full phase: Phase 4
+(flow, dynamics-first).**
 
 
 1. **Water temperature — response curve** · rigor **A** · **☑ PROVISIONAL — temp-complete, pending downstream re-verification (Phase 6 recalibration; Phase 3 null branch)**
@@ -389,6 +395,32 @@ values and "what's working now" finally comes right.
 ---
 
 ## ── STATUS LOG (living — newest on top) ──
+
+### 2026-07-10 (d) · Phase 3 CLOSED — live deploy verified; 06 stress patch specced
+- **Live deploy verified (Uber).** The deployed site renders all 8 gauges; the chart
+  forecast-warning chiclet + temps/dates hover work live; **Missoula reads green Stress +
+  amber "Water Temp" callout** (screenshot confirmed) — the current-vs-forecast split holds
+  on the real site, no contradiction. This was the last Phase-3 gate.
+- **Phase 3 → ☑ CLOSED.** All four items done + integrated, mainstem gauges added, forecast
+  band shipped, callout (card + chart) shipped, stress chiclet redefined to current-only.
+  Consequences: Phase 1's `t==null` null branch is now **dead code** (an estimate always
+  exists); Phase 2's coupling is satisfied. Both are re-checked (not re-opened) at Phase 6.
+- **Doc audit (phase close) — explicit per-doc table:**
+  | Doc | Status |
+  |---|---|
+  | `fetch-data` | Shipped `-3-3` (real forecast diel band). |
+  | `index.html` | Shipped `-3-3` (roster 6→8, callout card+chart, stress current-only). |
+  | `01-temperature` | No update needed (estimation model unchanged; band is presentation). |
+  | `02-chart-forecasts` | Rewritten `-3-3` (real observed-spread band; callout consumer; `[S4]`). |
+  | `06-thermal-response-and-stress` | **REWRITTEN → `-3-3`** — §3 stress ladder redefined to current-only (today's peak, `STRESS_TODAY_ORANGE_F=70` / `STRESS_TODAY_RED_F=73`); new §3b documents the forecast-warning callout (`tempCallout`, card pill + chart chiclet + hover); §3a trace re-run against live 8-gauge data; §5 `unknown→orange` marked dead code (Phase 3 closed); §6 Phase 3 → ☑ CLOSED. DO grounding (§4), curve (§1), citations (§7) untouched. |
+  | `build-tracker` | This file → `-9`. |
+  | `00`, `03`, `04`, `05`, `README`, `MIGRATION` | No update needed. |
+- **Placeholder debt (owed to Phase 7):** Darby + Missoula carry Bell's mainstem rig
+  verbatim as placeholders — real per-gauge rigs are a Phase-7 (fly selection) item, logged
+  here so they don't silently become permanent.
+- **Next full phase: Phase 4 (flow, dynamics-first).** Prompt + upload set prepared. First
+  Phase-4 job: verify `flowTrend.spike`/`clearing` actually fire in live data (a dead
+  `flowTrend` is the prime suspect for the frozen day score).
 
 ### 2026-07-10 (c) · Stress chiclet redefined: current-only (today's peak), not forecast
 - **File delivered:** `index-3-3.html` (same version — this refines the same iteration's
