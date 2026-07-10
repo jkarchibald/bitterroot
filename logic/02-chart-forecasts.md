@@ -1,3 +1,4 @@
+<!-- version: 02-chart-forecasts-3-3.md -->
 # 02 · Chart Forecasts (Flow, Stage, Temp Tail & the Terminal-Day Guard)
 
 *Phase 3 rewrite. The pre-Phase-3 version described the water-temp forecast as a
@@ -56,6 +57,22 @@ default `0.4`). For **estimated mainstem** gauges the forecast comes from the sa
 Darby↔Missoula gradient; for other estimated gauges it rides today’s value forward along
 the air trend, damped. Full detail in `01-temperature.md`. The chart temp line is just this
 forward array spliced onto the history at the TODAY index.
+
+**Forecast diel band (Phase-3 re-touch, `-3-3`).** Each measured-gauge forecast row now
+carries a real `min`/`max`, not just a `mean`. The band is the gauge’s **own observed daily
+swing** — average `(max − mean)` for the upper half and `(mean − min)` for the lower half,
+computed over that gauge’s real `thisYear` history — added symmetrically to the forecast
+`mean`. This is characteristic per gauge (a big mainstem gauge like Missoula swings a
+tighter band, ~±2.4 °F, than a small fork), so the forecast **max** that the stress ladder
+and the frontend forecast-warning callout read is grounded in the gauge’s measured
+behaviour, not a guessed constant or a render-time bump. Estimated gauges already carried a
+band (mainstem gradient inherits its measured neighbours’ real min/mean/max; the freestone
+estimator emits a modest ±3 °F). Fallback for a measured gauge with no usable min/max
+history is a symmetric ±3 °F. **Phase-6 re-touch candidate** — a fixed diel offset is a
+first approximation; a season- or flow-aware band is the eventual refinement. This closed
+the gap where the frontend faked a forecast max by bumping the mean at render time; the
+bump survives only as a fallback when a (stale, pre-band) `data.json` carries mean-only
+forecast rows.
 
 ### 2d. Terminal-day guard (Phase 3, new)
 
@@ -118,10 +135,17 @@ an overall average in the chart corner.
 ## Outputs
 
 - `series.flow.forecast[]`, `series.stage.forecast[]`, `series.watertemp.forecast[]` —
-  forward arrays spliced onto each history line at the TODAY index.
+  forward arrays spliced onto each history line at the TODAY index. Measured-gauge
+  `watertemp.forecast[]` rows now carry `{date, mean, min, max, forecast}` (real diel band,
+  §2c); estimated gauges already did.
 - Per-day + average **confidence** in the chart corner.
 - Guarded air axis feeds the Tomorrow column and the bite engine (`03`), so the terminal
   spike is neutralised everywhere, not just on the chart.
+- The forecast `max` is consumed by the frontend’s **forecast-warning callout** (amber
+  “Water Temp” at ≥70 °F / 3 consecutive forecast days; red “Hoot-Owl Likely” at ≥73 °F /
+  3 consecutive), which uses the same `STRESS_FC_DROP` terminal-day drop as the stress
+  ladder. Before the band, that callout (and the stress ladder) fell back to a render-time
+  mean-bump; the real band removes the guess.
 
 ---
 
@@ -141,3 +165,6 @@ an overall average in the chart corner.
   latest reading; `a + b·√flow` least-squares rating from paired daily means).
 - **[S3] Air→water coupling slope** — *derived-in-repo* from each gauge’s measured history
   (clamped [0.2, 0.6], default 0.4). Cross-ref `01`.
+- **[S4] Forecast diel band** — *derived-in-repo* from each gauge’s own `thisYear` observed
+  spread (mean of `max−mean` up, `mean−min` down); ±3 °F symmetric fallback is *assumption*.
+  Phase-6 re-touch candidate (season/flow-aware band).
