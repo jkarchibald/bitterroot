@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<!-- version: index-3-3.html -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -100,8 +101,15 @@ button, .btn { font-size: 12px; font-weight: 500; }
 .gauge-link { display: inline-block; margin-top: 5px; font-size: 11px; color: var(--t3-light-blue); text-decoration: none; }
 .gauge-link:hover { text-decoration: underline; }
 .badge { font-size: 11px; padding: 2px 7px; border-radius: 3px; white-space: nowrap; border: 1px solid var(--t3-custodian-blue); color: var(--t3-light-blue); background: color-mix(in srgb, var(--t3-custodian-blue) 22%, transparent); }
-.viewing-pill { font-size: 11px; color: var(--t3-custodian-blue); font-weight: 600; margin-top: 10px; letter-spacing: 0.5px; visibility: hidden; }
+.viewing-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; min-height: 16px; }
+.viewing-pill { font-size: 11px; color: var(--t3-custodian-blue); font-weight: 600; letter-spacing: 0.5px; visibility: hidden; }
 .card.selected .viewing-pill { visibility: visible; }
+.temp-callout { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 3px; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
+.temp-callout .tc-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.temp-callout.amber { color: var(--t3-status-orange); border: 1px solid color-mix(in srgb, var(--t3-status-orange) 55%, transparent); background: color-mix(in srgb, var(--t3-status-orange) 12%, transparent); }
+.temp-callout.amber .tc-dot { background: var(--t3-status-orange); }
+.temp-callout.red { color: var(--t3-status-red); border: 1px solid color-mix(in srgb, var(--t3-status-red) 55%, transparent); background: color-mix(in srgb, var(--t3-status-red) 12%, transparent); }
+.temp-callout.red .tc-dot { background: var(--t3-status-red); }
 .tag-row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
 .tag { font-size: 11px; padding: 2px 7px; border-radius: 3px; color: var(--t3-text-secondary); border: 1px solid var(--t3-border-primary); }
 .chiclets { display: flex; gap: 6px; margin: 12px 0; }
@@ -223,7 +231,7 @@ table.cal { width: 100%; border-collapse: collapse; font-size: 12px; }
   <div class="page-head">
     <div>
       <h1>Bitterroot Fishing Conditions</h1>
-      <div class="head-sub">Bitterroot drainage &middot; 5 gauges &middot; <span id="lastUpdated">last updated &mdash;</span></div>
+      <div class="head-sub">Bitterroot drainage &middot; 8 gauges &middot; <span id="lastUpdated">last updated &mdash;</span></div>
     </div>
     <div class="range-controls">
       <span class="pseudo-select">History: last 10 days</span>
@@ -458,6 +466,40 @@ const GAUGES = [
     blocks: null, optIdx: 0, optLabel: "6:00-8:30 PM",
     optNote: "Warmest reach (57&deg;F est). Morning and evening both fish; watch midday temps as summer builds.",
     context: "Big mainstem &mdash; the valley&#39;s largest water. Colors up first after rain and clears last.",
+    rig: {
+      dry: [{fly:"Chubby Chernobyl", size:"6", c:["Tan","Gold"]}, {fly:"Morrish Hopper", size:"8-10", c:["Tan","Yellow"]}, {fly:"Purple Haze", size:"12-14", c:["Purple","Gray"]}],
+      nymph: [{fly:"Pat's Rubber Legs", size:"8", c:["Brown","Black"]}, {fly:"San Juan Worm", size:"12", c:["Red","Brown"]}, {fly:"Prince Nymph", size:"12", c:["Brown","Natural"]}],
+      dd: [{fly:"Hopper + PMD nymph", size:"8/16", c:["Tan","Natural"]}, {fly:"Chubby + Prince", size:"6/14", c:["Gold","Brown"]}, {fly:"Chubby + Rubber Legs", size:"6/8", c:["Tan","Brown"]}],
+      streamer: [{fly:"Sparkle Minnow", size:"4", c:["Olive","Natural"]}, {fly:"Sculpzilla", size:"4-6", c:["Black","Natural"]}, {fly:"Woolly Bugger", size:"4", c:["Black","Olive"]}]
+    }
+  },
+  {
+    name: "Bitterroot River nr Darby", meta: "USGS 12344000 &middot; Ravalli Co. &middot; upper mainstem",
+    source: "USGS", tags: ["Mainstem","Upper reach"],
+    chiclets: { h: "green", f: "green", t: "green" },
+    discharge: 0, stage: "0.00", temp: "\u2014", tempEst: false, score: null,
+    wx: { hi:0, lo:0, precip:0, cloud:0, sr:"", ss:"" },
+    gen: { rec:0.989, bumpsCY:[{at:2,mag:200,decay:0.6}], bumpsLY:[{at:4,mag:150,decay:0.6}], noise:0.04, tStart:49, tEnd:58, tFlat:false, lyFlowMul:1.22, lyTDelta:2, stageMin:2.5, seed:71 },
+    blocks: null, optIdx: 0, optLabel: "6:00-8:30 PM",
+    optNote: "Upper mainstem below the forks confluence. Cooler than the lower river; morning and evening both fish.",
+    context: "Upper Bitterroot mainstem near Darby, ~10 mi below the East/West Fork confluence. Cooler, clearer water than the valley reaches downstream.",
+    rig: {
+      dry: [{fly:"Chubby Chernobyl", size:"6", c:["Tan","Gold"]}, {fly:"Morrish Hopper", size:"8-10", c:["Tan","Yellow"]}, {fly:"Purple Haze", size:"12-14", c:["Purple","Gray"]}],
+      nymph: [{fly:"Pat's Rubber Legs", size:"8", c:["Brown","Black"]}, {fly:"San Juan Worm", size:"12", c:["Red","Brown"]}, {fly:"Prince Nymph", size:"12", c:["Brown","Natural"]}],
+      dd: [{fly:"Hopper + PMD nymph", size:"8/16", c:["Tan","Natural"]}, {fly:"Chubby + Prince", size:"6/14", c:["Gold","Brown"]}, {fly:"Chubby + Rubber Legs", size:"6/8", c:["Tan","Brown"]}],
+      streamer: [{fly:"Sparkle Minnow", size:"4", c:["Olive","Natural"]}, {fly:"Sculpzilla", size:"4-6", c:["Black","Natural"]}, {fly:"Woolly Bugger", size:"4", c:["Black","Olive"]}]
+    }
+  },
+  {
+    name: "Bitterroot River nr Missoula", meta: "USGS 12352500 &middot; Missoula Co. &middot; lower mainstem",
+    source: "USGS", tags: ["Mainstem","Lower reach"],
+    chiclets: { h: "green", f: "green", t: "green" },
+    discharge: 0, stage: "0.00", temp: "\u2014", tempEst: false, score: null,
+    wx: { hi:0, lo:0, precip:0, cloud:0, sr:"", ss:"" },
+    gen: { rec:0.989, bumpsCY:[{at:2,mag:280,decay:0.6}], bumpsLY:[{at:4,mag:210,decay:0.6}], noise:0.04, tStart:52, tEnd:62, tFlat:false, lyFlowMul:1.25, lyTDelta:2, stageMin:4.0, seed:83 },
+    blocks: null, optIdx: 0, optLabel: "6:00-8:30 PM",
+    optNote: "Lowest, warmest mainstem reach before the Clark Fork. Fish early and late; watch midday temps as summer builds.",
+    context: "Lower Bitterroot mainstem near Missoula &mdash; the valley&#39;s largest, warmest water. Colors up first after rain and clears last.",
     rig: {
       dry: [{fly:"Chubby Chernobyl", size:"6", c:["Tan","Gold"]}, {fly:"Morrish Hopper", size:"8-10", c:["Tan","Yellow"]}, {fly:"Purple Haze", size:"12-14", c:["Purple","Gray"]}],
       nymph: [{fly:"Pat's Rubber Legs", size:"8", c:["Brown","Black"]}, {fly:"San Juan Worm", size:"12", c:["Red","Brown"]}, {fly:"Prince Nymph", size:"12", c:["Brown","Natural"]}],
@@ -1013,6 +1055,35 @@ function waterStress(wt){
   return {level:'green', label, reason:(nearMax!=null?('daily max ~'+Math.round(nearMax)+'\u00b0F \u2014 '):'')+'below stress band'};
 }
 
+/* Forecast-warning callout (per-card, bottom-right of the VIEWING row).
+   Two forward-looking tiers on the FORECAST daily max, using the same
+   3-consecutive-day rule and STRESS_FC_DROP terminal-day drop as the stress
+   ladder, but read purely off the forecast (no history trail): this answers
+   "is a thermal problem coming?", not "is one here now?".
+     amber "Water Temp"     -> forecast max >= STRESS_RED_F (70) for 3 consec.
+     red   "Hoot-Owl Likely" -> forecast max >= HOOT_OWL_F  (73) for 3 consec.
+   Reads the REAL forecast max from data.json; falls back to mean + observed
+   (max-mean) bump only when a forecast row carries no max (pre-band pipeline).
+   Returns null when nothing fires (the callout is hidden entirely). */
+const TEMP_CALLOUT_WATER_F = STRESS_RED_F;  // 70 -> amber "Water Temp"
+const TEMP_CALLOUT_HOOT_F  = HOOT_OWL_F;    // 73 -> red "Hoot-Owl Likely"
+function tempCallout(g){
+  const wt = g && g._wt;
+  if(!wt || !wt.forecast || !wt.forecast.length) return null;
+  const spreads = (wt.thisYear||[]).filter(x=>x.max!=null&&x.mean!=null).map(x=>x.max-x.mean);
+  const bump = spreads.length ? spreads.reduce((a,b)=>a+b,0)/spreads.length : 3.5;
+  let fc = wt.forecast.map(x=>({date:x.date, max:(x.max!=null?x.max:(x.mean!=null?x.mean+bump:null))}));
+  if(STRESS_FC_DROP>0) fc = fc.slice(0, Math.max(0, fc.length-STRESS_FC_DROP));
+  const runsHit = (thresh)=>{
+    let run=0;
+    for(const d of fc){ if(d.max!=null && d.max>=thresh){ run++; if(run>=STRESS_RED_DAYS) return true; } else run=0; }
+    return false;
+  };
+  if(runsHit(TEMP_CALLOUT_HOOT_F))  return {level:'red',   label:'Hoot-Owl Likely'};
+  if(runsHit(TEMP_CALLOUT_WATER_F)) return {level:'amber', label:'Water Temp'};
+  return null;
+}
+
 /* Temp-aware DAWN + DUSK ("Dawn Patrol") time-of-day model.
 
    Trout are crepuscular, and heat intensifies it: as water warms, both twilight
@@ -1489,7 +1560,14 @@ function renderCards(){
     + '<div class="reading"><span class="rl">Sunset</span><span class="rv">'+g.wx.ss+'</span></div>'
     + '</div>'
     + '</div>'
-    + '<div class="viewing-pill">&#9656; VIEWING BELOW</div>'
+    + '<div class="viewing-row">'
+    +   '<div class="viewing-pill">&#9656; VIEWING BELOW</div>'
+    +   (function(){ const tc=tempCallout(g); return tc
+          ? '<div class="temp-callout '+tc.level+'" title="Forecast daily max \\u2265'
+            +(tc.level==='red'?TEMP_CALLOUT_HOOT_F:TEMP_CALLOUT_WATER_F)
+            +'\\u00b0F for '+STRESS_RED_DAYS+'+ forecast days"><span class="tc-dot"></span>'+tc.label+'</div>'
+          : ''; })()
+    + '</div>'
     + '</div>';
   }).join('');
   grid.querySelectorAll('.card').forEach(c => c.addEventListener('click', () => select(parseInt(c.dataset.idx,10))));
@@ -1649,11 +1727,13 @@ const NEXT10 = [
   [7,7,6,7,7,6,6,6,5,6], // West Fork abv Painted Rocks
   [5,5,5,5,4,5,4,4,4,4], // East Fork nr Conner
   [7,7,7,7,7,7,6,7,7,7], // West Fork nr Conner (regulated)
-  [6,6,5,5,5,4,5,5,4,4]  // Bell Crossing
+  [6,6,5,5,5,4,5,5,4,4], // Bell Crossing
+  [6,6,5,6,6,5,5,5,4,5], // Darby (upper mainstem)
+  [6,6,5,5,5,4,5,5,4,4]  // Missoula (lower mainstem)
 ];
 GAUGES.forEach((g,i)=> g.next10 = NEXT10[i]);
 /* dayFactor = the gauge's standing condition that drags midday/dusk down (used in today's blocks) */
-const DAYFACTOR = ["clear water", "clear water", "cold water", "below normal", "cold release", "warm water"];
+const DAYFACTOR = ["clear water", "clear water", "cold water", "below normal", "cold release", "warm water", "clear water", "warm water"];
 GAUGES.forEach((g,i)=> g.dayFactor = DAYFACTOR[i]);
 /* dayReasons = top two drivers of a fair day in the 10-day outlook */
 const DAYREASONS = [
@@ -1662,15 +1742,17 @@ const DAYREASONS = [
   ["cold water", "above normal"],    // West Fork abv Painted Rocks
   ["below normal", "warming"],       // East Fork
   ["cold release", "steady flow"],   // West Fork nr Conner
-  ["warm water", "bright sun"]       // Bell Crossing
+  ["warm water", "bright sun"],      // Bell Crossing
+  ["clear water", "steady flow"],    // Darby (upper mainstem)
+  ["warm water", "bright sun"]       // Missoula (lower mainstem)
 ];
 GAUGES.forEach((g,i)=> g.dayReasons = DAYREASONS[i]);
 /* short labels for the planner (the generic "West Fork" split would collide) */
-const SHORT = ["Lolo Creek", "Lolo \u00b7 Hwy 93", "W. Fork \u00b7 above", "East Fork", "W. Fork \u00b7 Conner", "Bell Crossing"];
+const SHORT = ["Lolo Creek", "Lolo \u00b7 Hwy 93", "W. Fork \u00b7 above", "East Fork", "W. Fork \u00b7 Conner", "Bell Crossing", "Darby", "Missoula"];
 GAUGES.forEach((g,i)=> g.short = SHORT[i]);
 
 /* ===== real-data wiring (added) ===== */
-const GAUGE_KEY = ["lolo","lolo-hwy93","wf-painted","ef-connor","wf-conner","bell"]; // index-aligned to GAUGES (original order)
+const GAUGE_KEY = ["lolo","lolo-hwy93","wf-painted","ef-connor","wf-conner","bell","darby","msla"]; // index-aligned to GAUGES (original order)
 // pin each gauge's data key onto the object, then sort the cards alphabetically by name
 GAUGES.forEach((g,i)=> g._key = GAUGE_KEY[i]);
 GAUGES.sort((a,b)=> a.name.localeCompare(b.name));
