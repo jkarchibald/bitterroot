@@ -390,6 +390,39 @@ values and "what's working now" finally comes right.
 
 ## ── STATUS LOG (living — newest on top) ──
 
+### 2026-07-10 (c) · Stress chiclet redefined: current-only (today's peak), not forecast
+- **File delivered:** `index-3-3.html` (same version — this refines the same iteration's
+  frontend). `node --check` clean; headless-tested against live `data.json`.
+- **Problem (Uber spotted on Missoula):** the Stress chiclet read **red** while the
+  forecast callout read **amber** on the same river — a visible contradiction. Root cause
+  traced through real data: `waterStress` blended the 10-day measured trail **plus the
+  forecast** on a flat **70/3-day** rule, and Missoula's measured water never reaches 70
+  (peaks ~68.4 °F today) — the red run was **entirely forecast** (07-11/12/13 ≥70). So the
+  chiclet was firing red off days the callout was (correctly) calling amber.
+- **Decision (Uber):** **separate the two signals by meaning.** Stress = "is it stressful
+  **right now**" → **today's peak (daily max) only**, measured or estimated, no trail, no
+  forecast. The forward look belongs entirely to the callout. Single-day thresholds match
+  the callout's language: **today's peak ≥70 → orange, ≥73 → red**, else green. (Red is the
+  73 hoot-owl line in both places; orange starts at 70 in both — chosen to match the callout
+  exactly rather than the old softer 68 nudge.)
+- **Implementation:** `waterStress(wt)` rewritten to read the most-recent `thisYear` row's
+  `max` (the pipeline writes a row dated `data.today` as the last entry). New constants
+  `STRESS_TODAY_ORANGE_F=70` / `STRESS_TODAY_RED_F=73`. The old blended-trail-plus-forecast
+  ladder is gone. Callout (`tempCallout`) unchanged — still forecast-only, amber ≥70 / red
+  ≥73 over 3 consecutive days.
+- **Invariants preserved:** `STRESS_RED_F=70` / `HOOT_OWL_F=73` constants retained (callout
+  references them); the two load-bearing `66`s (HEAT anchor + dawn-hinge) untouched — they
+  live in the bite engine, not `waterStress`.
+- **Result (headless, live data):** every gauge's Stress now reflects today's real peak —
+  all 8 green today (Missoula ~67, Bell ~64, forks 51–61). **Missoula: green Stress + amber
+  callout** — the intended "fine now, warming Jul 11–13" story. No gauge shows red-Stress
+  beside a non-red callout.
+- **Doc flag (ask-first `06`):** this changes what "Stress" *means* (current-condition, not
+  forward-looking), which is `06-thermal-response-and-stress` territory. **Not touched** —
+  needs Uber's OK to edit. When approved, `06` should record: stress chiclet = today's peak,
+  70/73 single-day; forecast warning = callout, 70/73 over 3 consecutive forecast days; the
+  two are deliberately split by time horizon. Until then this log entry is the record.
+
 ### 2026-07-10 (b) · Forecast-max pipeline + forecast-warning callout + 6→8 roster — ☑ live-confirmed
 - **Files delivered:** `fetch-data-3-3.mjs`, `index-3-3.html`, `02-chart-forecasts-3-3.md`,
   `build-tracker-9.md`. Both code files `node --check` clean; new logic headless-tested
@@ -415,7 +448,16 @@ values and "what's working now" finally comes right.
     with `STRESS_FC_DROP=1`: amber **"Water Temp"** (≥`STRESS_RED_F` 70) and red
     **"Hoot-Owl Likely"** (≥`HOOT_OWL_F` 73). Reads the real forecast `max` from `data.json`,
     bump only as fallback. New `tempCallout(g)` fn (reads `g._wt`, same series as
-    `stressChiclet`); CSS reuses `--t3-status-orange` / `--t3-status-red`.
+    `stressChiclet`); CSS reuses `--t3-status-orange` / `--t3-status-red`. Fires on **every**
+    warm gauge's card (grid-wide scan), not just the selected one.
+    - **Mirrored onto the Flow & water-temp chart** (Uber, 2026-07-10): the same warning
+      renders as a `.status-pill` in the temp chart's `legend-status` row (via `statusPills`,
+      temp mode only), alongside the "last year — no data" pills, amber/red to match the card.
+      **Hover shows the one-line why** (temps + dates only) via `title`, e.g. *"Forecast highs
+      71–74°F, Jul 11–13"*. Chart is selected-gauge-only by nature (one chart shows at a
+      time), so the explanation is inherently scoped to the open gauge. `tempCallout` now
+      also returns the triggering run's date span + max range so card pill and chart
+      hover draw from one computation.
   - **Roster 6→8** — Darby (`darby`) + Missoula (`msla`) added to `GAUGES` (Bell's mainstem
     rig copied verbatim per handoff), and to all five index-aligned arrays (`NEXT10`,
     `DAYFACTOR`, `DAYREASONS`, `SHORT`, `GAUGE_KEY`) in original pre-sort order. Header
