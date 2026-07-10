@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// version: fetch-data-3-3.mjs
 // Bitterroot Fishing Conditions — fetch & normalize
 // ------------------------------------------------------------------
 // Pulls the three VALIDATED data sources, normalizes units/intervals,
@@ -849,10 +850,31 @@ function waterTempForecast(measuredThisYear, weatherDaily, forecastDates) {
   if (!anchor) return null;
   const anchorAir = airBy.get(anchor.date), anchorWater = anchor.mean;
 
+  // PHASE 3 (item 2 re-touch, from real observed spread — Phase-6 re-touch candidate):
+  // The mean-only forecast left the frontend to fake a forecast max with a render-time
+  // bump. Instead, carry a real diel band on each forecast row, derived from THIS gauge's
+  // own measured thisYear swing: average (max-mean) for the upper half, (mean-min) for the
+  // lower half. This is the gauge's characteristic daily range (a big-river gauge like
+  // Missoula runs a tighter band than a small fork), so the forecast max the stress ladder
+  // and the frontend callout read is grounded, not a guessed constant. Fallback to a modest
+  // symmetric ±3 °F only if the gauge has no usable min/max history.
+  const bandPts = measuredThisYear.filter((w) => w.max != null && w.mean != null && w.min != null);
+  let spreadUp = 3, spreadDn = 3;
+  if (bandPts.length) {
+    spreadUp = bandPts.reduce((s, w) => s + (w.max - w.mean), 0) / bandPts.length;
+    spreadDn = bandPts.reduce((s, w) => s + (w.mean - w.min), 0) / bandPts.length;
+  }
+
   return forecastDates.map((date) => {
     const air = airBy.get(date);
-    return { date, mean: air == null ? null
-      : round(Math.max(33, anchorWater + slope * (air - anchorAir))), forecast: true };
+    if (air == null) return { date, mean: null, min: null, max: null, forecast: true };
+    const mean = round(Math.max(33, anchorWater + slope * (air - anchorAir)));
+    return {
+      date, mean,
+      min: round(Math.max(32, mean - spreadDn)),
+      max: round(mean + spreadUp),
+      forecast: true,
+    };
   });
 }
 
