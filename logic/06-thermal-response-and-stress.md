@@ -1,12 +1,16 @@
+<!-- version: 06-thermal-response-and-stress-3-3.md -->
 # 06 — Thermal response curve & stress ladder
 
 *Authoritative doc for Phase-1 (response curve) and Phase-2 (stress ladder + DO
-grounding). Matches deployed code as of 2026-07-09. Citations backfilled to the
-§7 standing convention (cited / derived-in-repo / assumption), with **Montana /
-regional sources added for local support** (flagged 🏔 — MSU, University of
-Montana, Montana FWP, Montana DEQ). Supersedes the thermal material in the older
-`01-temperature.md`, which still describes the retired `(hi+lo)/2 − 6` model — see
-the doc table in `BUILD_TRACKER.md`.*
+grounding), updated for the Phase-3 close (2026-07-10). Matches deployed code as of
+2026-07-10. The stress ladder (§3) was redefined this pass to a **current-only**
+signal (today's peak), with the forward look moved to a separate forecast-warning
+callout (§3b) — see the Status Log in `BUILD_TRACKER.md` (2026-07-10 entries).
+Citations backfilled to the §7 standing convention (cited / derived-in-repo /
+assumption), with **Montana / regional sources added for local support** (flagged 🏔
+— MSU, University of Montana, Montana FWP, Montana DEQ). Supersedes the thermal
+material in the older `01-temperature.md`, which still describes the retired
+`(hi+lo)/2 − 6` model — see the doc table in `BUILD_TRACKER.md`.*
 
 Species assumption: **westslope cutthroat trout** (*Oncorhynchus clarkii lewisi*)
 across all Bitterroot-drainage reaches. Cutthroat are colder-adapted than the
@@ -71,43 +75,82 @@ physical-chemistry limits. **Do not merge 70 into 73** — that deletes the marg
 
 ## 3. Thermal-stress ladder — `waterStress(wt)` → `{level, label, reason}`
 
-A fish-**welfare** indicator, **not** a legal/hoot-owl claim. It reads our own
-**daily-MAX** water temp only; FWP's hoot-owl determinations fold in gauges,
+A fish-**welfare** indicator, **not** a legal/hoot-owl claim. It answers **"is the
+water stressful *right now*"** — it reads **today's peak** water temperature only
+(the most recent `thisYear` daily `max`, measured or estimated) and nothing else:
+**no history trail, no forecast.** FWP's hoot-owl determinations fold in gauges,
 manual readings, flow and pressure we can't mirror, so we never imply legality.
 
-Rule (cutthroat-tuned; cumulative, mirroring FWP's own 3-consecutive-day logic):
-- 🔴 **red** — daily max ≥ **70 °F** on **3 consecutive days** anywhere in the
-  trailing-10 ∪ forecast window ("rest the fish"; also where hoot-owl becomes
-  likely as it climbs toward 73).
-- 🟠 **orange** — recent/near-term daily max ≥ **68 °F** but not the sustained red.
-- 🟢 **green** — below the cutthroat stress band.
+**Current-vs-forecast split (Uber, 2026-07-10).** The stress chiclet is a
+*current-condition* signal; the *forward look* is owned entirely by a separate
+**forecast-warning callout** (§3b). The two speak the same 70/73 language so they
+never contradict on-screen:
 
-The **near-window** for orange is `yesterday → +2 forecast days`; the red 3-run is
-scanned across the full trailing-10 ∪ forecast series. Consequence, validated
-headless (see §3a): a single 71 °F spike registers **orange, not red** — the
-acute-vs-chronic split is intentional. Sustained 70 → red.
+- 🔴 **red** — today's peak ≥ **73 °F** (`STRESS_TODAY_RED_F`) — at the FWP
+  hoot-owl line today; rest the fish.
+- 🟠 **orange** — today's peak ≥ **70 °F** (`STRESS_TODAY_ORANGE_F`) — in the
+  cutthroat welfare stress band today.
+- 🟢 **green** — below 70 °F today.
 
-Guards:
-- **Terminal forecast day dropped** (`STRESS_FC_DROP = 1`) — the last day of the
-  Open-Meteo window is an unreliable edge point (observed to spike ~10°F on the
-  final day) and must never flip a badge. See also the pipeline-side outlier
-  guard in `fetch-data.mjs`, which fixes the same spike for the chart and Tomorrow
-  column.
-- Forecast **max** derived from forecast mean + the gauge's own observed diel
-  (max−mean) spread when the forecast carries only a mean.
+Single-day thresholds (no 3-consecutive-day rule — there is only one day). Red is
+the 73 °F hoot-owl line in both the chiclet and the callout; orange starts at 70
+in both — chosen to match the callout exactly rather than an earlier, softer 68
+nudge.
 
-Constants: `HOOT_OWL_F=73` (legal/chart, §2), `STRESS_ORANGE_F=68`,
-`STRESS_RED_F=70` (welfare), `STRESS_RED_DAYS=3`, `STRESS_FC_DROP=1`.
+**Why this replaced the old ladder.** The prior `waterStress` blended the
+trailing-10 measured window **∪ the forecast** on a flat 70 °F / 3-consecutive-day
+rule. Because a warm *forecast* could satisfy that run while the *measured* water
+was still cool, the chiclet tripped **red off forecast days the callout was
+correctly calling amber** — observed live on Missoula (measured daily-max peaked
+~68 °F, yet the chiclet read red from a forecast run reaching 70–74 °F on
+07-11..13). Splitting the signals by time horizon removed the contradiction: the
+chiclet now reports only what the water is doing today, and the forecast run
+drives the callout, not the chiclet.
 
-### 3a. Behavioral trace (validated headless, 2026-07-09)
+Constants: `STRESS_TODAY_ORANGE_F = 70`, `STRESS_TODAY_RED_F = 73`. The
+`STRESS_RED_F = 70` and `HOOT_OWL_F = 73` constants are **retained** — they are now
+the *callout's* triggers (§3b) and the chart red line (§2) — as are
+`STRESS_RED_DAYS = 3` and `STRESS_FC_DROP = 1`, used by the callout. `STRESS_ORANGE_F = 68`
+is retained as a legacy reference constant only (no longer a live threshold).
 
-`waterStress` was extracted verbatim and run in Node against each gauge's real
-`series.watertemp` (the exact object that becomes `g._wt`) plus boundary
-scenarios. Confirmed: green below a 68 °F near-window max; orange when the
-near-window touches ≥68; red only on ≥70 °F for 3+ consecutive days; lone 71 °F
-spike → orange; `STRESS_FC_DROP` trims the terminal forecast day; provenance
-(`est`) and the `unknown`/null branch behave as specified. **Phase 2 required no
-code-path change.**
+## 3b. Forecast-warning callout — `tempCallout(g)` (the forward look)
+
+A separate, purely **forward-looking** signal that answers "is a thermal problem
+*coming*." It reads the **forecast** daily max only (never the history trail), on
+the same 3-consecutive-day / `STRESS_FC_DROP=1` terminal-drop logic the old ladder
+used, but with the two-tier split:
+
+- 🟠 amber **"Water Temp"** — forecast max ≥ `STRESS_RED_F` (**70 °F**) for 3
+  consecutive forecast days.
+- 🔴 red **"Hoot-Owl Likely"** — forecast max ≥ `HOOT_OWL_F` (**73 °F**) for 3
+  consecutive forecast days (supersedes amber).
+- nothing fires → the callout is hidden entirely.
+
+Rendered in **two places from one computation**: a pill bottom-right of each gauge
+card (fires on *every* warm gauge — a grid-wide scan), and a matching chiclet in
+the Flow & water-temp chart's legend row, whose hover shows a one-line "why"
+(temps + dates, e.g. *"Forecast highs 71–74 °F, Jul 11–13"*). The chart chiclet is
+selected-gauge-only by nature (one chart shows at a time). `tempCallout` returns
+the triggering run's date span + max range so the card pill and the chart hover
+can never disagree.
+
+Forecast **max** comes straight from `data.json` (the pipeline now writes a real
+per-gauge diel band on measured-gauge forecast rows — see `02-chart-forecasts`);
+it falls back to forecast mean + the gauge's own observed `(max−mean)` spread only
+when a (stale, pre-band) row carries a mean only.
+
+### 3a. Behavioral trace (validated headless, 2026-07-10)
+
+`waterStress` and `tempCallout` were extracted and run in Node against each gauge's
+real `series.watertemp` (the exact object that becomes `g._wt`) from the live
+8-gauge `data.json`. Confirmed: **stress chiclet** reports today's peak per gauge —
+all 8 green today (Missoula ~67 °F, Bell ~64 °F, forks 51–61 °F), orange only when
+today's peak ≥70, red only when today's peak ≥73; provenance (`est`) unchanged.
+**Callout** fires amber on Missoula (forecast maxes 72.2 / 71.4 / 73.6 on
+07-11..13 = 3 consecutive ≥70; only one day clears 73, so no red run), and nothing
+on Darby (peak ~65) or Bell (peak ~66.6). **Result: no gauge shows red Stress beside
+a non-red callout** — the split holds. Live-deploy verified on the site
+2026-07-10.
 
 ## 4. DO grounding of the ladder (Phase 2) — why 68/70, and why not per-elevation
 
@@ -201,25 +244,28 @@ Three tiers:
 
 The chiclet label always reads **"Stress"** (measured → `Stress`, estimated →
 `Stress est`); it no longer switches the word to "Status". There is **no
-legitimate "no data / unknown" state at score time**: the estimation layer must
-supply discharge, stage, water temp, and trend (measured or estimated) *before*
-anything scores. The current `unknown → orange` fallback in `stressChiclet` is
-therefore a symptom of a missing estimate — it is **not** to be recolored; it
-becomes dead code once Phase 3 guarantees the input upstream.
+legitimate "no data / unknown" state at score time**: the estimation layer supplies
+discharge, stage, water temp, and trend (measured or estimated) *before* anything
+scores. As of the **Phase-3 close (2026-07-10)** the pipeline guarantees an estimate
+for every gauge, so the `unknown → orange` fallback in `stressChiclet` is now
+**dead code** (retained defensively; it should never fire on live data).
 
 ## 6. Still open (in coupling order)
 
-- **Phase 3 — estimation completeness (pipeline, `fetch-data.mjs`):** guarantee
-  every gauge a measured-or-estimated series for discharge, stage, temp, and
-  trend before scoring; this closes the §5 no-unknown mandate. First item: the
-  estimated gauges carry an 8-day series vs. 11 for measured — window mismatch.
-  Also the terminal-day outlier guard (chart + Tomorrow column).
+- **Phase 3 — estimation completeness (pipeline, `fetch-data.mjs`): ☑ CLOSED
+  (2026-07-10).** Every gauge now carries a measured-or-estimated series for
+  discharge, stage, temp, and trend before scoring (closes the §5 no-unknown
+  mandate — the `unknown → orange` branch is dead code). The 8-vs-11-day window
+  mismatch was fixed, the terminal-day outlier guard added, measured-gauge forecast
+  rows now carry a real diel band, and two mainstem temp gauges (Darby, Missoula)
+  were added with Bell interpolated on the Darby↔Missoula gradient.
 - **Phase 6 — `categoryScores` (rig ranking):** re-anchor its temp thresholds to
   the same cutthroat curve and make the ≥1.4× flow branch scale with ratio, so
   the DRY/NYMPH/DD/STREAMER numbers differentiate too (separate function,
   separate risk from this pass — the "four identical scores").
-- **Bias check (Phase 3):** Open-Meteo highs run ~3–6°F above weather.com in the
-  credible window — may sit the water-temp forecast slightly warm.
+- **Bias check (characterised, Phase 3):** Open-Meteo highs run ~3–6°F above
+  weather.com in the credible window; because the forecast rides the air *change*
+  (not level) at a damped slope, this largely cancels — noted, not corrected.
 - **Parked (optional, from Phase 2):** default-off, welfare-line-only elevation
   offset (§4). Near-inert for this drainage; do not wire without sign-off.
 ## 7. Sources
