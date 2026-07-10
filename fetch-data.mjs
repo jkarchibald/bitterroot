@@ -25,13 +25,44 @@ import { writeFile } from "node:fs/promises";
 // ----------------------------- CONFIG -----------------------------
 const HISTORY_DAYS  = 10;   // recent window pulled for gauges
 const FORECAST_DAYS = 10;   // weather forecast horizon
-const PAST_WX_DAYS  = 7;    // Open-Meteo past_days (max 92 on forecast endpoint)
+// PHASE 3 (item 1): past_days was 7, which built the ESTIMATED gauges' history off an
+// 8-row weather axis while MEASURED gauges carried 11 rows straight from the gauge feed
+// (HISTORY_DAYS+1). That left estimated temp series 3 days short and mis-aligned on the
+// chart. Match the weather past-window to the gauge history window so every gauge —
+// measured or estimated — spans the same 11-day axis. Open-Meteo forecast endpoint caps
+// past_days at 92, so 10 is safe; anchorIdx is resolved by DATE MATCH (not position), so
+// lengthening the tail does not move "today", the forecast split, or the anchor.
+const PAST_WX_DAYS  = HISTORY_DAYS;   // was 7 — see note above
 const WADE_CFS      = 200;  // wade-safe flow line drawn on charts
 const HOOT_OWL_F    = 66;   // MT cutthroat/bull-trout thermal threshold (NOT the statewide 73)
 
+// PHASE 3: Open-Meteo far-horizon (terminal) forecast days occasionally spike
+// implausibly (observed air hiF 98->103->98 on the 8-9 day tail). This guard clamps the
+// terminal forecast day's air-temp toward the recent forecast trend before it can feed the
+// water-temp forecast, the Tomorrow column, or the bite engine. Conservative: only the last
+// TERMINAL_GUARD_DAYS day(s), only when the jump exceeds TERMINAL_GUARD_MAXJUMP vs the
+// median of the preceding forecast days.
+const TERMINAL_GUARD_DAYS    = 2;    // how many trailing forecast days to inspect (the far
+                                     // tail is where GloFAS/Open-Meteo artifacts cluster;
+                                     // observed a +10 F spike on the PENULTIMATE day, so 1
+                                     // was too few)
+const TERMINAL_GUARD_MAXJUMP = 7;    // deg F; a day-over-day air-mid jump beyond this within
+                                     // the terminal window is treated as an artifact and the
+                                     // day is clamped to trend + this cap
+
 // Parameters we care about, by source code.
 //   StAGE: HG=stage(ft), QR=discharge(cfs), TW=water temp(degC)
-//   USGS : 00065=gage height(ft), 00060=discharge(cfs), 00010=water temp(degC, usually absent)
+//   USGS : 00065=gage height(ft), 00060=discharge(cfs), 00010=water temp(degC, often present
+//          on the mainstem, usually absent on the small tribs)
+//
+// TO ADD A GAUGE: append an entry below. Required: id, name, type, source, lat, lon, and
+// either `site` (USGS) or `locationId`+`code` (DNRC StAGE). Optional:
+//   • drainageMi2 — REQUIRED for type:"mainstem" gauges; it is the axis along which
+//     mainstem water-temp is interpolated (upstream small area = cooler, downstream large
+//     area = warmer). Order along the river is inferred from this number, so gauges may be
+//     listed in any order.
+//   • The pipeline auto-detects whether a USGS/StAGE site actually reports temp (00010/TW);
+//     a site WITHOUT a probe is filled by the pass-2 estimator, flagged estimated:true.
 const GAUGES = [
   { id: "lolo",      name: "Lolo Creek abv Sleeman Creek",      type: "freestone", source: "stage",
     locationId: "bfc4c4ef7d2d41b49f4fc3d2014584f7", code: "76HB 09500", lat: 46.742963, lon: -114.154763 },
@@ -43,8 +74,19 @@ const GAUGES = [
     locationId: "87e6c0581c47413fbbf2333afa396adc", code: "76HE 09000",lat: 45.88319,  lon: -114.06594 },
   { id: "wf-conner", name: "West Fork Bitterroot nr Conner",    type: "tailwater", source: "usgs",
     site: "12342500", lat: 45.7248, lon: -114.2823 },   // regulated below Painted Rocks dam; temp estimated
+  // ---- Bitterroot MAINSTEM, upstream (cool) -> downstream (warm), by drainage area ----
+  // Darby: ~10 mi below the E/W Fork confluence; FWP's regulatory reference gauge for the
+  //        UPPER (cutthroat) reach — 66 F / 3-day trigger. Has a temp probe (00010).
+  { id: "darby",     name: "Bitterroot River nr Darby",        type: "mainstem", source: "usgs",
+    site: "12344000", lat: 45.97205, lon: -114.141233, drainageMi2: 1050 },
+  // Bell: middle mainstem. Historically temp-ESTIMATED here; now interpolated on the
+  //       Darby<->Missoula gradient (falls back to estimation only if a neighbor is missing).
   { id: "bell",      name: "Bitterroot at Bell Crossing nr Victor", type: "mainstem", source: "usgs",
-    site: "12350250", lat: 46.4432, lon: -114.1238 },   // temp estimated
+    site: "12350250", lat: 46.4432, lon: -114.1238, drainageMi2: 1963 },
+  // Missoula: lowest mainstem before the Clark Fork; warmest. FWP's reference gauge for the
+  //           LOWER reach — 73 F / 3-day trigger. Has a temp probe (00010).
+  { id: "msla",      name: "Bitterroot River nr Missoula",     type: "mainstem", source: "usgs",
+    site: "12352500", lat: 46.831739, lon: -114.054861, drainageMi2: 2824 },
 ];
 
 const STAGE_BASE = "https://gis.dnrc.mt.gov/arcgis/rest/services/WRD/WMB_StAGE/MapServer";
@@ -474,7 +516,24 @@ function estimateWaterTempV2(ctx) {
 
   if (ctx.normalWaterT != null) return { mean: round(ctx.normalWaterT), via: "normal" };
   if (ctx.airMeanToday != null) return { mean: round(Math.max(33, ctx.airMeanToday - 4)), via: "air-fallback" };
-  return { mean: null, via: "none" };
+  // PHASE 3 (item 4 — no-unknown mandate): this branch used to return {mean:null}, which
+  // was the last structural way a gauge could reach score time with no temperature (the
+  // frontend's dead "unknown -> orange" fallback). Guarantee a number: a coarse seasonal
+  // default keeps the mandate true even in the pathological case where the whole drainage's
+  // measured probes AND last-year AND normal AND air are all missing at once. Labeled via
+  // "seasonal-floor" so provenance still reads as estimated, and it is clearly the weakest
+  // rung — it should essentially never fire in practice.
+  return { mean: seasonalDefaultTemp(ctx.date), via: "seasonal-floor" };
+}
+
+// Coarse seasonal water-temp default (deg F) for the true last resort only. Cutthroat-water
+// summer band; deliberately conservative (never into the hoot-owl zone from a guess).
+function seasonalDefaultTemp(ymd) {
+  const mo = +String(ymd).slice(5, 7);
+  if (mo >= 7 && mo <= 8) return 58;   // mid-summer
+  if (mo === 6 || mo === 9) return 54;  // early summer / early fall
+  if (mo === 5 || mo === 10) return 48; // shoulder
+  return 40;                            // winter
 }
 
 // build a full estimated series (history + forecast) for one gauge over the
@@ -531,6 +590,166 @@ function buildEstimatedTempSeries(gauge, weatherDaily, freestoneAvg, anchorIdx) 
   return { thisYear, forecast };
 }
 // =================== end water-temp estimator v2 ===================
+
+// ================ mainstem water-temp GRADIENT (Phase 3) ================
+// The Bitterroot mainstem warms downstream: cool at Darby (drainage ~1,050 mi2) ->
+// warmer at Bell (~1,963) -> warmest at Missoula (~2,824). A small-stream diel borrowed
+// from the forks is physically wrong for a big river (5-9x the flow damps the swing), so
+// instead of fabricating a band we place a temp-less mainstem gauge ON the line between
+// its measured mainstem neighbours and carry their REAL min/mean/max.
+//
+// Per date, for a mainstem gauge that needs an estimate (e.g. Bell has no probe):
+//   BOTH neighbours present  -> linear interpolate min/mean/max by drainageMi2.
+//   only DOWNSTREAM present  -> extrapolate UP (cooler): subtract the mainstem gradient.
+//   only UPSTREAM present    -> extrapolate DOWN (warmer): add the mainstem gradient.
+//   gradient slope           -> derived from the measured mainstem points when >=2 exist
+//                               (deg F per mi2); else a documented default.
+// Returns per-date {min,mean,max,via} or null when no measured mainstem anchor exists
+// (caller then falls through to the freestone-average estimator).
+const MAINSTEM_DEFAULT_SLOPE_F_PER_MI2 = 0.0025; // ~4.4 F across Darby->Missoula (1,774 mi2);
+                                                 // assumption, used only when <2 measured
+                                                 // mainstem points exist to fit a slope.
+const MAINSTEM_EXTRAP_CAP_F = 6;   // cap on how far an extrapolation may push beyond the
+                                   // nearest measured neighbour (deg F), so a single anchor
+                                   // can't run away.
+
+// Build, per date, the measured mainstem temp points {area, min, mean, max}, and a fitted
+// mean-vs-area slope for that date (least squares) when >=2 points exist.
+function mainstemMeasuredByDate(gaugeList) {
+  const byDate = {};              // date -> [{area,min,mean,max}]
+  for (const g of gaugeList) {
+    if (g.type !== "mainstem") continue;
+    if (!(g.meta && g.meta.measuredTemp)) continue;   // only real probes anchor the line
+    const area = g.drainageMi2;
+    if (area == null) continue;
+    const ty = (g.series && g.series.watertemp && g.series.watertemp.thisYear) || [];
+    const fc = (g.series && g.series.watertemp && g.series.watertemp.forecast) || [];
+    for (const row of [...ty, ...fc]) {
+      if (row && row.date != null && row.mean != null) {
+        (byDate[row.date] = byDate[row.date] || []).push({
+          area, min: row.min != null ? row.min : row.mean, mean: row.mean,
+          max: row.max != null ? row.max : row.mean,
+        });
+      }
+    }
+  }
+  return byDate;
+}
+
+// slope (deg F per mi2) of mean-vs-area for one date's points; null if <2 points.
+function fitMainstemSlope(points) {
+  if (!points || points.length < 2) return null;
+  const n = points.length;
+  const mx = points.reduce((s, p) => s + p.area, 0) / n;
+  const my = points.reduce((s, p) => s + p.mean, 0) / n;
+  let sxy = 0, sxx = 0;
+  for (const p of points) { sxy += (p.area - mx) * (p.mean - my); sxx += (p.area - mx) * (p.area - mx); }
+  return sxx > 0 ? sxy / sxx : null;
+}
+
+// Estimate one temp-less mainstem gauge's {min,mean,max} for one date from the measured
+// mainstem points on that date. Diel band comes from the neighbours (real big-river swing),
+// not a fabricated +/-3.
+function mainstemGradientEstimate(targetArea, pointsForDate, dateSlope) {
+  if (!pointsForDate || !pointsForDate.length || targetArea == null) return null;
+  const pts = [...pointsForDate].sort((a, b) => a.area - b.area);
+  // exact hit (unlikely) -> use it
+  const exact = pts.find((p) => p.area === targetArea);
+  if (exact) return { min: exact.min, mean: exact.mean, max: exact.max, via: "mainstem-exact" };
+
+  const below = pts.filter((p) => p.area < targetArea).pop();   // nearest upstream (cooler)
+  const above = pts.find((p) => p.area > targetArea);           // nearest downstream (warmer)
+
+  const lerp = (lo, hi, t) => lo + (hi - lo) * t;
+  if (below && above) {
+    const t = (targetArea - below.area) / (above.area - below.area);
+    return {
+      min:  round(lerp(below.min,  above.min,  t)),
+      mean: round(lerp(below.mean, above.mean, t)),
+      max:  round(lerp(below.max,  above.max,  t)),
+      via: "mainstem-interp",
+    };
+  }
+  // one-sided: extrapolate along the (fitted or default) slope, capped.
+  const slope = dateSlope != null ? dateSlope : MAINSTEM_DEFAULT_SLOPE_F_PER_MI2;
+  const anchor = below || above;                 // the single measured neighbour
+  const dArea = targetArea - anchor.area;        // + => target is downstream (warmer)
+  let dMean = slope * dArea;
+  dMean = Math.max(-MAINSTEM_EXTRAP_CAP_F, Math.min(MAINSTEM_EXTRAP_CAP_F, dMean));
+  const spreadUp = anchor.max - anchor.mean;     // preserve the neighbour's real diel band
+  const spreadDn = anchor.mean - anchor.min;
+  const mean = round(anchor.mean + dMean);
+  return {
+    min: round(mean - spreadDn), mean, max: round(mean + spreadUp),
+    via: below ? "mainstem-extrap-down" : "mainstem-extrap-up",
+  };
+}
+
+// Build a full estimated series (history + forecast) for a temp-less MAINSTEM gauge from
+// the mainstem gradient. Returns {thisYear, forecast} or null if no measured mainstem
+// anchor exists on ANY date (caller falls back to the freestone-average estimator).
+function buildMainstemGradientSeries(gauge, weatherDaily, anchorIdx, measuredByDate) {
+  const wd = weatherDaily || [];
+  if (!wd.length) return null;
+  const mk = (r, date, forecast) => (r == null || r.mean == null)
+    ? null
+    : { date, min: round(r.min), mean: round(r.mean), max: round(r.max), n: 0, ...(forecast ? { forecast: true } : {}) };
+
+  let any = false;
+  const rowFor = (d, forecast) => {
+    const pts = measuredByDate[d.date];
+    const slope = fitMainstemSlope(pts);
+    const est = mainstemGradientEstimate(gauge.drainageMi2, pts, slope);
+    if (est) any = true;
+    return mk(est, d.date, forecast);
+  };
+
+  const thisYear = wd.slice(0, anchorIdx + 1).map((d) => rowFor(d, false)).filter(Boolean);
+  const forecast = wd.slice(anchorIdx + 1).map((d) => rowFor(d, true)).filter(Boolean);
+  return any ? { thisYear, forecast } : null;
+}
+// ============== end mainstem water-temp gradient (Phase 3) ==============
+
+// ---------------- terminal-day forecast guard (Phase 3) ----------------
+// Open-Meteo's far-horizon daily rows sometimes spike (observed air hiF 98->103->98 on the
+// 8-9 day tail). Because water-temp/Tomorrow/bite all derive from this air axis, clamp the
+// terminal day(s) toward the recent forecast trend BEFORE anything reads them. Mutates a
+// COPY of weather.daily's forecast tail; measured/past rows are never touched.
+function guardTerminalForecast(weatherDaily, anchorIdx) {
+  const wd = (weatherDaily || []).map((d) => ({ ...d }));   // shallow copy each row
+  const fcStart = anchorIdx + 1;
+  const midOf = (d) => (d && d.hiF != null && d.loF != null) ? (d.hiF + d.loF) / 2 : null;
+  const setMid = (row, newMid) => {
+    const range = (row.hiF != null && row.loF != null) ? (row.hiF - row.loF) : 0;
+    return { ...row, hiF: round(newMid + range / 2), loF: round(newMid - range / 2), _terminalGuarded: true };
+  };
+  // A far-horizon ARTIFACT is a lone day that jumps away from its IMMEDIATE neighbours; a
+  // legitimate trend (steady warming/cooling, a building heat wave) moves smoothly and each
+  // day stays close to the local run. So we judge each terminal-window day against the mean
+  // of the LOOKBACK days just before it (a local expectation that follows the trend), not a
+  // fixed early-window median. A day beyond +/-TERMINAL_GUARD_MAXJUMP of that local mean is
+  // clamped toward it. This clamps the observed 103 F lone spike while leaving sustained
+  // trends untouched.
+  const LOOKBACK = 3;
+  const firstGuarded = Math.max(fcStart + 1, wd.length - TERMINAL_GUARD_DAYS);
+  for (let i = firstGuarded; i < wd.length; i++) {
+    const mid = midOf(wd[i]);
+    if (mid == null) continue;
+    const window = [];
+    for (let j = i - 1; j >= fcStart && window.length < LOOKBACK; j--) {
+      const m = midOf(wd[j]);
+      if (m != null) window.push(m);
+    }
+    if (window.length < 2) continue;                  // need a local run to compare against
+    const localMean = window.reduce((s, v) => s + v, 0) / window.length;
+    const dev = mid - localMean;
+    if (Math.abs(dev) > TERMINAL_GUARD_MAXJUMP) {
+      wd[i] = setMid(wd[i], localMean + Math.sign(dev) * TERMINAL_GUARD_MAXJUMP);
+    }
+  }
+  return wd;
+}
+// -------------- end terminal-day forecast guard (Phase 3) --------------
 
 // --------------------- river discharge forecast --------------------
 // Open-Meteo Flood API = GloFAS v4 (5 km, NOT bias-corrected). It is reliable
@@ -686,7 +905,11 @@ async function main() {
     }
     if (anchorIdx < 0) anchorIdx = Math.min(PAST_WX_DAYS, wd.length - 1); // last resort
     const anchorDate = wd[anchorIdx]?.date;                    // == today (date-matched)
-    const fcDates = wd.slice(anchorIdx + 1).map((d) => d.date);     // tomorrow → horizon
+    // PHASE 3: clamp any Open-Meteo terminal-day air artifact before it feeds ANY forecast
+    // (water temp, Tomorrow column, bite engine). Guarded copy used from here on; the raw
+    // weather.daily stored on the gauge is left intact for transparency.
+    const wdGuarded = guardTerminalForecast(wd, anchorIdx);
+    const fcDates = wdGuarded.slice(anchorIdx + 1).map((d) => d.date);     // tomorrow → horizon
     if (fcDates.length) {
       const flood = await floodForecast(g.lat, g.lon);
       // Anchor on the true current snapshot when we have it; the in-progress day's
@@ -702,10 +925,12 @@ async function main() {
       // Temp forecast for MEASURED gauges only (model from their own probe history).
       // Estimated gauges get both history + forecast filled in pass 2.
       if (base.series.watertemp && !needsTempEstimate) {
-        const tFc = waterTempForecast(base.series.watertemp.thisYear, weather.daily, fcDates);
+        const tFc = waterTempForecast(base.series.watertemp.thisYear, wdGuarded, fcDates);
         if (tFc) base.series.watertemp.forecast = tFc;
       }
     }
+    // stash the guarded axis for pass-2 estimators (mainstem gradient / freestone est).
+    base._wdGuarded = wdGuarded;
 
     const normal = computeNormal(base.series);
     gauges.push({
@@ -717,26 +942,45 @@ async function main() {
       normal,                     // { flow, stage, watertemp } baselines
       _needsTempEstimate: needsTempEstimate,   // pass-2 marker (stripped before output)
       _anchorIdx: anchorIdx,                   // pass-2: where history ends / forecast begins
+      _wdGuarded: base._wdGuarded || wd,       // pass-2: terminal-guarded weather axis
+      drainageMi2: g.drainageMi2 ?? null,      // pass-2: mainstem gradient axis (mainstem only)
     });
   }
 
   // ===================== PASS 2: water-temp estimation =====================
-  // Now that every gauge is pulled, build the drainage's measured-freestone
-  // average (the real snowmelt-water signal) and fill the estimated gauges from
-  // it (mainstem/dead-probe freestone), the tailwater setpoint, or the last-year
-  // shift fallback — never from air unless nothing else is available.
-  const freestoneAvg = measuredFreestoneAvgByDate(gauges);
+  // Now that every gauge is pulled, fill the temp-less gauges. Order of preference:
+  //   • MAINSTEM gauge (e.g. Bell)  -> gradient between measured mainstem neighbours
+  //       (Darby<->Missoula), carrying their REAL diel band; falls back to the
+  //       freestone-average estimator only if no measured mainstem anchor exists.
+  //   • everything else             -> freestone-average estimator (measured snowmelt
+  //       water signal / tailwater setpoint / last-year shift / seasonal floor).
+  // All estimated results stay flagged estimated:true and never emit mean:null (item 4).
+  const freestoneAvg    = measuredFreestoneAvgByDate(gauges);
+  const mainstemByDate  = mainstemMeasuredByDate(gauges);
   for (const G of gauges) {
     if (!G._needsTempEstimate) continue;
-    const { thisYear, forecast } = buildEstimatedTempSeries(G, G.weather?.daily, freestoneAvg, G._anchorIdx);
-    G.series.watertemp = { unit: "°F", estimated: true, thisYear, lastYear: [] };
-    if (forecast.length) G.series.watertemp.forecast = forecast;
+    const wd = G._wdGuarded || G.weather?.daily;
+    let series = null, via = null;
+
+    if (G.type === "mainstem" && G.drainageMi2 != null) {
+      const grad = buildMainstemGradientSeries(G, wd, G._anchorIdx, mainstemByDate);
+      if (grad && grad.thisYear.length) { series = grad; via = "mainstem-gradient"; }
+    }
+    if (!series) {
+      const est = buildEstimatedTempSeries(G, wd, freestoneAvg, G._anchorIdx);
+      series = { thisYear: est.thisYear, forecast: est.forecast };
+      via = "freestone-estimator";
+    }
+
+    G.series.watertemp = { unit: "°F", estimated: true, estMethod: via,
+                           thisYear: series.thisYear, lastYear: [] };
+    if (series.forecast && series.forecast.length) G.series.watertemp.forecast = series.forecast;
     G.meta.measuredTemp = false;
     // recompute the temp normal now that the estimated history exists
     G.normal = computeNormal(G.series);
   }
   // strip pass-2 scratch fields so they don't leak into data.json
-  for (const G of gauges) { delete G._needsTempEstimate; delete G._anchorIdx; }
+  for (const G of gauges) { delete G._needsTempEstimate; delete G._anchorIdx; delete G._wdGuarded; }
 
   const data = {
     generatedAt: new Date().toISOString(),
