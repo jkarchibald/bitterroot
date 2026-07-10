@@ -1,107 +1,143 @@
-# 02 · Chart Forecasts (Flow, Stage & Confidence)
+# 02 · Chart Forecasts (Flow, Stage, Temp Tail & the Terminal-Day Guard)
+
+*Phase 3 rewrite. The pre-Phase-3 version described the water-temp forecast as a
+`target = (hi+lo)/2 − 6`, “move 55 % of the gap, ±4 °F/day” model — that is retired.
+The temp forecast is now a slope-coupled, anchor-based model (documented in `01` and
+summarised here). This file also adds the **terminal-day guard**, new in Phase 3.*
 
 Everything to the **right of the TODAY line** on the charts: the forward flow and
-gauge-height (stage) curves, and the confidence figure in each chart's corner.
-This is modeled — it deliberately replaces the raw flood model's forecast tail,
-which spiked implausibly in the back half of the window.
-
-> Water temperature's forward model is in [`01-temperature.md`](01-temperature.md).
-> It produces the temp chart line the same way this file produces flow and stage.
+gauge-height (stage) curves, the water-temp forecast tail, and the per-day confidence
+figure. All of it is modeled, hard-clamped, and — as of Phase 3 — passed through a
+terminal-day artifact guard so a far-horizon spike can’t leak into any score.
 
 ---
 
 ## What it is
 
-The forward continuation of each chart: flow, stage, (temp via `01`), plus a
-per-day confidence percentage. The engine builds forward from trustworthy signals
-only, with hard physical clamps so a line can never explode.
+The forward continuation of each chart (flow, stage, temp) plus a per-day confidence
+percentage. The engine builds forward from trustworthy signals only, with physical
+clamps, and now with a guard on the unreliable far-horizon days.
 
 ---
 
 ## Inputs
 
-- `series.flow.thisYear[]` means + `series.flow.latest.value` — the recession anchor.
-- `series.flow.lastYear[]` means — last year's recession *shape*.
-- `weather.daily[].precipIn` / `.hiF` — the bounded flow nudge.
-- `series.stage.latest` (or last `.thisYear` mean) + today's flow — stage rating anchor.
-- `weather.lastYearDaily[]` — confidence comparison baseline.
+- `series.flow.thisYear[]` means + `series.flow.latest.value` — the recession/GloFAS anchor.
+- GloFAS river-discharge forecast (`floodForecast`) — trend shape, anchored to the latest
+  real reading.
+- `series.stage.latest` (or last `.thisYear` mean) + today’s flow — the stage rating anchor.
+- `weather.daily[].hiF`/`.loF`/`.precipIn` — **after the terminal-day guard** — the air
+  axis driving the temp forecast and the flow nudge.
 - `normal.flow` — the absolute ceiling.
 
 ---
 
 ## Logic / calculation
 
-### 2a. Flow — `buildForecast`
+### 2a. Flow — `anchorFlow` (GloFAS-anchored)
 
-Flow is the anchor; stage derives from it. For each forward day, from the most
-recent real reading:
-
-1. **Recession baseline.** `v = prev × k`, where `k` is a daily recession factor
-   fit to the last up-to-six real days (average of day-over-day log ratios,
-   `_recessionK`), **clamped 0.93–1.04** — can't free-fall or spuriously climb.
-2. **Seasonal shape blend.** Last year's day-over-day *ratios* over the same
-   calendar dates (`_lyShape`, each clamped 0.90–1.12) blended in at **35%
-   weight** — imports the shape of last year's recession, not its magnitude.
-3. **Bounded weather nudge.** Rain → up by `precipIn (cap 1") × 0.06`; high above
-   75 °F → up by `(hiF − 75)/100`, cap +0.05 (small snowmelt bump).
-4. **Hard clamps, in order:** day-over-day **0.80×–1.12×** of prior day; never
-   **>1.8× the last real reading** (no flood spikes); ceiling **3× normal flow**;
-   floor **1 cfs**.
-
-The clamped value becomes `prev`; the loop steps forward.
+GloFAS gives the *shape* of the hydrograph (rising/falling, roughly how fast), not local
+cfs. So the forecast is the GloFAS ratio applied to the latest real reading:
+`forecastFlow_i = latestRealFlow × (glofas_i / glofas_today)`. Honest units, tied to the
+observed snapshot, flagged forecast (never “measured”). Degenerate responses (fewer than
+two usable days) are dropped rather than shown.
 
 ### 2b. Stage (gauge height)
 
-**Not modeled independently** — derived from forecast flow through the gauge's own
-flow→stage rating curve (square-root relationship anchored on today's stage/flow
-pair, with a conservative floor). Keeps stage physically consistent with flow.
+**Not modeled independently** — derived from forecast flow through the gauge’s own
+flow→stage rating (`fitRating`: `stage ≈ a + b·√flow`, fit from recent paired daily means),
+so stage stays physically consistent with flow.
 
-### 2c. Confidence — `forecastConfidence`
+### 2c. Water temp — slope-coupled forecast (see `01`)
 
-Per forward day: start at **96 − 5 × (days out)**, then knock down for weather
-divergence from last year over the same dates — precip difference costs up to
-**25**, a high-temp gap beyond 8 °F up to **20**, a day with weather but no
-last-year comparison a flat **8**. Floor **5**, cap **99**. Chart shows the per-day
-value at hover and an overall average. The logic: a forecast leaning hard on the
-weather nudge (conditions unlike last year) is inherently less certain.
+For **measured** gauges: anchor on the latest real probe reading and ride the air *change*
+forward at the gauge’s own least-squares **air→water coupling slope** (clamped `[0.2, 0.6]`,
+default `0.4`). For **estimated mainstem** gauges the forecast comes from the same
+Darby↔Missoula gradient; for other estimated gauges it rides today’s value forward along
+the air trend, damped. Full detail in `01-temperature.md`. The chart temp line is just this
+forward array spliced onto the history at the TODAY index.
+
+### 2d. Terminal-day guard (Phase 3, new)
+
+**Problem.** Open-Meteo’s far-horizon daily rows occasionally spike implausibly — observed
+air highs running 98 → **103** → 98 °F across the 8–9-day tail. Because the temp forecast,
+the Tomorrow column, and the bite engine all derive from this air axis, an un-guarded spike
+propagates into scores at the edge of the window.
+
+**Fix.** Before any forecast is built, the last `TERMINAL_GUARD_DAYS` (= 2) forecast days
+are each checked against a short **local trend** — the mean of the few forecast days
+immediately before them. A day whose air-mid deviates from that local mean by more than
+`TERMINAL_GUARD_MAXJUMP` (= 7 °F) is clamped toward the local trend (its diurnal hi–lo range
+preserved). The guard operates on a **copy** of `weather.daily`; the raw feed is stored on
+the gauge untouched, and any clamped day is tagged `_terminalGuarded`.
+
+**Why local trend, not a fixed reference.** A lone far-horizon *artifact* jumps away from
+its immediate neighbours; a legitimate *trend* (steady warming, a building heat wave) moves
+smoothly and each day stays close to the local run. Judging against the local mean clamps
+the artifact while leaving sustained trends alone — verified against the observed 103 °F
+spike (clamped) and against smooth warming / cooling / heat-wave tails (all pass untouched).
+This matters for welfare: flattening a genuine multi-day warming trend would *hide* a real
+thermal-stress build, the opposite of what the stress ladder needs.
+
+### 2e. Confidence
+
+Per forward day, confidence starts high and decays with days-out, knocked down further when
+the forecast leans on weather that diverges from last year over the same dates (a forecast
+riding hard on the weather nudge is inherently less certain). Shown per-day on hover and as
+an overall average in the chart corner.
 
 ---
 
 ## Assumptions
 
-- Recession is the dominant physics; last year is a shape hint, not a magnitude
-  predictor.
-- Weather can only nudge within tight bounds; it can't drive the forecast.
+- GloFAS is a shape predictor, not a magnitude predictor; anchoring to the latest real
+  reading supplies the magnitude.
 - Stage must stay tied to flow through the rating curve — the two never drift apart.
-- USGS timestamps are true UTC; DNRC StAGE timestamps are face-value Mountain local
-  (handled upstream in `alignSeries`, not here).
+- Water temperature lags and damps air; the forecast rides the air *change* at a damped
+  slope, never air 1:1.
+- The far-horizon (last ~2) forecast days are the least reliable and warrant a guard; the
+  guard is deliberately conservative (clamps lone spikes, preserves trends).
+- USGS timestamps are true UTC; DNRC StAGE timestamps are face-value Mountain local (handled
+  upstream in the stage helpers, not here).
 
 ---
 
 ## Data lineage & fallbacks
 
-| Input | Primary source | Fallback chain (in order) | Null behavior |
-|-------|---------------|---------------------------|---------------|
-| Recession anchor | `series.flow.latest.value` | → last `series.flow.thisYear[].mean` | no flow history → no forecast produced; chart shows history only |
-| Recession factor `k` | fit to last ≤6 real days | → clamp midpoint if too few points | defaults toward mild recession within 0.93–1.04 |
-| Seasonal shape | `series.flow.lastYear[]` ratios | (none) | absent → blend weight contributes nothing; pure recession |
-| Flow nudge | `weather.daily[].precipIn`/`.hiF` | (none) | absent → no nudge applied |
-| Stage | forecast flow + `series.stage.latest` | → last `series.stage.thisYear[].mean` | no stage anchor → stage line not drawn |
-| Ceiling | `normal.flow` | (none) | absent → only the relative clamps apply |
-| Confidence baseline | `weather.lastYearDaily[]` | (none) | absent → flat −8 "no comparison" penalty |
+| Input | Primary source | Fallback chain | Null behavior |
+|-------|---------------|----------------|---------------|
+| Flow anchor | `series.flow.latest.value` | → last `thisYear[].mean` | no forecast; history only |
+| Flow shape | GloFAS `floodForecast` | (none) | no forecast produced |
+| Stage | forecast flow + rating | → last `stage.thisYear[].mean` anchor | stage line not drawn |
+| Temp forecast | air *change* × slope (measured) / gradient (est.) | → hold anchor | day omitted |
+| Air axis | `weather.daily` **post terminal-guard** | (none) | no forward movement |
+| Ceiling | `normal.flow` | (none) | relative clamps only |
 
 ---
 
 ## Outputs
 
-- `g._series.fcFlow[]`, `g._series.fcStage[]` (and `fcTemp[]` via `01`) — the
+- `series.flow.forecast[]`, `series.stage.forecast[]`, `series.watertemp.forecast[]` —
   forward arrays spliced onto each history line at the TODAY index.
-- Per-day + average **confidence** shown in the chart corner.
-- `fcFlow[i]` becomes the `flowRatio` numerator in a **future** day's conditions
-  object (`00`), feeding bite windows (`03`) and fly picks (`05`).
+- Per-day + average **confidence** in the chart corner.
+- Guarded air axis feeds the Tomorrow column and the bite engine (`03`), so the terminal
+  spike is neutralised everywhere, not just on the chart.
 
 ---
 
 ## Status
 
-**Live** off real conditions — the most complete of the engines.
+**Live** off real conditions. Flow dynamics (self-relative rise/clearing) are reworked in
+**Phase 4**; this file covers the forecast *tails* and the terminal guard as they ship now.
+
+---
+
+## Sources
+
+- **[S1] Terminal-day artifact** — *derived-in-repo* (observed in the live Open-Meteo
+  forecast tail, `data.json`); guard thresholds (`TERMINAL_GUARD_DAYS`, `MAXJUMP`,
+  `LOOKBACK`) are *assumption*, tuned against the observed spike + smooth-trend controls.
+- **[S2] GloFAS anchoring & rating curve** — *derived-in-repo* (method: ratio-anchoring to
+  latest reading; `a + b·√flow` least-squares rating from paired daily means).
+- **[S3] Air→water coupling slope** — *derived-in-repo* from each gauge’s measured history
+  (clamped [0.2, 0.6], default 0.4). Cross-ref `01`.
