@@ -54,6 +54,11 @@ phase is in flight.*
    University of Montana, Montana FWP, Montana DEQ), flagged 🏔, for local support —
    the app is a Bitterroot-specific tool and regional literature/regulation carries
    more weight for calibration than generic references.
+8. **Phase-inputs rule (standing):** every phase entry in §4 declares a **"Required
+   to start (upload set)"** — the exact files that must be uploaded before that phase
+   begins, split must-have / referenced / optional, with a scope guard. On restart,
+   the operator gathers that set and pastes the tracker first. Phase 3's set is the
+   worked example.
 
 ---
 
@@ -142,13 +147,13 @@ review/integration incomplete. **☑ PROVISIONAL** = deliverable complete and li
 but subject to re-verification when a downstream phase it couples to is done (not
 re-opened, just re-checked).
 
-### Phase status at a glance (as of 2026-07-09)
+### Phase status at a glance (as of 2026-07-10)
 
 | Phase | State | What's done | What (if anything) is still pending |
 |---|---|---|---|
 | 1 · Response curve | **☑ PROVISIONAL** — *not fully closed* | `_bandFor` literature-locked to westslope cutthroat, integrated in the bite engine, chart red line, banner/warnings. | Two downstream couplings, not Phase-1 defects: **Phase 6** recalibration (`categoryScores` still on parallel step-bands — the "four identical scores") and the **Phase 3** `t==null` null branch. Flips to full ☑ when those land. |
 | 2 · DO + stress ladder | **☑ CLOSED (done & integrated)** | Gap A: 68/70 confirmed science-shaped (O₂ scissors, not DO-sat numbers); elevation analyzed, deliberately not wired; two-tier 70/73 split reinforced. Validated headless; DO-grounded doc `06-…-2-3` (cited). No index/fetch change. | Nothing in Phase-2 remit. Gap B (coupling) **relocated to Phase 3** — it was pipeline work, never Phase-2 science. |
-| 3 · Temp estimation & forecast | ◐ in progress | Lead fix landed (measured-gauge `waterTempForecast`). | Estimation completeness (8-vs-11-day window), diel min/max, warm-bias + terminal-day guard, **ex-Gap-B no-unknown mandate**, `01`/`02` doc rewrites. Gate that flips Phase 1 **and** finalizes Phase 2's coupling. |
+| 3 · Temp estimation & forecast | **☑ (done & integrated, 2026-07-10)** — probes verified live | Lead fix (measured `waterTempForecast`) + **all four items**: (1) 8-vs-11-day window fixed (`PAST_WX_DAYS=HISTORY_DAYS`); (2) diel decision resolved — single daily model kept, but estimated `max` now from real neighbours not flat `+3` (ladder keys on `max`); (3) Open-Meteo warm-bias characterised (mostly cancels — forecast rides air *change*, not level) + terminal-day guard added upstream; (4) no-unknown mandate closed (seasonal floor, never `null`). **Plus:** two mainstem temp gauges added (Darby, Missoula) → **Bell now a Darby↔Missoula gradient**. **Probes verified live 2026-07-10 (USGS IV):** Darby 00010 ✓ (~51–59 °F), Missoula 00010 ✓ (warmest, real peak ~68 °F — brushing the orange line), Bell 00010 **absent** (empty `timeSeries`) → gradient confirmed correct. `01`/`02` rewritten. | Regenerate `data.json` via a live Actions/local run (sandbox can't reach USGS). Flips Phase 1 (null branch dead code) and finalises Phase 2's coupling. |
 | 4 · Flow | ☐ not started (reframed dynamics-first) | — | Whole phase. |
 | 5 · Light/time-of-day | ☐ not started | — | Whole phase. |
 | 6 · Integration & recalibration | ☐ not started | — | Re-anchors `categoryScores`; flips Phase 1 to full ☑. |
@@ -230,6 +235,26 @@ and Phase 6 (recalibration) land. Don't mark Phase 1 ☑ before then.
    match the real water-minus-air-offset engine.
    *Touches:* every temp-driven output; Tomorrow column; banner; makes the Phase-2
    `unknown` branch dead code.
+   ***REQUIRED TO START (upload set) — do not begin Phase 3 without these:***
+   - **Must-have:** (1) `build-tracker` (highest number) — paste first; (2)
+     `fetch-data.mjs` — the pipeline, where Phase 3 lives; (3) a **current
+     `data.json`** — from the live site (`jkarchibald.github.io/bitterroot/data.json`)
+     or a fresh Actions run (the fixture embedded in `index.html` is stale ~Jun 22 and
+     must not be used to validate).
+   - **Rewritten/referenced this phase:** (4) `01-temperature.md` — rewrite target
+     (retired `(hi+lo)/2 − 6` model); (5) `02-chart-forecasts.md` — rewrite target
+     (forecast/estimation); (6) the **deployed** `index.html` (live copy, not a
+     sandbox one) — to close the `unknown → orange` branch correctly, since the
+     frontend consumes the series.
+   - **Optional:** (7) `06-thermal-response-and-stress` (highest) for the response-
+     curve cross-ref; (8) `update-data.yml` only if the cron is touched.
+   - **Scope guard:** the *true climatological normal* question is **Phase 4**, NOT
+     Phase 3 — don't let it pull scope in. First Phase-3 items: 8-vs-11-day window
+     mismatch → diel min/max decision → Open-Meteo warm-bias + terminal-day guard →
+     close the no-unknown mandate.
+   - **Stamping:** Phase-3 files reset to `x=3` (`fetch-data-3-1.mjs`,
+     `01-temperature-3-1.md`, …); tracker keeps its global counter (`build-tracker-7`
+     next).
 
 4. **Flow** · rigor **B** · ☐ **(REFRAMED — dynamics-first, not level-vs-normal)**
    **DESIGN REFRAME (Uber, 2026-07-05):** flow *level* mostly **relocates** fish
@@ -363,6 +388,94 @@ values and "what's working now" finally comes right.
 ---
 
 ## ── STATUS LOG (living — newest on top) ──
+
+### 2026-07-10 (a) · Phase 3 worked + mainstem gauges added — ☑ pending live pull
+- **Files delivered:** `fetch-data-3-1.mjs`, `01-temperature-3-1.md`,
+  `02-chart-forecasts-3-1.md`, `build-tracker-7.md`. `node --check` clean; new logic
+  headless-tested against the real `data.json` (gradient, terminal guard, seasonal floor).
+- **All four Phase-3 items done, each traced through real code + live `data.json`
+  (not from memory):**
+  1. **8-vs-11-day window** — root cause: estimated history was built off the weather
+     axis (`past_days=7` → 8 rows) while measured came off the gauge feed (`HISTORY_DAYS`
+     → 11). Fix: `PAST_WX_DAYS = HISTORY_DAYS`. Open-Meteo caps `past_days` at 92;
+     `anchorIdx` is date-matched so “today”/split/anchor don’t move. All six gauges now
+     share an 11-day axis.
+  2. **Diel min/max (the big call)** — finding: the stress ladder already keys entirely on
+     `.max` (68/70 are max thresholds), so “an afternoon touching 73 matters even if the
+     mean is fine” is already baked in. The defect was on the *supply* side: estimated
+     gauges fabricated a flat `max = mean+3`, understating the afternoon peak (Bell peak
+     mean 63.7 → fake max 66.7, under the 68 line; a realistic +6 diel → ~69.7, over
+     orange). **Decision: keep the single daily model, but derive estimated `max` from real
+     data, not a constant** — resolved via the mainstem gradient below (Bell inherits real
+     neighbour diel) and, for the small freestone estimate, the measured-freestone signal.
+  3. **Warm bias + terminal guard** — the retired `(hi+lo)/2−6` model runs 5–7 °F warm vs
+     real water (measured offset is −11 to −13 °F, not −6). But the *current* engine mostly
+     cancels the bias because the forecast rides air **change**, not level, and history
+     uses measured-water anchors — so no blanket correction (documented, not double-counted).
+     **Terminal-day guard added upstream** in `fetch-data.mjs` (was frontend-only, stress-
+     only): clamps a lone far-horizon air spike (observed 98→103→98) toward the local trend
+     while leaving sustained warming/cooling trends untouched — verified on the real spike +
+     smooth-trend controls.
+  4. **No-unknown mandate** — closed the one structural hole: `estimateWaterTempV2` could
+     return `mean:null`; it now falls to a seasonal floor and **never emits null**. Live
+     `data.json` already shows no gauge hitting the unknown branch; this makes it true
+     structurally too. The frontend `unknown → orange` branch (index.html L1440) and the
+     `t==null` bite/band branches (L605/L943) are now provably dead — **closed upstream,
+     no frontend recolor** (Phase 1’s null branch → can flip to full ☑ once verified live).
+- **SCOPE EXPANSION (approved by Uber): two mainstem temp gauges added.** Uber’s call —
+  Bell (1,963 mi², ~1,408 cfs) was borrowing a diel from 150–290 cfs forks, which is
+  physically backwards (a big river damps its swing). Added **Darby (12344000, upstream,
+  ~1,050 mi²)** and **Missoula (12352500, downstream, ~2,824 mi²)**, both mainstem probes.
+  **Bell is now interpolated on the Darby↔Missoula gradient by drainage area** (Bell frac
+  ≈ 0.515, mid-river), inheriting real big-river diel. Fallbacks per Uber’s spec:
+  Darby missing → extrapolate Bell/Darby **cooler** (upstream); Missoula missing →
+  extrapolate Bell/Missoula **warmer** (downstream); both missing → freestone estimator.
+  Roster made explicitly extensible (add-a-gauge instructions in the config; mainstem
+  gauges take a `drainageMi2` gradient axis; temp presence is auto-detected).
+  - **Regulatory bonus:** the two gauges are FWP’s own reference stations — Darby = the
+    **66 °F cutthroat** reach (upper), Missoula = the **73 °F** reach (lower) [🏔 FWP
+    drought/hoot-owl plan]. Flag for **Phase 6**: this reach’s FWP cutthroat trigger is
+    66 °F/3-day, stricter than the statewide 73 the two-tier line is anchored to.
+- **Could NOT verify from the sandbox:** `waterservices.usgs.gov` is not in the egress
+  allowlist, so a **live pull must run in CI/Actions (or locally)** to generate the
+  regenerated `data.json`. **UPDATE 2026-07-10 — probe presence verified live** (Uber ran
+  the USGS IV temp-only queries): Darby (12344000) 00010 ✓ real series (~10.6–15.3 °C ≈
+  51–59 °F); Missoula (12352500) 00010 ✓ and warmest (~17.2–20.2 °C ≈ 63–68 °F, real
+  afternoon peak already brushing the 68 °F orange line); **Bell (12350250) 00010 absent**
+  (empty `timeSeries`; the ALL-params pull shows only 00060 discharge). So Darby + Missoula
+  resolve as **measured** mainstem anchors and Bell as the **gradient fill** — exactly the
+  design case. Validated the gradient against the real probe numbers: °C→°F conversion
+  correct, Darby mean ≈ 54.9 → Missoula ≈ 65.7 (an ~11 °F mainstem rise), Bell interpolates
+  to ≈ 60.4 (frac 0.515, correctly ordered) with a real ~6.5 °F diel. Note Darby's series can
+  start a few days short (07-03 in the sample) and probes can gap — the gradient's per-date
+  one-sided fallback covers any date a neighbour is missing.
+- **Browser checks (temp-only; empty `timeSeries` = no probe):**
+  `https://waterservices.usgs.gov/nwis/iv/?sites=12344000&parameterCd=00010&period=P7D&format=json`
+  (Darby), `…sites=12352500…` (Missoula), `…sites=12350250…` (Bell — worth checking; if it
+  returns temp, Bell flips to *measured* and instead anchors the gradient).
+- **Run to regenerate `data.json`:** `node fetch-data.mjs` where USGS is reachable, or
+  trigger the Actions workflow (`update-data.yml`, “Run workflow”).
+- **Phase-3 doc audit (standing end-of-phase rule):**
+
+  | Doc | Action |
+  |---|---|
+  | `01-temperature.md` | **REWRITTEN → `01-temperature-3-1.md`** — retires `(hi+lo)/2−6`; documents measured/estimated/forecast, the mainstem gradient, terminal guard, no-unknown floor; cited `Sources` (🏔). |
+  | `02-chart-forecasts.md` | **REWRITTEN → `02-chart-forecasts-3-1.md`** — corrects the temp-forecast model to slope-coupling; adds the terminal-day guard section; cited. |
+  | `06-thermal-response-and-stress.md` | **No update needed** — response curve + stress thresholds unchanged; Phase 3 only changed how the *number* feeding it is produced. (Phase-6 note logged re: 66 °F reach trigger.) |
+  | `00`, `03`, `04`, `05`, `README`, `MIGRATION` | **No update needed** for Phase 3. `04` (flow baseline) still owns the true-normal question — untouched, per scope guard. |
+
+- **Supersedes `build-tracker-6`.** Next full phase: **Phase 4 (flow, dynamics-first)** —
+  and the multi-year “true normal” data-architecture decision, deliberately kept out of
+  Phase 3.
+
+### 2026-07-09 (e) · Phase-3 required-upload set captured as a requirement
+- **Added rule 8 (phase-inputs rule):** every §4 phase declares a "Required to start
+  (upload set)". Phase 3's set now embedded in §4 item 3 as a hard requirement (not
+  just chat): must-have = tracker + `fetch-data.mjs` + current `data.json`;
+  referenced = `01-temperature.md`, `02-chart-forecasts.md`, deployed `index.html`;
+  optional = `06` (highest), `update-data.yml`. Scope guard: true climatological
+  normal is Phase 4, not 3.
+- **No code change.** Supersedes `build-tracker-5`. Prepared for a fresh Phase-3 chat.
 
 ### 2026-07-09 (d) · Montana / regional citations added to 06 (local support)
 - **`06-thermal-response-and-stress-2-4.md` delivered** — adds Montana/regional
