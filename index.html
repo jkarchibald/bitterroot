@@ -141,6 +141,8 @@ button, .btn { font-size: 12px; font-weight: 500; }
 .legend-status:empty { display: none; }
 .status-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; line-height: 1.4; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--t3-matcon-pmc); color: var(--t3-matcon-pmc); background: color-mix(in srgb, var(--t3-matcon-pmc) 12%, transparent); white-space: nowrap; }
 .status-pill.miss { border-color: var(--t3-matcon-nmc); color: var(--t3-matcon-nmc); background: color-mix(in srgb, var(--t3-matcon-nmc) 12%, transparent); }
+.status-pill.warn-amber { border-color: var(--t3-status-orange); color: var(--t3-status-orange); background: color-mix(in srgb, var(--t3-status-orange) 12%, transparent); cursor: help; }
+.status-pill.warn-red { border-color: var(--t3-status-red); color: var(--t3-status-red); background: color-mix(in srgb, var(--t3-status-red) 12%, transparent); cursor: help; }
 .status-pill .sdot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
 .legend .key { display: flex; align-items: center; gap: 6px; }
 .legend .swatch { width: 16px; height: 3px; border-radius: 2px; }
@@ -1025,34 +1027,45 @@ function _bandFor(t){
 // this number -- it lives entirely in _bandFor's continuous response curve,
 // and the conservative cutthroat welfare red is STRESS_RED_F (70) below.
 const HOOT_OWL_F = 73;        // FWP legal/chart line (fixed) -- do not tie feeding logic to this
-const STRESS_ORANGE_F = 68;   // single/near-term days at/above -> elevated
-const STRESS_RED_F    = 70;   // welfare red (tunable, on-the-water number)
-const STRESS_RED_DAYS = 3;    // consecutive days >= RED_F -> red
+const STRESS_ORANGE_F = 68;   // (legacy near-term band constant; retained for reference)
+const STRESS_RED_F    = 70;   // welfare red / callout amber trigger (on-the-water number)
+const STRESS_RED_DAYS = 3;    // consecutive forecast days >= threshold -> callout fires
 const STRESS_FC_DROP  = 1;    // ignore the last N forecast days (edge artifact)
+// STRESS CHICLET = "is it stressful RIGHT NOW", on TODAY's peak (daily max) only.
+// Deliberately NOT forecast-aware: the forward look belongs entirely to the
+// forecast-warning callout (amber >=70 / red >=73, 3 consecutive forecast days).
+// Single-day thresholds match the callout's language so the two never contradict:
+//   today's peak >= 73 -> red   (at the hoot-owl line today)
+//   today's peak >= 70 -> orange(welfare-warm today)
+//   else                -> green
+// This split (current vs. forecast) is Uber's 2026-07-10 decision; it removes the
+// old red-Stress-next-to-amber-callout mismatch, where the stress ladder tripped red
+// off a 70/3-day run that was entirely in the FORECAST.
+const STRESS_TODAY_ORANGE_F = 70;   // today's peak at/above -> orange
+const STRESS_TODAY_RED_F    = 73;   // today's peak at/above -> red (hoot-owl line, today)
 function waterStress(wt){
   if(!wt || !wt.thisYear || !wt.thisYear.length)
     return {level:'unknown', label:'Status (est.)', reason:'no water-temp data'};
   const estimated = !!wt.estimated;
   const label = estimated ? 'Status (est.)' : 'Stress';
 
-  const trail = wt.thisYear.slice(-10).map(x=>({date:x.date, max:x.max}));
-  const spreads = wt.thisYear.filter(x=>x.max!=null&&x.mean!=null).map(x=>x.max-x.mean);
-  const bump = spreads.length ? spreads.reduce((a,b)=>a+b,0)/spreads.length : 3.5;
-  let fc = (wt.forecast||[]).map(x=>({date:x.date, max:(x.max!=null?x.max:(x.mean!=null?x.mean+bump:null))}));
-  if(STRESS_FC_DROP>0) fc = fc.slice(0, Math.max(0, fc.length-STRESS_FC_DROP));
-  const series=[...trail,...fc];
-
-  let run=0, redHit=null;
-  for(const d of series){
-    if(d.max!=null && d.max>=STRESS_RED_F){ run++; if(run>=STRESS_RED_DAYS && !redHit) redHit=d.date; }
-    else run=0;
+  // today's peak = the most recent thisYear row's daily max (measured or estimated).
+  // The pipeline writes a row dated data.today as the last thisYear entry, so the last
+  // row IS today; fall back through recent rows if the newest carries no max.
+  let todayMax = null, todayDate = null;
+  for(let i=wt.thisYear.length-1; i>=0; i--){
+    const r = wt.thisYear[i];
+    if(r && r.max!=null){ todayMax = r.max; todayDate = r.date; break; }
   }
-  const nearVals=series.slice(Math.max(0,trail.length-1), trail.length+2).map(x=>x.max).filter(v=>v!=null);
-  const nearMax = nearVals.length ? Math.max(...nearVals) : null;
+  if(todayMax==null)
+    return {level:'unknown', label, reason:'no current water-temp reading'};
 
-  if(redHit) return {level:'red', label, reason:'water \u2265'+STRESS_RED_F+'\u00b0F for '+STRESS_RED_DAYS+'+ days \u2014 rest the fish'};
-  if(nearMax!=null && nearMax>=STRESS_ORANGE_F) return {level:'orange', label, reason:'daily max ~'+Math.round(nearMax)+'\u00b0F \u2014 approaching stress band'};
-  return {level:'green', label, reason:(nearMax!=null?('daily max ~'+Math.round(nearMax)+'\u00b0F \u2014 '):'')+'below stress band'};
+  const peak = Math.round(todayMax);
+  if(todayMax>=STRESS_TODAY_RED_F)
+    return {level:'red', label, reason:'water ~'+peak+'\u00b0F today \u2014 at the hoot-owl line, rest the fish'};
+  if(todayMax>=STRESS_TODAY_ORANGE_F)
+    return {level:'orange', label, reason:'water ~'+peak+'\u00b0F today \u2014 in the stress band'};
+  return {level:'green', label, reason:'water ~'+peak+'\u00b0F today \u2014 below stress band'};
 }
 
 /* Forecast-warning callout (per-card, bottom-right of the VIEWING row).
@@ -1067,6 +1080,12 @@ function waterStress(wt){
    Returns null when nothing fires (the callout is hidden entirely). */
 const TEMP_CALLOUT_WATER_F = STRESS_RED_F;  // 70 -> amber "Water Temp"
 const TEMP_CALLOUT_HOOT_F  = HOOT_OWL_F;    // 73 -> red "Hoot-Owl Likely"
+// Short "Jul 11" style label from a YYYY-MM-DD forecast date.
+function fcDayLabel(ymd){
+  const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(ymd||'')); if(!m) return String(ymd||'');
+  return M[(+m[2])-1]+' '+(+m[3]);
+}
 function tempCallout(g){
   const wt = g && g._wt;
   if(!wt || !wt.forecast || !wt.forecast.length) return null;
@@ -1074,13 +1093,39 @@ function tempCallout(g){
   const bump = spreads.length ? spreads.reduce((a,b)=>a+b,0)/spreads.length : 3.5;
   let fc = wt.forecast.map(x=>({date:x.date, max:(x.max!=null?x.max:(x.mean!=null?x.mean+bump:null))}));
   if(STRESS_FC_DROP>0) fc = fc.slice(0, Math.max(0, fc.length-STRESS_FC_DROP));
-  const runsHit = (thresh)=>{
-    let run=0;
-    for(const d of fc){ if(d.max!=null && d.max>=thresh){ run++; if(run>=STRESS_RED_DAYS) return true; } else run=0; }
-    return false;
+  // Find the FIRST run of >=STRESS_RED_DAYS consecutive forecast days at/above thresh.
+  // Returns the triggering run's rows, or null.
+  const firstRun = (thresh)=>{
+    let run=[];
+    for(const d of fc){
+      if(d.max!=null && d.max>=thresh){ run.push(d); if(run.length>=STRESS_RED_DAYS) {
+        // extend the run to include any further consecutive qualifying days
+        continue;
+      } }
+      else { if(run.length>=STRESS_RED_DAYS) return run; run=[]; }
+    }
+    return run.length>=STRESS_RED_DAYS ? run : null;
   };
-  if(runsHit(TEMP_CALLOUT_HOOT_F))  return {level:'red',   label:'Hoot-Owl Likely'};
-  if(runsHit(TEMP_CALLOUT_WATER_F)) return {level:'amber', label:'Water Temp'};
+  const mk = (level,label,run)=>{
+    const maxes = run.map(d=>d.max);
+    const lo = Math.round(Math.min(...maxes)), hi = Math.round(Math.max(...maxes));
+    const d0 = fcDayLabel(run[0].date), d1 = fcDayLabel(run[run.length-1].date);
+    // "Jul 11–13" when both dates share a month; "Jun 30–Jul 2" when they cross.
+    let span;
+    if(d0===d1) span = d0;
+    else {
+      const m0=d0.split(' ')[0], m1=d1.split(' ')[0];
+      span = (m0===m1) ? (d0+'\u2013'+d1.split(' ')[1]) : (d0+'\u2013'+d1);
+    }
+    const range = (lo===hi) ? (lo+'\u00b0F') : (lo+'\u2013'+hi+'\u00b0F');
+    // one line: temps + dates only
+    const why = 'Forecast highs '+range+', '+span;
+    return {level, label, why, span, range};
+  };
+  const rRed = firstRun(TEMP_CALLOUT_HOOT_F);
+  if(rRed)  return mk('red',   'Hoot-Owl Likely', rRed);
+  const rAmb = firstRun(TEMP_CALLOUT_WATER_F);
+  if(rAmb)  return mk('amber', 'Water Temp', rAmb);
   return null;
 }
 
@@ -1608,6 +1653,18 @@ function statusPills(g, mode){
   else if(st.flow.ly==='partial') pills.push(pill('last year (flow) \u2014 '+(st.hasFwd?'forward window missing':'incomplete'),false));
   // sample-data marker
   if(st.synthetic) pills.push(pill('sample data',false));
+  // Forecast-warning chiclet (temp chart only): mirrors the card's amber/red
+  // callout into the chart legend, below the first legend row, alongside the
+  // "last year — no data" pills. Hover (title) shows the one-line why: temps +
+  // dates. Same firing logic as the card pill (shared tempCallout).
+  if(mode==='temp'){
+    const tc = tempCallout(g);
+    if(tc){
+      const cls = tc.level==='red' ? 'warn-red' : 'warn-amber';
+      pills.push('<span class="status-pill '+cls+'" title="'+tc.why+'">'
+        + '<span class="sdot"></span>'+tc.label+'</span>');
+    }
+  }
   return pills.join('');
 }
 
