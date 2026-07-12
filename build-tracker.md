@@ -1,8 +1,8 @@
-<!-- version: build-tracker-27.md -->
+<!-- version: build-tracker-28.md -->
 
 # Bitterroot Dashboard — Build Tracker
 
-Global counter: **27**. Living document. Each phase entry carries its outcome,
+Global counter: **28**. Living document. Each phase entry carries its outcome,
 validation surface, deliverables, and the upload set required to start the next
 phase.
 
@@ -252,7 +252,8 @@ tip. Easy, cheap, repeatable — confirmed.
    tables (candidate-add / diff signal, per the "consider not auto-add" guardrail). Rig/hatch
    atoms with no shop variant yet are intentionally NOT pre-seeded -- the map normalizes shop
    names, not every rig fly; new rig-only flies get aliases when a shop first names them.
-2. **Scraper + all sources — SECOND. — STRUCTURED TIER DONE (Chat 2, 2026-07-12).**
+2. **Scraper + all sources — SECOND. — STRUCTURED TIER DONE (Chat 2, 2026-07-12;
+   parsers corrected Chat 2b/8-3 against live DOM, 2026-07-12).**
    `fetch-shop-reports.mjs`: Orvis x3 first (structured), then Grizzly Hackle + Fly Fish
    Food (prose tier). Adding shops lives here, not earlier — scraping un-normalizable
    names just yields noise.
@@ -296,6 +297,41 @@ tip. Easy, cheap, repeatable — confirmed.
    windows. `index.html` does not read `shop-reports.json`; all scoring runs off `data.json`
    (gauge pipeline). Shop rating = human sanity-check on the day score, not an engine input;
    shop temp = soft cross-check. Rig-table influence remains diff-and-review, never auto-fed.
+   **LIVE-DOM PARSER FIX (8-3, 2026-07-12) — the fixtures lied.** First scheduled run
+   (#2) went GREEN but scraped nothing: every source hit "no reportDate -> skipping" and
+   the job committed an empty diff. The 8-2 parsers were written against fixtures that
+   *guessed* the Orvis markup; the real pages (Joomla / `com_fishing_reports`) differ, so
+   the date parse returned null and short-circuited each source before an id formed. Raw
+   HTML was captured from the runner (dev sandbox can't reach orvis.com:
+   `host_not_allowed`) and every parser rewritten against reality:
+   - date = `<p class="last-updated">...<span>M/D/YY</span>` -> `YYYY-MM-DD`
+   - reporter = `<span class="text-brand">NAME's </span>` (parsed, no longer hardcoded)
+   - rating = amCharts `chart.data` **multiline** -> tolerant rating/number pair regex,
+     highest number wins (was a single-line `JSON.parse`, which the real block breaks)
+   - temp = `<p class="report-temp__degrees">NN</p>`
+   - flies = `<tr class="gear-row" data-shop-name>` + 3 `<td>`s (name/colors/sizes). The
+     table has **no rank attr and no type column**: rank = DOM order; type = inferred from
+     canonical via `TYPE_BY_CANON` (unknown -> null, never guessed); colors split on `,`
+     AND `/`, tokens preserved verbatim (shop abbrevs like "PT"/"Tan Brn" are data); sizes
+     normalized ("#10-14"/"12/18" -> "10-14"/"12-18", zero-pad dropped, comma-sets like
+     "16,14,12" kept as discrete size sets)
+   - hatches / bestTime / tip / technique = their real widget selectors
+   **NEW GUARD (the real bug behind #2 looking successful):** the run tracks `parsedOk`
+   across sources and exits **non-zero** if 0 of N produced a valid record -- an all-skip
+   run now goes RED instead of a silent green. Per-source graceful-skip is retained (one
+   bad source never kills the others); a source parsing 0 flies also warns (DOM-drift
+   canary). Validated against the real captured HTML: repopulate-from-empty = 3 appended,
+   parsedOk 3/3, 0 unmapped, exit 0; re-run dedups to 0; empty/parse-fail path exits 1.
+   **SEED RESET TO EMPTY (Option 2, owner call 2026-07-12).** The 3 seed records held
+   reconciled/guessed values; the live mainstem rating is actually **Excellent** (number
+   50), not the seed's reconciled **Good** -- and append-only dedup (keyed on date-based
+   id) would never overwrite that stale row. So `reports[]` and `_unmappedNames[]` were
+   emptied (schema/note/schema-doc scaffolding kept) and the first live run repopulates all
+   three from the real DOM. Every stored record is now 100% scraper-produced; the alias
+   layer + `TYPE_BY_CANON` reproduce everything the hand seed carried (incl. `type`, which
+   the page itself does not provide). Supersedes the 8-2 seed reconciliation (that had
+   reconciled the mainstem to Good/7.5 off the fixture -- moot now that the seed is empty
+   and the live value Excellent lands on first run).
    **UNKNOWN-NAME CONTRACT (LOCKED 2026-07-12, owner):** when the scraper hits a `nameRaw`
    that `canon()` cannot resolve, it **logs-and-keeps-going -- never blocks the scrape.** The
    full record still lands (raw name preserved on the fly), and the unresolved name is
