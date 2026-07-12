@@ -1,8 +1,8 @@
-<!-- version: build-tracker-16.md -->
+<!-- version: build-tracker-17.md -->
 
 # Bitterroot Dashboard — Build Tracker
 
-Global counter: **16**. Living document. Each phase entry carries its outcome,
+Global counter: **17**. Living document. Each phase entry carries its outcome,
 validation surface, deliverables, and the upload set required to start the next
 phase.
 
@@ -112,8 +112,8 @@ where the same static rig produced different picks after the dynamics fix.
 
 | Logic file | Touched by | Audit action | Status |
 |-----------|-----------|--------------|--------|
-| `05-whats-working-now` | Part A (`calcPicks`), Part B (rigs) | rewrite §5c to dynamics-first; update §5b rig note, Data-lineage, Status; close the §293 "one real coupling logged for Phase 7" | **in progress** |
-| `07-flow` | — (calc now reuses 07's spike/clearing) | add cross-ref: calc consumes `flowTrend` via `liveConditions` | pending |
+| `05-whats-working-now` | Part A (`calcPicks`), Part B (rigs) | rewrite §5c to dynamics-first; update §5b rig note, Data-lineage, Status; close the §293 "one real coupling logged for Phase 7" | **done (`05-7-1`)** |
+| `07-flow` | — (calc now reuses 07's spike/clearing) | add cross-ref: calc consumes `flowTrend` via `liveConditions` (intro note, §7d addition, Outputs, Status) | **done (`07-7-1`)** |
 | `06-thermal…` | untouched | none (scope-guarded) | n/a |
 
 **Decision — calc engine documentation:** calc stays documented **in 05** (§5c),
@@ -128,6 +128,39 @@ Phase 7 — Part A reuses Phase 6 / `07`'s already-cited rate-of-rise + clearing
 logic (derived-in-repo, sourced in 07); Part B patterns are **authored local
 knowledge** (owner-supplied via the hatch tables), flagged for fly-shop
 ground-truthing. No new cited-source rows required.
+
+**Phase 7 doc audit: COMPLETE.** Both touched logic docs reconciled against
+shipped code — `05-7-1` (§5c rewrite + rig note + lineage/Status) and `07-7-1`
+(calc-consumer cross-ref: intro, §7d, Outputs, Status). Nothing pending.
+
+---
+
+## Phases 1–7 — status roll-up
+
+With the Phase 7 doc audit closed, phases 1–7 are each **complete and closed as
+scoped**:
+
+| Phase | Scope | Status |
+|-------|-------|--------|
+| 1 | Westslope-cutthroat response curve (`_bandFor`) | **closed** — flipped PROVISIONAL→done at Phase 6 (`05` Status) |
+| 2 | Bite engine / block scoring | **closed** |
+| 3 | 8-gauge expansion + forecast-warning callout system + stress chiclet split | **closed**, live-verified |
+| 4 | Flow dynamics-first (`spike`/`clearing`/`flowAdj`); `07-flow` created | **closed** |
+| 5 | Where-to-fish / gauge ranking (`04`) | **closed** |
+| 6 | `categoryScores` re-anchored to `_bandFor`; flow level fully demoted | **closed** |
+| 7 | `calcPicks` dynamics-first + independent per-gauge rigs + doc audit | **closed** |
+
+**Two items carry forward (not phase blockers, explicitly deferred):**
+1. **Phase-6 residual** — forecast `max` derivation for measured gauges; catalogued,
+   not addressed in Phase 7. Candidate for a later flow/forecast pass.
+2. **Ground-truth calibration** — Phase 7 rigs and score magnitudes are
+   derived/anchored but **not** yet reconciled against fly-shop reports. That is the
+   substance of **Phase 8**, not a gap in 1–7.
+
+Interpretation: the system is **feature-complete and internally consistent through the
+fly-selection engine**; it is **not yet field-calibrated** (Phase 8). "1–7 closed"
+means every phase shipped, was validated, and had its docs reconciled — it does not
+mean the rigs/scores are locally ground-truthed.
 
 ---
 
@@ -155,7 +188,7 @@ makes it condition-aware if warranted.
 ## Required to start — Phase 8 (upload set)
 
 **Must-have:**
-- `build-tracker-16.md` (this file) — upload first.
+- `build-tracker-17.md` (this file) — upload first.
 - `index.html` (current, post-7-2).
 - fresh `data.json`.
 - `calibration/shop-reports.md` — the ground-truth log (core Phase 8 input).
