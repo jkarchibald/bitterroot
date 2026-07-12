@@ -1,0 +1,62 @@
+# version: fetch-shop-reports-8-2.yml
+# Shop-report calibration scraper — SEPARATE pipeline from the gauge cron.
+# Its own workflow, its own (less-frequent) schedule. If this job fails, the
+# gauge dashboard (fetch-data.yml) is unaffected: two scripts, two files, two
+# concerns. Append-only: reads calibration/shop-reports.json, appends new dated
+# records, commits back. Never overwrites.
+name: fetch-shop-reports
+
+on:
+  schedule:
+    # Shop reports change every few days, not hourly. Twice a day is plenty and
+    # keeps the append timeline dense enough to catch each dated report once.
+    # 13:15 and 01:15 UTC (~morning & evening Mountain).
+    - cron: "15 13 * * *"
+    - cron: "15 1 * * *"
+  workflow_dispatch: {}
+
+# Least-privilege: only needs to push the appended JSON back.
+permissions:
+  contents: write
+
+concurrency:
+  # Never let two scraper runs race on the same append file.
+  group: fetch-shop-reports
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Syntax check
+        run: node --check fetch-shop-reports.mjs
+
+      - name: Scrape shop reports (append-only)
+        run: node fetch-shop-reports.mjs
+
+      - name: Commit appended reports
+        run: |
+          set -euo pipefail
+          git config user.name  "cftf-shop-bot"
+          git config user.email "cftf-shop-bot@users.noreply.github.com"
+          if git diff --quiet -- calibration/shop-reports.json; then
+            echo "No new shop reports; nothing to commit."
+            exit 0
+          fi
+          git add calibration/shop-reports.json
+          # Summarize what changed for the commit body.
+          added=$(git diff --cached --unified=0 -- calibration/shop-reports.json \
+            | grep -c '"id":' || true)
+          git commit -m "data: (shop-reports.json): append shop report scrape" \
+            -m "Automated append-only scrape of Orvis structured-tier reports." \
+            -m "New id lines in this commit: ${added}. Dedup on id; unresolved" \
+            -m "fly names (if any) collected in _unmappedNames for review."
+          git push
