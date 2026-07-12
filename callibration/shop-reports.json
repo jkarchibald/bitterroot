@@ -1,0 +1,394 @@
+{
+  "schemaVersion": 3,
+  "note": "Append-only fly-shop calibration log. One record = one shop report for one river on one day. Never overwrite; each scrape appends. PULL-AND-PARK: the scraper collects ALL rivers a shop offers, but off-gauge rivers (no gauge in this app yet) are parked with gauges:[] and active:false -- collected + dated from day one so future drainages (e.g. Clark Fork incl. Rock Creek) start with banked history. Activating later = fill gauges[] + flip active:true; no re-scrape, no reformat. Active queries filter active:true. Fly table primary; tip prose cross-checks. Ratings normalized to 0-10 (rating.value0to10). Shop water temp is SOFT cross-check only -- our gauges authoritative. nameCanonical (alias layer, build-step 1) drives cross-shop agreement counting.",
+  "schema": {
+    "id": "string, stable per report+date",
+    "scrapedAt": "ISO datetime -- when WE pulled it",
+    "reportDate": "YYYY-MM-DD -- date the shop stamped",
+    "source": "platform (Orvis, Grizzly Hackle, Fly Fish Food, Blackfoot-own)",
+    "reporter": "the actual guide/shop author -- weighting is by this, not source",
+    "url": "string",
+    "river": "human name",
+    "gauges": "array of our gauge ids this report covers (crosswalk to the app)",
+    "rating": {
+      "raw": "as shown ('80%'|'Good')",
+      "scale": "'pct'|'orvis-5step'",
+      "value0to10": "number, our normalized rating (80% -> 8, Good -> 7.5)"
+    },
+    "shopWaterTempF": "number|null -- SOFT cross-check, not authoritative",
+    "hatches": "array of strings",
+    "bestTime": "string|null",
+    "technique": "string|null",
+    "flies": "array of { rank, nameRaw, nameCanonical, type(dry|nymph|dd|streamer), colors[], sizes }",
+    "tip": "guide prose",
+    "tipFlies": "array of fly names pulled from the tip prose (cross-check)",
+    "drainage": "drainage key (e.g. 'bitterroot','clark-fork') -- groups rivers for future multi-drainage expansion",
+    "active": "bool -- true if this river maps to a live gauge in THIS app; false = parked (collected but not in the active dataset)"
+  },
+  "reports": [
+    {
+      "id": "orvis-westfork-2026-07-09",
+      "scrapedAt": "2026-07-12T14:03:00Z",
+      "reportDate": "2026-07-09",
+      "source": "Orvis",
+      "reporter": "Jim Mitchell",
+      "url": "https://fishingreports.orvis.com/west/montana/west-fork-bitterroot-river",
+      "river": "West Fork Bitterroot",
+      "gauges": [
+        "wf-painted",
+        "wf-conner"
+      ],
+      "rating": {
+        "raw": "Good",
+        "scale": "orvis-5step",
+        "value0to10": 7.5
+      },
+      "shopWaterTempF": 52,
+      "hatches": [
+        "Golden Stones",
+        "Green Drakes",
+        "Yellow Sallies",
+        "PMD",
+        "Caddis",
+        "Midges"
+      ],
+      "bestTime": "Late morning on",
+      "technique": "Dry Dropper, Nymphing, or Streamer",
+      "flies": [
+        {
+          "rank": 1,
+          "nameRaw": "Tunghead Hot Spot Pheasant Tail Jig",
+          "nameCanonical": "Pheasant Tail",
+          "type": "nymph",
+          "colors": [
+            "Yellow",
+            "Orange"
+          ],
+          "sizes": "12-18"
+        },
+        {
+          "rank": 2,
+          "nameRaw": "Bead Head Prince",
+          "nameCanonical": "Prince Nymph",
+          "type": "nymph",
+          "colors": [
+            "Peacock"
+          ],
+          "sizes": "10-14"
+        },
+        {
+          "rank": 3,
+          "nameRaw": "Adams Parachute Dry Fly",
+          "nameCanonical": "Parachute Adams",
+          "type": "dry",
+          "colors": [
+            "Gray"
+          ],
+          "sizes": "10-18"
+        },
+        {
+          "rank": 4,
+          "nameRaw": "Adam's Purple Parachute",
+          "nameCanonical": "Purple Haze",
+          "type": "dry",
+          "colors": [
+            "Purple"
+          ],
+          "sizes": "10-18"
+        },
+        {
+          "rank": 5,
+          "nameRaw": "Chubby",
+          "nameCanonical": "Chubby Chernobyl",
+          "type": "dry",
+          "colors": [
+            "Purple"
+          ],
+          "sizes": "10-14"
+        },
+        {
+          "rank": 6,
+          "nameRaw": "Elk Wing Caddis",
+          "nameCanonical": "Elk Hair Caddis",
+          "type": "dry",
+          "colors": [
+            "Tan"
+          ],
+          "sizes": "14-16"
+        },
+        {
+          "rank": 7,
+          "nameRaw": "Double Bunny",
+          "nameCanonical": "Double Bunny",
+          "type": "streamer",
+          "colors": [
+            "Olive",
+            "White"
+          ],
+          "sizes": "2-6"
+        },
+        {
+          "rank": 8,
+          "nameRaw": "Quigley Cripple",
+          "nameCanonical": "Quigley Cripple",
+          "type": "dry",
+          "colors": [
+            "Peacock"
+          ],
+          "sizes": "14-18"
+        }
+      ],
+      "tip": "Green Drake and PMD dries. Nymphing is good, with rubber legs, Perdigons, lightning bugs, pheasant tails, and worms. Streamers are producing the bright ones.",
+      "tipFlies": [
+        "Green Drake",
+        "PMD",
+        "Rubber Legs",
+        "Perdigon",
+        "Lightning Bug",
+        "Pheasant Tail",
+        "San Juan Worm"
+      ],
+      "drainage": "bitterroot",
+      "active": true
+    },
+    {
+      "id": "orvis-eastfork-2026-07-09",
+      "scrapedAt": "2026-07-12T14:03:00Z",
+      "reportDate": "2026-07-09",
+      "source": "Orvis",
+      "reporter": "Jim Mitchell",
+      "url": "https://fishingreports.orvis.com/west/montana/east-fork-bitterroot-river",
+      "river": "East Fork Bitterroot",
+      "gauges": [
+        "ef-connor"
+      ],
+      "rating": {
+        "raw": "Good",
+        "scale": "orvis-5step",
+        "value0to10": 7.5
+      },
+      "shopWaterTempF": 52,
+      "hatches": [
+        "Golden Stones",
+        "Green Drakes",
+        "Yellow Sallies",
+        "PMD",
+        "Caddis"
+      ],
+      "bestTime": "any",
+      "technique": "Dry Dropper, Nymphing, or Streamer",
+      "flies": [
+        {
+          "rank": 1,
+          "nameRaw": "Tunghead Hot Spot Pheasant Tail Jig",
+          "nameCanonical": "Pheasant Tail",
+          "type": "nymph",
+          "colors": [
+            "Yellow",
+            "Orange"
+          ],
+          "sizes": "14-18"
+        },
+        {
+          "rank": 2,
+          "nameRaw": "Bead Head Prince",
+          "nameCanonical": "Prince Nymph",
+          "type": "nymph",
+          "colors": [
+            "Peacock"
+          ],
+          "sizes": "12-14"
+        },
+        {
+          "rank": 3,
+          "nameRaw": "Adams",
+          "nameCanonical": "Parachute Adams",
+          "type": "dry",
+          "colors": [
+            "Purple"
+          ],
+          "sizes": "12-20"
+        },
+        {
+          "rank": 4,
+          "nameRaw": "Adam's Purple Parachute",
+          "nameCanonical": "Purple Haze",
+          "type": "dry",
+          "colors": [
+            "Tan"
+          ],
+          "sizes": "14-16"
+        },
+        {
+          "rank": 5,
+          "nameRaw": "Chubby",
+          "nameCanonical": "Chubby Chernobyl",
+          "type": "dry",
+          "colors": [
+            "Purple"
+          ],
+          "sizes": "10-14"
+        },
+        {
+          "rank": 6,
+          "nameRaw": "La Fontaine Sparkle Pupa",
+          "nameCanonical": "Sparkle Pupa",
+          "type": "nymph",
+          "colors": [
+            "Tan",
+            "Brown"
+          ],
+          "sizes": "14-16"
+        },
+        {
+          "rank": 7,
+          "nameRaw": "Double Bunny",
+          "nameCanonical": "Double Bunny",
+          "type": "streamer",
+          "colors": [
+            "Olive",
+            "White"
+          ],
+          "sizes": "2-6"
+        },
+        {
+          "rank": 8,
+          "nameRaw": "Quigley Cripple",
+          "nameCanonical": "Quigley Cripple",
+          "type": "dry",
+          "colors": [
+            "Natural"
+          ],
+          "sizes": "12-16"
+        }
+      ],
+      "tip": "Green Drake, PMD dries. Nymphing is good, with rubber legs, Perdigon, lightning bugs, pheasant tails, and worms. Streamers are producing the bright ones.",
+      "tipFlies": [
+        "Green Drake",
+        "PMD",
+        "Rubber Legs",
+        "Perdigon",
+        "Lightning Bug",
+        "Pheasant Tail",
+        "San Juan Worm"
+      ],
+      "drainage": "bitterroot",
+      "active": true
+    },
+    {
+      "id": "orvis-bitterroot-2026-07-10",
+      "scrapedAt": "2026-07-12T14:03:00Z",
+      "reportDate": "2026-07-10",
+      "source": "Orvis",
+      "reporter": "Blackfoot River Outfitters",
+      "url": "https://fishingreports.orvis.com/west/montana/bitterroot-river",
+      "river": "Bitterroot (mainstem)",
+      "gauges": [
+        "darby",
+        "bell",
+        "msla"
+      ],
+      "rating": {
+        "raw": "Good",
+        "scale": "orvis-5step",
+        "value0to10": 7.5
+      },
+      "shopWaterTempF": 67,
+      "hatches": [
+        "PMD",
+        "Caddis"
+      ],
+      "bestTime": "Morning and Evening",
+      "technique": "Dry-dropper to cover water; single dry on rising fish",
+      "flies": [
+        {
+          "rank": 1,
+          "nameRaw": "Stimulator",
+          "nameCanonical": "Stimulator",
+          "type": "dry",
+          "colors": [],
+          "sizes": "10-14"
+        },
+        {
+          "rank": 2,
+          "nameRaw": "Elk Wing Caddis",
+          "nameCanonical": "Elk Hair Caddis",
+          "type": "dry",
+          "colors": [],
+          "sizes": "12-16"
+        },
+        {
+          "rank": 3,
+          "nameRaw": "Adam's Purple Parachute",
+          "nameCanonical": "Purple Haze",
+          "type": "dry",
+          "colors": [],
+          "sizes": "12-14"
+        },
+        {
+          "rank": 4,
+          "nameRaw": "Fly Formerly Known As Prince",
+          "nameCanonical": "Prince Nymph",
+          "type": "nymph",
+          "colors": [],
+          "sizes": "12-14"
+        },
+        {
+          "rank": 5,
+          "nameRaw": "TJ Hooker",
+          "nameCanonical": "TJ Hooker",
+          "type": "streamer",
+          "colors": [],
+          "sizes": "8-12"
+        },
+        {
+          "rank": 6,
+          "nameRaw": "Sparkle Minnow",
+          "nameCanonical": "Sparkle Minnow",
+          "type": "streamer",
+          "colors": [],
+          "sizes": "4-8"
+        },
+        {
+          "rank": 7,
+          "nameRaw": "Bead Head Hare's Ear Nymph",
+          "nameCanonical": "Hare's Ear",
+          "type": "nymph",
+          "colors": [],
+          "sizes": "12-16"
+        },
+        {
+          "rank": 8,
+          "nameRaw": "Tunghead Soft Hackle Pheasant Tail",
+          "nameCanonical": "Pheasant Tail",
+          "type": "nymph",
+          "colors": [],
+          "sizes": "14-18"
+        },
+        {
+          "rank": 9,
+          "nameRaw": "Kreelex",
+          "nameCanonical": "Kreelex",
+          "type": "streamer",
+          "colors": [],
+          "sizes": "6"
+        }
+      ],
+      "tip": "Dry-dropper: Chubby Chernobyl or Water Walker with a PMD nymph or attractor (Blowtorch, Duracell, Frenchie) 18-24in below. On rising fish switch to a single dry: Purple Haze, Hot Spot Para-Wulff, PMD spinner, or small Elk Hair Caddis. Morning/evening best; watch afternoon temps.",
+      "tipFlies": [
+        "Chubby Chernobyl",
+        "Water Walker",
+        "PMD nymph",
+        "Blowtorch",
+        "Duracell",
+        "Frenchie",
+        "Purple Haze",
+        "Hot Spot Para-Wulff",
+        "PMD spinner",
+        "Elk Hair Caddis"
+      ],
+      "drainage": "bitterroot",
+      "active": true
+    }
+  ]
+}
