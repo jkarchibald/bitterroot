@@ -1,16 +1,21 @@
-<!-- version: 06-thermal-response-and-stress-3-3.md -->
+<!-- version: 06-thermal-response-and-stress-6-2.md -->
 # 06 — Thermal response curve & stress ladder
 
 *Authoritative doc for Phase-1 (response curve) and Phase-2 (stress ladder + DO
-grounding), updated for the Phase-3 close (2026-07-10). Matches deployed code as of
-2026-07-10. The stress ladder (§3) was redefined this pass to a **current-only**
-signal (today's peak), with the forward look moved to a separate forecast-warning
-callout (§3b) — see the Status Log in `BUILD_TRACKER.md` (2026-07-10 entries).
-Citations backfilled to the §7 standing convention (cited / derived-in-repo /
-assumption), with **Montana / regional sources added for local support** (flagged 🏔
-— MSU, University of Montana, Montana FWP, Montana DEQ). Supersedes the thermal
-material in the older `01-temperature.md`, which still describes the retired
-`(hi+lo)/2 − 6` model — see the doc table in `BUILD_TRACKER.md`.*
+grounding), updated for the Phase-3 close (2026-07-10) and the **Phase-6 close
+(2026-07-12)**. Matches deployed code as of 2026-07-12. The stress ladder (§3) was
+redefined at Phase 3 to a **current-only** signal (today's peak), with the forward
+look moved to a separate forecast-warning callout (§3b). **As of Phase 6 this doc is
+the single temperature authority for BOTH scoring engines:** the bite engine
+(`computeBlocks`) always read `_bandFor`; the rig engine (`categoryScores`) now reads
+it too (§1 note), closing the "four identical scores" and flipping Phase 1 to fully
+done. The curve, the two `66`s, and `HOOT_OWL_F`/`STRESS_RED_F` are **byte-identical**
+across that change — Phase 6 *reads* this authority, it does not alter it. Citations
+follow the §7 standing convention (cited / derived-in-repo / assumption), with
+**Montana / regional sources for local support** (flagged 🏔 — MSU, University of
+Montana, Montana FWP, Montana DEQ). Supersedes the thermal material in the older
+`01-temperature.md`, which still describes the retired `(hi+lo)/2 − 6` model — see the
+doc table in `BUILD_TRACKER.md`.*
 
 Species assumption: **westslope cutthroat trout** (*Oncorhynchus clarkii lewisi*)
 across all Bitterroot-drainage reaches. Cutthroat are colder-adapted than the
@@ -25,6 +30,19 @@ curve, add it as a per-reach override — the universal science stays locked.
 piecewise-linear curve**, not step-bands — so two reaches a few degrees apart
 score differently instead of snapping to one shared value (the old bug: every
 gauge in 50–66°F returned an identical 0.88).
+
+**Phase-6 note — now read by BOTH engines.** Through Phase 5 this curve was consumed
+by the bite engine only; the rig engine (`categoryScores`, `05`) ran its own parallel
+temperature step-bands — the *same* step-band failure, one level up: every measured
+gauge in a bucket returned an identical DRY/NYMPH/DD/STREAMER vector (the "four
+identical scores"). As of Phase 6, `categoryScores` reads `_bandFor` instead: `mult`
+sets its activity budget + surface (dry/dd) drive, and **`heat` gained a second
+consumer** — besides the bite engine's crepuscular dawn/dusk tilt, it now drives the
+rig engine's surface→subsurface category tilt (via a soft ramp; derived-in-repo,
+detailed in `05` §5a + Appendix). The curve itself, the `MULT`/`HEAT` anchors, and the
+peak-0.88 calibration are unchanged — the rig engine *reads* this authority, it does
+not redefine it. This makes `06` the single temperature source of truth for both
+engines and closes the Phase-1 integration gap.
 
 Published anchors (all for westslope cutthroat):
 - optimum growth **13–15 °C (55–59 °F)** — Bear, McMahon & Zale 2007, *TAFS* 136:1113–1121 (Montana/MSU, [S1])
@@ -134,10 +152,18 @@ selected-gauge-only by nature (one chart shows at a time). `tempCallout` returns
 the triggering run's date span + max range so the card pill and the chart hover
 can never disagree.
 
-Forecast **max** comes straight from `data.json` (the pipeline now writes a real
-per-gauge diel band on measured-gauge forecast rows — see `02-chart-forecasts`);
-it falls back to forecast mean + the gauge's own observed `(max−mean)` spread only
-when a (stale, pre-band) row carries a mean only.
+Forecast **max** comes straight from `data.json`. As of **Phase 6** the pipeline
+writes a **condition-aware** diel band on measured-gauge forecast rows — each day's
+band scales with its air–water differential, bounded to the gauge's own observed
+swing extreme (see `02-chart-forecasts` §2c). This replaced the Phase-3 flat average
+band, which systematically **understated** the forecast max on hot/clear/low-flow days
+— the days the callout most cares about — so genuinely stressful afternoons could fall
+just under the 70/73 lines unwarned. The render-time fallback (forecast mean + the
+gauge's own observed `(max−mean)` spread) now fires **only** on a stale, pre-band row
+carrying a mean only; it is dead code on any fresh `data.json`. It is deliberately left
+**flat** (average spread, not hardened to the max spread): with the condition-aware
+pipeline band the fallback no longer runs on live data, and minimal swing variance is
+preferred (decision recorded 2026-07-12; see `BUILD_TRACKER.md`).
 
 ### 3a. Behavioral trace (validated headless, 2026-07-10)
 
@@ -259,10 +285,17 @@ for every gauge, so the `unknown → orange` fallback in `stressChiclet` is now
   mismatch was fixed, the terminal-day outlier guard added, measured-gauge forecast
   rows now carry a real diel band, and two mainstem temp gauges (Darby, Missoula)
   were added with Bell interpolated on the Darby↔Missoula gradient.
-- **Phase 6 — `categoryScores` (rig ranking):** re-anchor its temp thresholds to
-  the same cutthroat curve and make the ≥1.4× flow branch scale with ratio, so
-  the DRY/NYMPH/DD/STREAMER numbers differentiate too (separate function,
-  separate risk from this pass — the "four identical scores").
+- **Phase 6 — `categoryScores` (rig ranking): ☑ CLOSED (2026-07-12).** Re-anchored
+  to this cutthroat curve (`mult` + `heat`, §1 note), breaking the "four identical
+  scores" on all measured gauges (verified headless on the live 8-gauge `data.json`).
+  **Flow correction:** the original plan to *scale the ≥1.4× branch with ratio* was
+  **dropped** — a turbidity/reactive-distance + rising-limb-hysteresis literature
+  search established that off-color/bite suppression is a **rate-of-rise** phenomenon,
+  already carried by `flowTrend.spike`/`clearing`, while absolute **level** only
+  relocates fish and rides a non-climatological `normal`. Scaling level would have been
+  false precision on the wrong axis, so the level branch was instead **demoted** to a
+  small unscaled location cue (see `05` §5a, `07`). Score *magnitudes* still calibrate
+  against fly-shop reports at **Phase 8**.
 - **Bias check (characterised, Phase 3):** Open-Meteo highs run ~3–6°F above
   weather.com in the credible window; because the forecast rides the air *change*
   (not level) at a damped slope, this largely cancels — noted, not corrected.
