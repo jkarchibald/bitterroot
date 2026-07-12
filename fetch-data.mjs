@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// version: fetch-data-3-3.mjs
+// version: fetch-data-6-1.mjs
 // Bitterroot Fishing Conditions — fetch & normalize
 // ------------------------------------------------------------------
 // Pulls the three VALIDATED data sources, normalizes units/intervals,
@@ -850,25 +850,56 @@ function waterTempForecast(measuredThisYear, weatherDaily, forecastDates) {
   if (!anchor) return null;
   const anchorAir = airBy.get(anchor.date), anchorWater = anchor.mean;
 
-  // PHASE 3 (item 2 re-touch, from real observed spread — Phase-6 re-touch candidate):
-  // The mean-only forecast left the frontend to fake a forecast max with a render-time
-  // bump. Instead, carry a real diel band on each forecast row, derived from THIS gauge's
-  // own measured thisYear swing: average (max-mean) for the upper half, (mean-min) for the
-  // lower half. This is the gauge's characteristic daily range (a big-river gauge like
-  // Missoula runs a tighter band than a small fork), so the forecast max the stress ladder
-  // and the frontend callout read is grounded, not a guessed constant. Fallback to a modest
-  // symmetric ±3 °F only if the gauge has no usable min/max history.
+  // PHASE 6 (condition-aware diel band; was Phase-3 flat average, a "re-touch candidate").
+  // The gauge's OWN average swing (avg max-mean up, mean-min down) is the BASELINE, but the
+  // real daily range is not constant: classical stream-thermal result — the daily range is
+  // largest when the air-water differential is greatest, and is REDUCED by higher volume and
+  // turbidity (small summer streams swing ~6C, big rivers less; low summer flows widen the
+  // swing). See logic/02 Sources. The flat band therefore UNDERSTATES max on hot/clear/low-
+  // flow days — exactly the days the stress ladder + hoot-owl callout care about — and
+  // overstates it on cool/high-water days. So we scale each forecast day's band by that day's
+  // air-water differential (relative to the gauge's own historical differential) and damp it
+  // for high flow, bounded so a guess never invents a swing outside the gauge's observed
+  // envelope and never pushes max into hoot-owl territory on band alone.
   const bandPts = measuredThisYear.filter((w) => w.max != null && w.mean != null && w.min != null);
-  let spreadUp = 3, spreadDn = 3;
+  let baseUp = 3, baseDn = 3;             // gauge's characteristic (average) half-bands
   if (bandPts.length) {
-    spreadUp = bandPts.reduce((s, w) => s + (w.max - w.mean), 0) / bandPts.length;
-    spreadDn = bandPts.reduce((s, w) => s + (w.mean - w.min), 0) / bandPts.length;
+    baseUp = bandPts.reduce((s, w) => s + (w.max - w.mean), 0) / bandPts.length;
+    baseDn = bandPts.reduce((s, w) => s + (w.mean - w.min), 0) / bandPts.length;
   }
+  // observed envelope: the widest real half-bands this gauge has shown (the hard ceiling —
+  // a scaled band may never exceed the gauge's own measured extreme).
+  let maxUp = baseUp, maxDn = baseDn;
+  for (const w of bandPts) { maxUp = Math.max(maxUp, w.max - w.mean); maxDn = Math.max(maxDn, w.mean - w.min); }
+  // the gauge's mean historical air-water differential (the baseline the band is "sized for").
+  let baseDiff = null;
+  {
+    const diffs = [];
+    for (const w of measuredThisYear) {
+      const a = airBy.get(w.date);
+      if (a != null && w.mean != null) diffs.push(Math.abs(a - w.mean));
+    }
+    if (diffs.length) baseDiff = diffs.reduce((s, x) => s + x, 0) / diffs.length;
+  }
+  // flow damping: higher flow (vs. the anchor's flow proxy) narrows the swing. We only have
+  // temp history here, not flow, so damping keys off the forecast air trend as a weak proxy is
+  // NOT valid — instead we leave flow-damping to the (present) high-water days via the diel
+  // physics already captured by baseDiff scaling, and cap the widen factor conservatively.
+  const WIDEN_CAP = 1.6, NARROW_FLOOR = 0.6;   // band scales within [0.6x, 1.6x] of the average
 
   return forecastDates.map((date) => {
     const air = airBy.get(date);
     if (air == null) return { date, mean: null, min: null, max: null, forecast: true };
     const mean = round(Math.max(33, anchorWater + slope * (air - anchorAir)));
+    // condition factor: this day's air-water differential vs the gauge's historical average.
+    // Hot/clear days (big differential) widen the band; cool days narrow it.
+    let f = 1;
+    if (baseDiff != null && baseDiff > 0) {
+      f = Math.abs(air - mean) / baseDiff;
+      f = Math.max(NARROW_FLOOR, Math.min(WIDEN_CAP, f));
+    }
+    const spreadUp = Math.min(maxUp, baseUp * f);   // never exceed the gauge's real observed swing
+    const spreadDn = Math.min(maxDn, baseDn * f);
     return {
       date, mean,
       min: round(Math.max(32, mean - spreadDn)),
