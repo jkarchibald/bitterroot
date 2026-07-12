@@ -1,9 +1,17 @@
-<!-- version: 07-flow-4-1.md -->
+<!-- version: 07-flow-6-2.md -->
 # 07 · Flow (Dynamics-First)
 
-*New in Phase 4. There was no flow doc before this — `04` is where-to-fish (gauge
+*New in Phase 4; **reconciled with the shipped code at the Phase-6 close
+(2026-07-12).** There was no flow doc before this — `04` is where-to-fish (gauge
 ranking), not flow. This file is the authoritative description of how flow enters the
-bite engine and the rig ranking after the Phase-4 dynamics-first rework.*
+bite engine and the rig ranking after the Phase-4 dynamics-first rework. The Phase-6
+update touches only the **rig-side** description (§7c/§7d): Phase 6 re-anchored
+`categoryScores` and **finished** the level-demotion this doc already argued for —
+collapsing the remaining scaled level bands into one coarse, unscaled location cue. The
+bite-engine flow math (§7a–7c `spike`/`clearing`/`flowAdj`) is **unchanged** from
+Phase 4. The science this doc already cited (rate-of-rise [S1], clockwise hysteresis
+[S2], turbidity→reactive-distance [S3]) is exactly what grounded the Phase-6 flow
+decision — Phase 6 completed the dynamics-first thesis rather than revising it.*
 
 The one-line thesis: **flow *level* mostly relocates fish; flow *dynamics* gate the
 bite.** A river running high on a fat snowpack fishes fine; a river rising fast runs
@@ -109,13 +117,32 @@ should read as genuinely strong, and the clockwise-hysteresis basis [S2] justifi
 treating it as real signal, not a token nudge. The +25% magnitude itself is a calibration
 choice [S4].
 
-### 7d. Rig ranking (`categoryScores`)
+### 7d. Rig ranking (`categoryScores`) — updated at Phase 6
 
-Dynamics-aware: `spike ≥ 0.35` biases toward streamers (fish hunt by lateral line in dirty
-water [S3]); a strong `clearing` biases toward dries/dry-dropper on the seams (the prime
-window). Remaining level bands are reworded as fish-**location** context ("bigger water:
-fish the edges & seams", "low/clear: downsize") rather than a "×normal" penalty claim.
-**Score magnitudes here are not re-anchored — that is Phase 6.**
+Dynamics-aware, unchanged in intent from Phase 4: `spike ≥ 0.35` biases toward streamers
+(fish hunt by lateral line in dirty water [S3]); a strong `clearing` (≥ 0.3) biases toward
+dries/dry-dropper on the seams (the prime window). These two **rate** signals are the flow
+drivers of the rig ranking and are byte-identical to Phase 4.
+
+**Phase-6 change — level fully demoted, magnitudes re-anchored.** Phase 4 left this doc
+noting "score magnitudes here are not re-anchored — that is Phase 6." Phase 6 did both:
+
+- **Temperature magnitudes re-anchored.** `categoryScores`'s temperature term now reads
+  the shared `_bandFor` cutthroat curve (`06` §1), not its old parallel step-bands —
+  closing the "four identical scores." (Flow is not what re-anchored; this is noted here
+  only because it removed the Phase-4 caveat above.)
+- **Level collapsed to one coarse cue.** Phase 4 kept *reworded* level bands as location
+  context. Phase 6 went further, on this doc's own logic: since bite quality is a
+  rate-of-rise phenomenon ([S1]/[S2]/[S3]) already carried by `spike`/`clearing`, and
+  absolute level only relocates fish *and* rides the non-climatological `normal`, the
+  scaled level branches (`≥1.2×/≥1.4×/≤0.8×`) were replaced by a **single small, unscaled**
+  location nudge — up → "bigger water (vs. recent flow): fish edges & seams"; low → "low
+  water (vs. recent flow): downsize." Labeled "vs. recent flow" to keep the non-normal
+  baseline honest. This is the rig-side completion of the same demotion §7c made on the
+  bite side (where the static `≥1.5×→0.80` / `≥1.25×→0.90` penalties were already removed).
+
+Net: on the rig side, **rate drives, level only locates**, consistent with the bite side.
+See `05` §5a for the shipped rig-engine detail.
 
 ### 7e. Turbidity → feeding (why clarity matters to the fish)
 
@@ -171,6 +198,17 @@ current window; last-year coverage is currently uneven across gauges (e.g. ~21 r
 Bell, fewer elsewhere), so this must be verified gauge-by-gauge against live data before it
 can be relied on — deferred here to keep this pass fully validated, not built half-tested.
 
+**Also specced — hysteresis-aware turbidity signal (the real clarity upgrade).** Today
+`spike` (rise rate) and `clearing` (falling-limb recession) are computed *separately* from
+the same flow trace. The physically-honest next step is to make the clarity signal
+explicitly **hysteresis-aware**: track position on the rising vs. falling limb *and* how
+far the loose sediment supply has been exhausted through the event, so equal-discharge
+days on the two limbs are scored differently by construction (clockwise Type-1 loop, the
+basis already cited in [S1]/[S2]). This is what a real turbidity sensor would capture; in
+its absence it is the best inference the flow trace supports. Deferred — it is a genuine
+model addition (event-state tracking, not a threshold tweak), and it wants ground-truth
+(shop turbidity/clarity reports, Phase 8) to calibrate against before it ships.
+
 ---
 
 ## Data lineage & fallbacks
@@ -196,8 +234,11 @@ can be relied on — deferred here to keep this pass fully validated, not built 
 
 **Live** off real conditions, `node --check` clean, validated headless against the live
 `data.json` (all 8 gauges) plus synthetic rise/recession controls. Absolute-level scoring
-is intentionally gone except the low-water × midday guardrail; the last-year-gradient
-signal and the true-climatological-normal decision are specced above, not built this pass.
+is intentionally gone except the low-water × midday guardrail; as of **Phase 6** the rig
+side matches — its scaled level bands are collapsed to one coarse location cue (§7d), and
+`categoryScores` temperature magnitudes are re-anchored to `_bandFor` (`05`, `06`). The
+last-year-gradient signal, the hysteresis-aware turbidity signal, and the
+true-climatological-normal decision are specced above, not built this pass.
 
 ---
 
