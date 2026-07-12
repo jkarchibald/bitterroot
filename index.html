@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- version: index-3-3.html -->
+<!-- version: index-4-1.html -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -654,16 +654,20 @@ function categoryScores(g){
   else if(t<73){ s.dd+=30; s.dry+=26; s.nymph+=24; s.streamer+=18; notes.push("stress (68-73\u00b0F): fish early/late, land fish fast"); }
   else if(t<77){ s.nymph+=26; s.streamer+=20; s.dd+=10; s.dry+=6; notes.push("hoot-owl (73-77\u00b0F): minimize \u2014 morning only, or rest the fish"); }
   else { s.nymph+=8; s.streamer+=6; s.dd+=2; s.dry+=2; notes.push("lethal (\u226577\u00b0F): don't fish \u2014 trout mortality is high"); }
-  // --- flow vs normal & clarity ---
-  // Clarity comes from the DYNAMICS signal (flowTrend spike), not the level:
-  // big-but-green water is not "off-color" (see logic/03 factor 4b).
+  // --- flow dynamics & clarity (rig ranking) ---
+  // PHASE 4: clarity comes from the DYNAMICS signal (flowTrend spike), not the
+  // level — big-but-green water is not "off-color" (logic/07). Level is treated as
+  // fish-LOCATION context (bigger water -> fish edges/seams; low -> downsize), not a
+  // clarity/penalty claim, and the ratio is labeled as vs. recent flow, not a real
+  // "normal." (Score magnitudes here are NOT re-anchored — that's Phase 6.)
   const ft = g._flowTrend || {};
   const spikeNow = +ft.spike || 0, clearingNow = +ft.clearing || 0;
   if(spikeNow>=0.35){ s.streamer+=28; s.nymph+=14; s.dry-=14; s.dd-=8; notes.push("rising/off-color water: streamer"); }
+  else if(clearingNow>=0.3){ s.dry+=10; s.dd+=10; s.nymph+=6; notes.push("dropping & clearing: prime window \u2014 work the seams"); }
   else if(c.flowRatio>=1.4){ s.streamer+=16; s.nymph+=10; s.dry-=6; s.dd-=2;
-    notes.push("big water ("+(c.flowRatio).toFixed(2)+"\u00d7 normal)"+(clearingNow>=0.3?", dropping & clearing":"")+": bigger profile, fish the edges"); }
-  else if(c.flowRatio>=1.2){ s.streamer+=16; s.nymph+=8; s.dry-=4; notes.push("elevated flow ("+(c.flowRatio).toFixed(2)+"\u00d7): bigger profile"); }
-  else if(c.flowRatio<=0.8){ s.dry+=12; s.dd+=8; s.nymph+=4; s.streamer-=6; notes.push("low/clear flow ("+(c.flowRatio).toFixed(2)+"\u00d7): downsize, go subtle"); }
+    notes.push("bigger water: fish the edges & seams, larger profile"); }
+  else if(c.flowRatio>=1.2){ s.streamer+=16; s.nymph+=8; s.dry-=4; notes.push("elevated water: bigger profile"); }
+  else if(c.flowRatio<=0.8){ s.dry+=12; s.dd+=8; s.nymph+=4; s.streamer-=6; notes.push("low/clear water: downsize, go subtle"); }
   // --- light ---
   if(c.cloud>=65){ s.dry+=12; s.dd+=8; s.nymph+=4; notes.push("overcast ("+c.cloud+"%): BWO/emergers & dries"); }
   else if(c.cloud<=20){ s.nymph+=10; s.dd+=6; s.dry-=4; notes.push("bright sun ("+c.cloud+"%): deeper nymph, bank terrestrials"); }
@@ -1218,26 +1222,29 @@ function computeBlocks(c){
       light = Math.max(0.14, mid + dawn + dusk);
     }
 
-    // --- flow vs normal: off-color high water dampens the day a touch;
-    //     very low clear water trims the harsh midday ---------------------
+    // --- flow DYNAMICS (primary) + level as an extreme-only guardrail ------
+    //     PHASE 4: level (ratio vs the median "normal") mostly RELOCATES fish
+    //     (high -> edges/seams; low -> deep holds); it does NOT gate feeding, and
+    //     the "normal" baseline is an unreliable this+last-year median anyway
+    //     (see logic/07). So the old static level penalties (>=1.5x->0.80,
+    //     >=1.25x->0.90) are REMOVED — they pinned six of eight gauges to one step
+    //     and treated 1.5x and 2.7x identically. The primary flow signal is now
+    //     DYNAMICS from flowTrend:
+    //       spike (0..1)    = rising/off-color water (rate-of-rise turbidity) ->
+    //                         fish can't see the fly -> suppress, up to -55%.
+    //       clearing (0..1) = the prime dropping-and-clearing window (falling limb
+    //                         runs cleaner at equal flow) -> reward, up to +25%.
+    //     The ONE level term kept is the low-water x harsh-midday trim, a genuine
+    //     guardrail (very low clear water fishes poorly in bright midday sun).
+    //     A true blowout is caught by spike, not by a level threshold.
     let flowAdj = 1;
-    if(ratio>=1.5)       flowAdj = 0.80;
-    else if(ratio>=1.25) flowAdj = 0.90;
-    else if(ratio<=0.7)  flowAdj = isDay && h>=11 && h<=16 ? 0.90 : 1.0;
-    else                 flowAdj = 1.0;
+    if(ratio<=0.7 && isDay && h>=11 && h<=16) flowAdj = 0.90;   // low water x harsh midday (guardrail)
 
-    // --- rain-driven flow DYNAMICS (turbidity blowout + clearing window) ---
-    //     The static ratio above can't tell a rising muddy river from a
-    //     falling clearing one. flowTrend carries that: `spike` (0..1) is how
-    //     blown-out / rising the water is right now (heavy-rain runoff, sediment,
-    //     debris — fish can't see the fly); `clearing` (0..1) is the prime
-    //     dropping-and-clearing window right after a spike, when the bite turns
-    //     excellent. Both are whole-day multipliers layered on flowAdj.
     if(c.flowTrend){
       const spike = Math.max(0, Math.min(1, +c.flowTrend.spike||0));
       const clear = Math.max(0, Math.min(1, +c.flowTrend.clearing||0));
       if(spike>0) flowAdj *= (1 - 0.55*spike);   // up to -55% when fully blown out
-      if(clear>0) flowAdj *= (1 + 0.18*clear);   // up to +18% in the clearing window
+      if(clear>0) flowAdj *= (1 + 0.25*clear);   // up to +25% in the prime clearing window
     }
 
     // --- precip: a little lifts it (knocks bugs down, low light); heavy
@@ -1257,41 +1264,69 @@ function computeBlocks(c){
   return out;
 }
 
-/* Derive a rain-driven flow-trend signal for TODAY from the aligned flow series.
-   Inputs: cyFlow (history through `today`), fcFlow (forecast incl. today onward),
-   and normal flow (used ONLY for the returned informational `ratio`).
+/* Derive a DYNAMICS-first flow-trend signal for TODAY from the aligned flow series.
+   Inputs: cyFlow (history through `today`), fcFlow (unused here, kept for signature
+   stability), and normal flow (used ONLY for the returned informational `ratio`).
    Returns {spike, clearing, ratio} — spike/clearing each 0..1.
 
-   Turbidity is a DYNAMICS problem, not a level problem. Where flow sits vs the
-   seasonal normal says nothing about clarity — a fat snowpack year runs 2x
-   median for weeks and fishes fine, and mud settles out on a falling river even
-   at elevated absolute flow. So everything here is SELF-relative to the gauge's
-   own recent trace (up to 10 days back):
-     spike    = (a) rising hard right now (day-over-day rise as a fraction of
-                    yesterday's flow: +10%/day starts to matter, +60% = blown), or
-                (b) residual murk after a genuine runoff EVENT — a recent crest
-                    that rose >=1.30x off its pre-rise base. Residual scales with
-                    event severity (1.3x->0 .. 2.2x->1) and decays on a clock of
-                    falling days (or half-speed if merely plateaued): full at the
-                    crest, ~half after 1 falling day, gone after 2.
-     clearing = the prime post-storm window. Requires a genuine event AND falling
-                water: ramps in on falling day 1 (0.5), prime days 2-3 (1.0),
-                tapers out by day 6 as the recession goes stale. Scaled by event
-                severity and suppressed by any remaining spike.
-   A smooth seasonal recession (no rise in the lookback) produces NO event —
-   spike and clearing both stay 0 and only the static flowRatio dampener applies. */
+   PHASE 4 REWRITE (dynamics-first). Turbidity is a DYNAMICS problem, not a level
+   problem — where flow sits vs the (unreliable) seasonal median says nothing about
+   clarity. Everything here is SELF-relative to the gauge's own recent trace, so a
+   small fork and a big mainstem are judged on the same footing (a fraction of the
+   river's OWN flow, never an absolute cfs threshold that would mean different things
+   on different-sized rivers — see logic/07 on stage vs. cfs).
+
+   The physical basis is sediment-transport hysteresis [07 S1,S2]:
+     spike    = RATE OF RISE. It is the *rate* of rise, not the *amount*, that
+                mobilizes bed sediment — high, fast-rising peaks clear the
+                entrainment threshold and cloud the water; a slow rise of the same
+                total magnitude may never muddy at all. So spike keys on the
+                STEEPEST single day-over-day rise within a short window (one sharp
+                day can trip it; the window only filters lone sensor wobble).
+                Self-relative: +10%/day starts to matter, +60% = blown out.
+     clearing = the prime dropping-and-clearing window. Clockwise hysteresis: at
+                equal flow the FALLING limb runs measurably cleaner than the rising
+                limb, because the first flush already flushed the loose sediment and
+                the source exhausts through the event. So a river cleans up on the
+                way down even while still running high — and (unlike the old model)
+                this does NOT require first catching a flood crest inside the
+                lookback. A sustained clean recession IS the clearing signal:
+                  clearing = fallingDayShape x drawdownShape
+                fallingDayShape ramps in on falling day 1 (0.5), prime days 2-4
+                (1.0), stale by ~day 8; drawdownShape needs the river actually down
+                off its recent peak (>=5% below the in-window max, so a flat
+                plateau at the top does not count). Suppressed by any active spike
+                (still-rising/murky water isn't "clearing" yet).
+   The turbidity->feeding link (why clarity matters to the fish) is [07 S3]. NOTE:
+   the pre-Phase-4 model gated clearing on a prior in-window crest, which made it
+   structurally impossible in a recession (the peak is the oldest sample, so no
+   base precedes it) — it read 0 on all 8 live gauges during an ordinary post-runoff
+   drop-out, exactly the prime window. That gate is removed. */
 function flowTrendFrom(cyFlow, fcFlow, normal, todayIdx){
   const at = (arr,i)=> (arr && i>=0 && i<arr.length && arr[i]!=null && isFinite(arr[i])) ? +arr[i] : null;
   const now = at(cyFlow, todayIdx);
   if(now==null || now<=0) return null;
-  const d1  = at(cyFlow, todayIdx-1);    // yesterday
   const r   = (normal>0) ? now/normal : null;   // informational only (context line)
 
-  // day-over-day rise, as a fraction of yesterday's own flow (self-relative)
-  const riseFrac = (d1!=null && d1>0) ? (now - d1)/d1 : 0;
+  // --- SPIKE: steepest single day-over-day RISE within a short window ----------
+  // Rate-of-rise, self-relative. Take the MAX day-over-day rise fraction over the
+  // last SPIKE_WINDOW days so one sharp day trips it (matches rising-limb shear-
+  // stress mobilization) while a single-sample wobble on an otherwise flat/falling
+  // trace does not dominate. [07 S1, S4]
+  const SPIKE_WINDOW = 2;
+  let maxRise = 0;
+  for(let k=0; k<SPIKE_WINDOW; k++){
+    const cur = at(cyFlow, todayIdx-k), prev = at(cyFlow, todayIdx-k-1);
+    if(cur!=null && prev!=null && prev>0){
+      const rf = (cur - prev)/prev;
+      if(rf > maxRise) maxRise = rf;
+    }
+  }
+  let spike = Math.max(0, Math.min(1, (maxRise - 0.10)/0.50));  // +10%/day->0 .. +60%->1
 
-  // consecutive falling days ending today. A "falling day" needs a real drop
-  // (>=2% below the prior day) — sensor wobble on a high plateau isn't clearing.
+  // --- consecutive falling days ending today -----------------------------------
+  // A "falling day" needs a real drop (>=2% below the prior day) — sensor wobble
+  // on a high plateau isn't clearing.
   let daysFalling = 0;
   for(let i=todayIdx; i>0; i--){
     const a = at(cyFlow,i), b = at(cyFlow,i-1);
@@ -1299,38 +1334,26 @@ function flowTrendFrom(cyFlow, fcFlow, normal, todayIdx){
     daysFalling++;
   }
 
-  // recent crest within the lookback, and the pre-rise base BEFORE that crest.
-  // In a pure recession the peak is the oldest sample, no base precedes it,
-  // eventMag stays 1, and no event fires.
+  // --- drawdown off the recent in-window peak ----------------------------------
+  // How far the river has receded from its highest point in the lookback. This is
+  // what makes a genuine recession (well off the peak) score higher than a river
+  // that has barely ticked down from its crest.
   const lb = Math.max(0, todayIdx-10);
-  let peak = now, peakIdx = todayIdx;
-  for(let i=lb; i<=todayIdx; i++){ const v=at(cyFlow,i); if(v!=null && v>peak){ peak=v; peakIdx=i; } }
-  let base = peak;
-  for(let i=lb; i<peakIdx; i++){ const v=at(cyFlow,i); if(v!=null && v<base) base=v; }
-  const eventMag = base>0 ? peak/base : 1;
-  const isEvent  = eventMag >= 1.30;
-  const sev      = Math.max(0, Math.min(1, (eventMag - 1.30)/0.90)); // 1.3x->0 .. 2.2x->1
+  let peak = now;
+  for(let i=lb; i<=todayIdx; i++){ const v=at(cyFlow,i); if(v!=null && v>peak) peak=v; }
+  const drawdown = peak>0 ? (peak - now)/peak : 0;   // 0..1 fraction below recent peak
 
-  // SPIKE — rising/dirty term...
-  let spike = Math.max(0, Math.min(1, (riseFrac - 0.10)/0.50));
-  // ...plus residual post-crest murk, decaying on a falling-day clock
-  // (plateaus count at half speed — sediment settles even without a drop)
-  if(isEvent){
-    const clock    = Math.max(daysFalling, 0.5*(todayIdx - peakIdx));
-    const residual = Math.max(0, 1 - 0.5*clock);
-    spike = Math.max(spike, sev*residual);
-  }
-  spike = Math.max(0, Math.min(1, spike));
-
-  // CLEARING — the dropping-and-greening bonus window after a genuine event
+  // --- CLEARING: dropping + settled, NO prior-crest gate ------------------------
+  // fallingDayShape x drawdownShape, both self-relative. [07 S2, S4]
   let clearing = 0;
-  if(isEvent && daysFalling>=1){
-    const shape = daysFalling<=1 ? 0.5
-                : daysFalling<=3 ? 1
-                : Math.max(0, (6 - daysFalling)/3);   // stale by day 6
-    clearing = sev*shape;
+  if(daysFalling>=1 && drawdown>=0.05){
+    const dayShape = daysFalling<=1 ? 0.5
+                   : daysFalling<=4 ? 1
+                   : Math.max(0.4, (8 - daysFalling)/4);        // ramps, prime 2-4, stale ~day 8
+    const ddShape  = Math.max(0, Math.min(1, (drawdown - 0.05)/0.25)); // 5%->0 .. 30%->1
+    clearing = dayShape * ddShape;
   }
-  // still-murky water isn't "clearing" yet, regardless
+  // still-rising/murky water isn't "clearing" yet, regardless
   clearing *= (1 - spike);
 
   return { spike:+spike.toFixed(3), clearing:+clearing.toFixed(3), ratio:(r!=null?+r.toFixed(2):null) };
@@ -1366,14 +1389,15 @@ function blockReasons(g, i){
     // severity so a real temp/flow/dark limiter still wins when present.
     cands.push({ cat:'temp', sev: 6, label:'water temp estimated' });
   }
-  // Flow limiter — the off-color claim comes from the DYNAMICS signal (spike),
-  // not the level (logic/03 factor 4b). Genuinely rising/dirty water is the
-  // story of the whole day, so it can outrank dark; big-but-green water is a
-  // mild limiter that must NOT beat dark/dim light.
+  // Flow limiter — PHASE 4: the off-color claim comes ONLY from the DYNAMICS
+  // signal (spike, rate-of-rise turbidity), never the level (logic/07). Genuinely
+  // rising/dirty water is the story of the whole day, so it can outrank dark.
+  // Elevated-but-green high water is NOT a limiter — it relocates fish, it doesn't
+  // gate feeding — so the old `ratio>=1.4 -> 'big water'` caption is removed. The
+  // one kept level term is very-low clear water (a real bright-midday limiter).
   const ftr = (g && g._flowTrend) || {};
   const spikeR = +ftr.spike || 0;
   if (spikeR >= 0.35)    cands.push({ cat:'flow', sev: 18 + 22*spikeR, label:'rising/off-color flow' });
-  else if (ratio >= 1.4) cands.push({ cat:'flow', sev: Math.min(22, 10 + (ratio-1.4)*10), label:'big water' });
   else if (ratio <= 0.6) cands.push({ cat:'flow', sev: (1-ratio)*40, label:'low/clear flow' });
 
   // Light limiter — time of day, then sun
@@ -1704,11 +1728,11 @@ function renderDetail(g){
   const rec = buildRecommendation(g, CUR_MONTH);
   const c = rec.cond;
   const tempStr = (c.temp!=null) ? Math.round(c.temp)+'\u00b0F' : 'temp n/a';
-  const ratioStr = c.flowRatio ? c.flowRatio.toFixed(2)+'\u00d7 normal' : '';
+  const ratioStr = c.flowRatio ? c.flowRatio.toFixed(2)+'\u00d7 recent median' : '';
   const ft = g._flowTrend;
   let trendStr = '';
   if(ft){
-    if(ft.spike>=0.35)        trendStr = ' &middot; <strong>blown out / clearing soon</strong> (high, off-color)';
+    if(ft.spike>=0.35)        trendStr = ' &middot; <strong>rising / off-color</strong> (fast rise, sediment)';
     else if(ft.clearing>=0.3) trendStr = ' &middot; <strong>dropping &amp; clearing</strong> &mdash; prime window';
   }
   document.getElementById('hatchContext').innerHTML =
