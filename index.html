@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- version: index-6-1.html -->
+<!-- version: index-7-1.html -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -637,7 +637,17 @@ function liveConditions(g){
   const cloud = (g.wx && g.wx.cloud!=null) ? +g.wx.cloud : 50;
   const precip = (g.wx && g.wx.precip!=null) ? parseFloat(g.wx.precip) : 0;
   const precipPct = (g.wx && g.wx.precipUnit==='in') ? (precip>0.05?70:precip>0?30:0) : (isNaN(precip)?0:precip);
-  return { temp:isNaN(temp)?null:temp, flow, flowRatio, cloud, precipPct };
+  // PHASE 7: carry the flow DYNAMICS (rate-of-rise spike / falling-limb clearing)
+  // through the same conditions object the rest of the app reads. Pre-Phase-7 the
+  // calc picks got only `flowRatio` (LEVEL) from here and were BLIND to dynamics,
+  // so on a clearing recession they read the high level and said "high water ->
+  // bigger" while categoryScores (which reads g._flowTrend directly) correctly
+  // said "dropping & clearing -> work the seams" — contradictory picks on one
+  // screen. Sourcing dynamics HERE keeps the single-conditions-object contract:
+  // one liveConditions call now feeds both the score engine and the calc picks.
+  const ft = g._flowTrend || {};
+  const spike = +ft.spike || 0, clearing = +ft.clearing || 0;
+  return { temp:isNaN(temp)?null:temp, flow, flowRatio, cloud, precipPct, spike, clearing };
 }
 
 function categoryScores(g){
@@ -743,16 +753,38 @@ function calcPicks(g, cat, month, cond){
 
   // parse the smallest hook number out of a size string ("14-16"->14, "8/16"->8)
   const minHook = s => { const m=String(s).match(/\d+/g); return m?Math.min(...m.map(Number)):14; };
-  const t = cond.temp, ratio = cond.flowRatio, clear = ratio<=0.85, high = ratio>=1.25;
+  // PHASE 7: DYNAMICS-first, consistent with categoryScores' post-Phase-6 flow
+  // branch (same thresholds, NO new constants). Old code sized purely off LEVEL
+  // (ratio>=1.25 -> "high water -> bigger"), which on a clearing recession said
+  // "bigger" while the score engine said "downsize & work the seams" — backwards.
+  // Order mirrors categoryScores exactly: rate-of-rise (spike) first, then the
+  // falling-limb clearing rebound, then LEVEL as coarse location context only
+  // (never a size penalty). spike -> bigger/darker/streamer; clearing -> downsize,
+  // seam dries; high level w/o dynamics -> a bigger PROFILE for edges/seams (mild),
+  // never the aggressive upsize the old `high` branch forced.
+  const t = cond.temp;
+  const spike = +cond.spike || 0, clearing = +cond.clearing || 0;
+  const ratio = cond.flowRatio;
   const cold = (t!=null && t<50), warm = (t!=null && t>=60);
+  // dynamics resolve to a single size intent: +1 bigger, -1 smaller, 0 neutral.
+  // spike (rising/off-color) wins; then clearing (drop & clear) downsizes; level
+  // is only a weak tiebreak when dynamics are quiet.
+  const rising   = spike>=0.35;
+  const dropping = !rising && clearing>=0.3;
+  const bigWater = !rising && !dropping && ratio>=1.2;   // coarse location context only
+  const lowWater = !rising && !dropping && ratio<=0.8;
+  const sizeUp   = rising || cold || bigWater;            // bigger profile
+  const sizeDown = dropping || lowWater;                 // downsize / seams
 
   // score each candidate for fit to the live conditions
   const scored = pool.map(f=>{
     const hook = minHook(f.size);
     let v = 0;
-    // size preference: high/cold water -> bigger flies (lower hook #); clear/low -> smaller
-    if(high || cold){ v += (12 - hook); }          // favor big bugs
-    else if(clear){ v += (hook - 8); }             // favor small bugs
+    // size preference: rising/cold/big -> bigger flies (lower hook #); clearing/low -> smaller
+    if(sizeUp){ v += (12 - hook); }                // favor big bugs
+    else if(sizeDown){ v += (hook - 8); }          // favor small bugs
+    // rising/off-color water also biases toward dark/flashy meat (mirrors score engine)
+    if(rising && /(Bugger|Sculp|Minnow|Leech|Zonker|Streamer)/i.test(f.fly)) v += 3;
     // overcast favors mayfly imitations (BWO/PMD/Drake/Mahogany) on top
     if(cond.cloud>=65 && /BWO|Olive|PMD|Drake|Dun|Mahogany|Trico/i.test(f.fly)) v += 4;
     // bright sun favors flashy/searching subsurface
@@ -764,8 +796,15 @@ function calcPicks(g, cat, month, cond){
 
   const pri = scored[0] ? scored[0].f : pool[0];
   const alt = scored[1] ? scored[1].f : (pool[1]||pool[0]);
-  // attach a compact live reason
-  const reason = high?"high water \u2192 bigger" : cold?"cold \u2192 bigger/deeper" : clear?"clear \u2192 smaller" : warm?"warm \u2192 terrestrial" : "match-the-hatch";
+  // attach a compact live reason — dynamics-first, same order & language as the
+  // score engine's flow notes, so a pick's reason never contradicts its score.
+  const reason = rising   ? "rising/off-color \u2192 bigger, darker"
+               : dropping ? "dropping & clearing \u2192 downsize, seams"
+               : cold     ? "cold \u2192 bigger/deeper"
+               : bigWater ? "bigger water \u2192 fish edges & seams"
+               : lowWater ? "low water \u2192 downsize, go subtle"
+               : warm     ? "warm \u2192 terrestrial"
+               :            "match-the-hatch";
   return { pri:{...pri, live:reason}, alt:{...alt, live:reason} };
 }
 
