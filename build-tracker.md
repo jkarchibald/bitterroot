@@ -1,8 +1,8 @@
-<!-- version: build-tracker-17.md -->
+<!-- version: build-tracker-18.md -->
 
 # Bitterroot Dashboard — Build Tracker
 
-Global counter: **17**. Living document. Each phase entry carries its outcome,
+Global counter: **18**. Living document. Each phase entry carries its outcome,
 validation surface, deliverables, and the upload set required to start the next
 phase.
 
@@ -150,12 +150,14 @@ scoped**:
 | 6 | `categoryScores` re-anchored to `_bandFor`; flow level fully demoted | **closed** |
 | 7 | `calcPicks` dynamics-first + independent per-gauge rigs + doc audit | **closed** |
 
-**Two items carry forward (not phase blockers, explicitly deferred):**
-1. **Phase-6 residual** — forecast `max` derivation for measured gauges; catalogued,
-   not addressed in Phase 7. Candidate for a later flow/forecast pass.
+**Two items carry forward — both now placed as scoped phases, neither dangling:**
+1. **Forecast `max` derivation for measured gauges** → **Phase 8b** (placed below,
+   with trigger, upload set, and scope guard). Not a correctness bug; a fidelity
+   refinement, deliberately scope-guarded out of Phases 4–7.
 2. **Ground-truth calibration** — Phase 7 rigs and score magnitudes are
-   derived/anchored but **not** yet reconciled against fly-shop reports. That is the
-   substance of **Phase 8**, not a gap in 1–7.
+   derived/anchored but **not** yet reconciled against fly-shop reports → **Phase 8**
+   (planned below with its own upload set). That is the substance of Phase 8, not a
+   gap in 1–7.
 
 Interpretation: the system is **feature-complete and internally consistent through the
 fly-selection engine**; it is **not yet field-calibrated** (Phase 8). "1–7 closed"
@@ -171,24 +173,46 @@ Reconcile the derived per-gauge rigs (Phase 7 Part B) and score magnitudes again
 `calibration/shop-reports.md`. This is where the "true local knowledge" the owner
 flagged gets folded in. Bias-detection against the "Good = 7–8 dawn/dusk" anchor.
 
-### Phase 6 residuals (still open, catalogued)
-- Unify `categoryScores` with `_bandFor` continuous curve — **done Phase 6.**
-- Re-touch forecast `max` derivation for measured gauges — still a Phase-6-candidate
-  flagged item; not addressed in Phase 7.
+### Phase 8b — forecast `max` derivation for measured gauges (placed residual)
+**Origin:** flagged during Phase 3 (diel-band work) and again at the Phase-6 close as a
+"re-touch later" item; deliberately **not** addressed in Phase 4–7 (each scope-guarded
+away from it). Promoted here from a loose catalog line to a placed, scoped slot so it
+does not dangle.
+
+**What it is:** measured-gauge forecast rows derive their daily `max` (and the diel band
+around it) from observed spread. The current derivation is the Phase-3 average-spread
+approach; the open question is whether the forecast `max` should be hardened (e.g. to a
+condition-aware or max-spread basis) for measured gauges specifically. Related to the
+frontend `tempCallout` fallback bump, which was deliberately left flat (average observed
+spread) at the Phase-6 doc pass — that decision stands and is the reason this is a
+*measured-gauge forecast-derivation* question, not a callout question.
+
+**Trigger / dependency:** best done alongside any future pass that re-touches the
+forecast pipeline or the continuous-curve derivation; not urgent, no correctness bug —
+it is a fidelity refinement. Sequence after Phase 8 (calibration) so shop-report
+ground-truth can inform whether the current band is even biased.
+
+**Required to start (upload set):** `build-tracker` (latest) first; then `fetch-data.mjs`
+(the derivation lives in the pipeline, `waterTempForecast`), `index.html` (the frontend
+`tempCallout` fallback, ~L1140), a fresh `data.json`, and `02-chart-forecasts.md`.
+**Scope guard:** forecast-`max`/diel-band derivation for measured gauges only. Does not
+touch `_bandFor`, the two 66s, `HOOT_OWL_F`/`STRESS_RED_F`, the welfare ceiling, or the
+scoring engines. Any band change is validated headless on live `data.json` before ship.
 
 ### Phase 9 — documentation & IP consolidation
 Reconcile all logic docs against shipped code into one authoritative artifact.
 
 ### Phase 10 — hatch calendar re-plumb
 `hatchesForMonth` stays a calendar (explicitly out of Phase 7 scope). Phase 10
-makes it condition-aware if warranted.
+makes it condition-aware if warranted — this is also where the logged thermal→
+hatch-timing coupling (`05` Appendix) lands.
 
 ---
 
 ## Required to start — Phase 8 (upload set)
 
 **Must-have:**
-- `build-tracker-17.md` (this file) — upload first.
+- `build-tracker-18.md` (this file) — upload first.
 - `index.html` (current, post-7-2).
 - fresh `data.json`.
 - `calibration/shop-reports.md` — the ground-truth log (core Phase 8 input).
