@@ -1,8 +1,8 @@
-<!-- version: build-tracker-28.md -->
+<!-- version: build-tracker-30.md -->
 
 # Bitterroot Dashboard — Build Tracker
 
-Global counter: **28**. Living document. Each phase entry carries its outcome,
+Global counter: **30**. Living document. Each phase entry carries its outcome,
 validation surface, deliverables, and the upload set required to start the next
 phase.
 
@@ -287,7 +287,11 @@ tip. Easy, cheap, repeatable — confirmed.
    mainstem **primary** (with Orvis fallback, and a `rating.ratingSource` tag on the record
    so the time series never silently switches scales) is the **FIRST TASK OF THE NEXT
    CHAT.** When it lands, the mainstem rating upgrades to own-site pct via the normal
-   append flow — the Orvis rows already banked are untouched (append-only).
+   append flow — the Orvis rows already banked are untouched (append-only). NOTE: the
+   `rating.ratingSource` tag is not mere bookkeeping — it is **load-bearing for the step-4
+   rating-deviation series** (see 4b): the season-long rating-vs-score comparison must key
+   on `ratingSource`/`scale` so a pct<->orvis-5step source switch is never misread as a
+   real rating change. Wire the tag with step 4 in mind, not just as a provenance label.
    **Seed provenance (recorded):** the seed was hand-authored during design (pre-pipeline)
    by reading the live pages directly; its canonicals were pre-decided and the alias layer
    (step 1) was fit to reproduce them. The mainstem `80%` came from the owner reading the
@@ -351,11 +355,86 @@ tip. Easy, cheap, repeatable — confirmed.
    (temp/flow/normal/weather/forecast) to form training rows. Last because it needs all
    the above PLUS accumulated time to be valuable.
 
-**Seed status:** `calibration/shop-reports.json` seeded (2026-07-12) with the 3 Orvis
-reports in row schema; the shop-vs-rig comparison was demonstrated headless across the 5
-covered gauges (strong agreement on Prince/Chubby/Sparkle Minnow/Purple Haze/PT; flagged
-real candidate adds — Adams Purple Parachute, Elk Hair Caddis grid-wide; Stimulator on
-the mainstem). Method proven; pipeline not yet built.
+   **RATING-DEVIATION ANALYSIS (product of the join, recorded 2026-07-12).** The owner's
+   target use of the rating half is a *deviation check*: under matched conditions, did the
+   local guide's day rating and OUR computed day score agree, or diverge? This is not a
+   separate phase -- it is an output the condition-join produces once history accumulates.
+   The shop rating stays a SANITY-CHECK, never an engine input; a gap flags "one of us is
+   off, look," not "our score is wrong." Scale mismatch is already solved by
+   `rating.value0to10` (Orvis Good=7.5, Excellent=9; own-site pct maps too). BUT three
+   design questions are UNDECIDED and must be resolved BEFORE the join is built -- surfaced
+   while scoping the deviation + learning-dataset use, all currently silent in the plan.
+   4c is GATING (without it the join has no conditions half at all); 4a/4b are about
+   comparing correctly once the data exists:
+
+   - **(4a) Per-river rating -> per-gauge score reconciliation (many-to-one).** A single
+     report covers multiple gauges (mainstem = darby+bell+msla), so one shop rating faces
+     THREE of our day scores. The flies crosswalk already fans one report out to N gauges,
+     but nothing says how ONE rating compares against N scores for deviation. Options:
+     average our N scores, compare per-gauge (N separate deviations), or pick one
+     representative gauge (e.g. nearest the guide's home water / access). UNDECIDED --
+     decide before building 4. Affects every multi-gauge report (mainstem today; more as
+     drainages expand).
+   - **(4b) Rating provenance across scale switches.** After Chat 3 wires the Blackfoot
+     own-site rating as mainstem PRIMARY (pct) with Orvis FALLBACK (orvis-5step), the same
+     river's rating can arrive on TWO different scales on different days depending on which
+     source answered. A season-long rating-vs-score series that silently flips pct<->
+     orvis-5step will show phantom "deviation" that is really just a scale change. So the
+     join MUST key on `rating.scale` + the `rating.ratingSource` tag (added in Chat 3),
+     comparing only `value0to10` and never assuming one scale per river. The `ratingSource`
+     tag is therefore LOAD-BEARING for step 4, not mere bookkeeping.
+   - **(4c) Conditions retention — the join has NO conditions half unless we keep one.
+     UNDECIDED, owner to decide; two facets, both must be handled.** This is the most
+     load-bearing of the three: 4a/4b are about comparing correctly, 4c is about whether
+     the data to compare even still exists. The condition-join forms a training row =
+     {that date's gauge conditions + the flies + the guide's rating + our score}. The fly/
+     rating half is safe (shop-reports.json is append-only). The conditions half is NOT:
+     **`data.json` is OVERWRITTEN every gauge run (confirmed) — it holds only "now," no
+     history.** So a report banked weeks ago has nothing to join against; its conditions
+     were overwritten dozens of times since. Half a training row. Two facets:
+     - *Facet 1 — overwrite (no history).* `data.json` retains nothing per-date. Some
+       durable, dated conditions record must exist for the join to read.
+     - *Facet 2 — report-date vs scrape-date lag.* shop-reports is SPARSE and IRREGULAR:
+       one row per distinct published report (dedup on reportDate), NOT one per day. A
+       shop may post a report stamped 7/10 that we first scrape on 7/12 (twice-daily
+       cadence minimizes but does not eliminate lag). The guide rated the fishing AS OF
+       their stamp (7/10), so the conditions we want are **7/10's** — but `data.json` on
+       7/12 already holds only 7/12's. So retention must be able to reach back to the
+       `reportDate`, not just capture "conditions at scrape time."
+     **Candidate answers (to discuss, not yet chosen):**
+     - *(A) Snapshot-at-scrape.* When the scraper appends a report, copy that day's live
+       gauge conditions into the record (or a sibling append-only file) right then.
+       Cheapest, self-contained, fits the existing scraper (report already knows its date
+       + gauges; a fresh data.json is in-repo at scrape time). BUT clean ONLY when scrape
+       date == reportDate; for late-caught reports it grabs the wrong day's conditions
+       (Facet 2 unhandled) unless paired with (B).
+     - *(B) Short rolling conditions archive.* The gauge pipeline appends a dated daily
+       conditions snapshot to its OWN append-only history (last N days, or indefinite).
+       Handles Facet 2 (can look back to the true reportDate within the window) and is
+       reusable beyond calibration. Cost: new retention infra on the pipeline we
+       deliberately kept isolated; must not couple back into the dashboard's data.json.
+     - *(C) Hybrid — snapshot-at-scrape backed by a short rolling window.* Snapshot the
+       reportDate's conditions from a small last-N-days archive at scrape time. Captures
+       the RIGHT day even for lag up to N days; archive can stay short (a week or two)
+       since shop reports are caught fast. Likely the smallest thing that handles BOTH
+       facets — but it is the owner's call, not assumed here.
+     **Decision required BEFORE building the join.** Also decide: does the conditions
+     snapshot live inside the shop record, in a sibling file, or in a gauge-side archive?
+     (Storage-shape question, separate from which-day question.) Note the isolation rule:
+     whatever is chosen, the shop/calibration side must not make the gauge dashboard depend
+     on it — data.json stays overwrite-only for the dashboard's purposes; any archive is
+     additive.
+
+**Seed status (updated 2026-07-12, post 8-3):** `calibration/shop-reports.json` shipped
+**EMPTY** (schema/note/schema-doc scaffolding only) and was **populated by the first live
+run** — all 3 Orvis reports now stored, 100% scraper-produced from the real DOM (forks
+Good/7.5, mainstem Excellent/9; 0 unmapped). The earlier hand-seeded rows were dropped
+(Option 2) so no hand-authored value can silently diverge from the page. The shop-vs-rig
+comparison was demonstrated headless across the 5 covered gauges (strong agreement on
+Prince/Chubby/Sparkle Minnow/Purple Haze/PT; flagged real candidate adds — Adams Purple
+Parachute, Elk Hair Caddis grid-wide; Stimulator on the mainstem). **Pipeline built,
+scheduled, and verified live.** The fly-table diff (harvest) and rating-deviation (step 4)
+analyses remain to be built.
 
 **Guardrail — harvest is "consider," not "auto-add."** Shop lists include patterns that
 may not fit the cutthroat-focused tables (articulated streamers — Double Bunny, Kreelex;
