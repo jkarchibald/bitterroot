@@ -1,4 +1,4 @@
-<!-- version: build-tracker-10.md -->
+<!-- version: build-tracker-13.md -->
 # Bitterroot Dashboard — Build Tracker & Handoff
 
 *Single source of truth for the fly-fishing conditions engine. Feed this file at
@@ -21,9 +21,10 @@ phase is in flight.*
    A-grade curve with intuition; don't hard-code a C-grade local call as if it
    were universal.
 4. **End-of-phase doc rule (standing):** at the close of every phase, Claude audits
-   the affected logic docs (`logic/00`–`05`, `README`, `MIGRATION`) and either
-   delivers the updated markdown(s) or explicitly states "no update needed" for each.
-   No phase closes silently on the docs.
+   the affected logic docs (every file in `logic/` — currently `00`–`06` + `README`,
+   plus any **new** doc a phase introduces, e.g. Phase 4's `07-flow.md` — and
+   `MIGRATION`) and either delivers the updated markdown(s), delivers a new doc, or
+   explicitly states "no update needed" for each. No phase closes silently on the docs.
 5. **File-naming / versioning rule (standing):** every file Claude produces for
    download carries a version stamp `-x-y` inserted immediately BEFORE the extension,
    regardless of file type (`.html`, `.md`, `.mjs`, `.yml`, …). **Base filenames are
@@ -123,8 +124,14 @@ dawn/dusk peak of 7–8** on the app's 0–10 scale.
 - `fetch-data.mjs` — Node pipeline → `data.json` (USGS IV, DNRC StAGE, Open-Meteo,
   GloFAS). *Note: the giant `EMBEDDED_DATA` array inside index.html is test-fixture
   noise — ignore it; signal is ~15 code lines.*
-- Docs: `README.md`, `MIGRATION.md`, `logic/` (00-overview + 01–05 + README),
-  `06-thermal-response-and-stress.md`, `LOGIC_TRAINS.md` (superseded earlier design).
+- Docs: `README.md`, `MIGRATION.md`, and the `logic/` folder. **Actual logic files
+  (as of 2026-07-10):** `00-overview.md`, `01-temperature.md`, `02-chart-forecasts.md`,
+  `03-bite-windows.md`, `04-where-to-fish.md`, `05-whats-working-now.md`,
+  `06-thermal-response-and-stress.md`, `README.md`. **Note:** there is **no flow doc yet** —
+  `04` is **where-to-fish** (gauge ranking), NOT flow. The Phase-4 flow doc is a **NEW file,
+  `07-flow.md`** (next free number; do not rewrite `04`). `LOGIC_TRAINS.md` is a superseded
+  earlier design. Files commit under plain names (no `-x-y` in the filename); the version
+  stamp lives in-file only.
 
 **Key functions**
 - `_bandFor(t)` → `{key, mult, heat}` — the continuous temp→feeding response curve
@@ -159,18 +166,20 @@ re-opened, just re-checked).
 | 1 · Response curve | **☑ PROVISIONAL** — *not fully closed* | `_bandFor` literature-locked to westslope cutthroat, integrated in the bite engine, chart red line, banner/warnings. | Two downstream couplings, not Phase-1 defects: **Phase 6** recalibration (`categoryScores` still on parallel step-bands — the "four identical scores") and the **Phase 3** `t==null` null branch. Flips to full ☑ when those land. |
 | 2 · DO + stress ladder | **☑ CLOSED (done & integrated)** | Gap A: 68/70 confirmed science-shaped (O₂ scissors, not DO-sat numbers); elevation analyzed, deliberately not wired; two-tier 70/73 split reinforced. Validated headless; DO-grounded doc `06-…-2-3` (cited). No index/fetch change. | Nothing in Phase-2 remit. Gap B (coupling) **relocated to Phase 3** — it was pipeline work, never Phase-2 science. |
 | 3 · Temp estimation & forecast | **☑ CLOSED (done, integrated, live-deploy verified 2026-07-10)** | Lead fix (measured `waterTempForecast`) + **all four items**: (1) 8-vs-11-day window fixed; (2) diel decision resolved + **measured-gauge forecast rows carry a real diel band from observed spread** (`-3-3`); (3) Open-Meteo warm-bias characterised + terminal-day guard; (4) no-unknown mandate closed. **Mainstem:** Darby + Missoula added (measured); **Bell = Darby↔Missoula gradient**. Frontend: 6→8 roster, forecast-warning callout (card pill + chart legend chiclet with temps+dates hover), stress chiclet redefined to **current-only (today's peak, 70/73)**. **Live deploy verified:** 8 gauges render, chart hover works, Missoula shows green Stress + amber callout (no contradiction). `01`/`02` rewritten; `06` stress-meaning patch specced (below). | **Nothing in Phase-3 remit.** Flips Phase 1's `t==null` branch to dead code and satisfies Phase 2's coupling — both re-checked at Phase 6. Darby/Missoula placeholder rigs (Bell's, copied) owed to Phase 7. |
-| 4 · Flow | ☐ not started (reframed dynamics-first) | — | Whole phase. |
-| 5 · Light/time-of-day | ☐ not started | — | Whole phase. |
+| 4 · Flow | **☑ (done & integrated, 2026-07-12)** — dynamics-first | Dead `flowTrend.clearing` root-caused (crest gate made it structurally 0 in any recession — confirmed 0 on all 8 live gauges) and rewritten: `clearing` = falling-day × drawdown, no crest gate; `spike` = rate-of-rise (steepest day in a 2-day window). Static level penalties (`≥1.5×→0.80`, `≥1.25×→0.90`) removed; dynamics primary; clearing ceiling +18%→+25%. `normal` demoted to informational context. New doc `07-flow.md`. `index.html` only (pipeline unchanged). Validated headless vs live data + synthetic controls. | Last-year-**gradient** signal + true-climatological-normal storage specced in `07`, not built (data-coverage precondition). Rig-score magnitudes still owed to **Phase 6** (no re-anchor this pass). |
+| 5 · Light/time-of-day | **☑ (done & integrated, 2026-07-12)** — evening-peak placement fixed | The crepuscular block engine reviewed end-to-end against live data. **Root cause found:** `duskC` placed the evening Gaussian ~0.8 h before sunset with heat pushing it *later* → center ~20.5 in July → peak landed in the **post-sunset 8–10 PM bin** (block 10), so the "best window" star fell after last light on all 8 prime/cool gauges. Rewritten to `ssHr − (1.8 + 1.2·springFall + 0.4·heat)` → peak now in the **6–8 PM** hatch block; heat pulls it slightly *earlier*. Amplitudes (`dawnAmp`/`duskAmp`), `heatX` tilt, `midBase`, cloud response reviewed and science-anchored where the literature reaches (Ovidio 2002 dusk-peak + seasonal-homogeneity shift; drift literature), derived/assumption elsewhere. `03-bite-windows` rewritten + given a `Sources` section. `index.html` only. | Score *magnitudes* (bite vs rig) still unified at **Phase 6**; exact amplitudes remain soft B-tier, natural target for Phase-8 shop-report ground-truth. |
 | 6 · Integration & recalibration | ☐ not started | — | Re-anchors `categoryScores`; flips Phase 1 to full ☑. |
 | 7 · Fly selection | ☐ deferred | — | — |
 | 8 · Shop reports (external) | ☐ user-owned | — | — |
 | 9 · Doc/IP consolidation | ☐ final (after Phase 6) | — | — |
 
-**Read:** two phases are fully **CLOSED** (Phase 2, Phase 3). Phase 1 is complete as
-biology and live, but **provisional** — it cannot close until Phase 6 (recalibration)
-lands (its `t==null` null branch is now dead code as of Phase 3, but the `categoryScores`
-re-anchor is still owed). Don't mark Phase 1 ☑ before Phase 6. **Next full phase: Phase 4
-(flow, dynamics-first).**
+**Read:** four phases are done & integrated (Phase 2, Phase 3, Phase 4, **Phase 5**).
+Phase 1 is complete as biology and live, but **provisional** — it cannot close until
+Phase 6 (recalibration) lands (its `t==null` null branch is now dead code as of Phase 3,
+but the `categoryScores` re-anchor is still owed). Don't mark Phase 1 ☑ before Phase 6.
+**Next full phase: Phase 6 (integration & recalibration)** — re-anchors `categoryScores`
+to the cutthroat numbers, kills the "four identical scores" at the assembly level, and
+flips Phase 1 to full ☑.
 
 
 1. **Water temperature — response curve** · rigor **A** · **☑ PROVISIONAL — temp-complete, pending downstream re-verification (Phase 6 recalibration; Phase 3 null branch)**
@@ -263,7 +272,7 @@ re-anchor is still owed). Don't mark Phase 1 ☑ before Phase 6. **Next full pha
      `01-temperature-3-2.md`, …); tracker keeps its global counter (`build-tracker-7`
      next).
 
-4. **Flow** · rigor **B** · ☐ **(REFRAMED — dynamics-first, not level-vs-normal)**
+4. **Flow** · rigor **B** · ☑ **(done & integrated 2026-07-12 — dynamics-first; see Status Log top + `07-flow.md`)**
    **DESIGN REFRAME (Uber, 2026-07-05):** flow *level* mostly **relocates** fish
    (high → edges/seams; low → deep holds), it does NOT gate feeding — so a static
    "high flow → lower score" penalty is conceptually wrong. The real feeding signal is
@@ -284,13 +293,55 @@ re-anchor is still owed). Don't mark Phase 1 ☑ before Phase 6. **Next full pha
    ≥1.4× band-flattening fold into this rework.
    *Touches:* both engines; block-caption flow logic; `flowTrend`; dayScore
    responsiveness.
+   *Doc deliverable:* a **NEW `07-flow.md`** (stamp `-4-1`; commits as `07-flow.md`).
+   There is no flow doc today — `04` is where-to-fish, not flow. Do not rewrite `04`.
+   *Required to start (upload set):* `build-tracker` (highest); `index.html` (deployed);
+   `fetch-data.mjs`; a **fresh `data.json`** from a live run; `02-chart-forecasts` (flow
+   forecast is documented there). Optional: `06` (coldwater×low-flow guardrail cross-ref),
+   `update-data.yml` (only if the cron changes). *Scope guard:* dynamics-first only; do NOT
+   re-anchor `categoryScores` (Phase 6); the true-climatological-normal storage decision is
+   a data-architecture question to raise, not necessarily build this pass.
 
-5. **Light & time-of-day** · rigor **B** · ☐
+5. **Light & time-of-day** · rigor **B** · ☑ **(done & integrated 2026-07-12 — evening-peak placement fixed; see Status Log top + `03-bite-windows-5-1.md`)**
    Cloud response + the crepuscular block engine: dawn/dusk amplitudes, `duskC`
-   seasonal placement, `heatX` refuge tilt, the valid-block window (blocks 3–9).
+   seasonal placement, `heatX` refuge tilt, `midBase`, the valid-block window.
    Crepuscular feeding is real & documented but amplitude is the softest B-tier, so
-   it comes after the harder drivers.
-   *Touches:* block shape; optimum-window scan.
+   it came after the harder drivers.
+   **Root cause found (traced through live `data.json`, not memory):** the light
+   engine looked fine in isolation but the seasonal `duskC` placement put the evening
+   Gaussian center at ~20.5 h in July (offset only ~0.8 h before sunset, *with heat
+   pushing it later still*). Block 9 (6–8 PM) has midpoint 19; block 10 (8–10 PM) has
+   midpoint 21 — so the center overshot the real evening-hatch block and landed on the
+   post-sunset bin. Since both the star (`bestBlockIdx`) and the day-score best-4 h term
+   reward the single highest block, the app's "best window" fell **after last light** on
+   **all 8** prime/cool gauges, and block 10 (its own caption reads "fading light")
+   outscored block 9. That is the Phase-5 defect.
+   **Fix (index.html, one formula + its comment block):** `duskC = ssHr − (1.8 +
+   1.2·springFall + 0.4·heat)`. Peak now sits ~1.8 h before sunset at high summer (July
+   center ≈ 19.4 → block 9), ~3.0 h in the shoulders (mid-evening), and heat pulls it
+   slightly **earlier** (warm late-afternoon = lowest-margin water, consistent with the
+   `heatX` dusk-easing). **Amplitudes/tilt reviewed, not re-tuned:** `dawnAmp=0.40+0.18·heat`,
+   `duskAmp=0.50+0.20·heat` (dusk's modest lead is literature-supported in *direction* —
+   Ovidio 2002, drift literature — the magnitudes are derived-in-repo against the "Good ≈ 7–8"
+   anchor); `heatX` refuge tilt and `midBase` left as-is and documented honestly. **Scope
+   guards honored:** SHAPE only — no `_bandFor` MULT/HEAT edit, the two load-bearing `66`s
+   (HEAT anchor + `t>=66` hinge) and `HOOT_OWL_F`/`STRESS_RED_F` byte-identical (verified),
+   no `categoryScores` re-anchor (Phase 6).
+   *Result (headless, live 8 gauges):* post-sunset stars 8/8 → **0/8**; evening star now
+   6–8 PM; day scores on prime gauges rose ~0.3–0.7 toward the "Good ≈ 7–8" anchor;
+   Missoula (hot) correctly keeps its dawn/thermal-refuge star. Seasonal controls (May/Sep/Oct)
+   pull the peak earlier as days shorten; hot-water (66/70 °F) dawn-leads; overcast lifts
+   midday; null-temp floors with no NaN.
+   *Doc:* `03-bite-windows.md` **rewritten → `-5-1`** (light-curve section rebuilt to match
+   shipped code; `duskC` fix documented inline; new `Sources` section with the three-way split).
+   *Touches:* block shape; the star; optimum-window scan; day-score best-4 h term.
+   *Required to start (upload set):* `build-tracker` (highest); `index.html` (deployed);
+   a fresh `data.json`; `03-bite-windows.md` (rewrite target). Optional: `06` (the `heat`/`66`
+   cross-ref), `README-logic.md`. *Scope guard:* light/time-of-day block SHAPE only; do NOT
+   re-anchor `categoryScores` (Phase 6); do NOT touch the two `66`s or the stress/hoot-owl
+   thresholds; `_bandFor` MULT/HEAT is Phase-1 biology — light multiplies it, never redefines it.
+   *Stamping:* Phase-5 files `-5-1` (`index-5-1.html`, `03-bite-windows-5-1.md`); tracker keeps
+   its global counter (`build-tracker-13`).
 
 6. **Engine integration & re-calibration** · rigor **B** · ☐
    With trustworthy drivers + curves, verify how they combine in each engine and
@@ -335,8 +386,8 @@ tells you if data refreshed; the phase tells you if the logic is final.*
 | Raw readings (discharge, stage, temp, weather) | **Phase 3** | Every gauge real-or-estimated, no "missing," full-length series. Temp-forecast fix already improved this. |
 | Chiclets — Height/Flow/Temp/**Stress** dots | **Phase 3** (Stress shape confirmed **Phase 2**) | Already moving from temp fix: East Fork red→green, Lolo-below orange→green once deployed. |
 | Temp value + forecast line | **Phase 3** (curve was Phase 1) | Forecast stops over-warming (East Fork no longer projects 70°F). Mostly done. |
-| **Day score** (0–10 badge) | Responsive after **Phase 4**; final at **Phase 6** | After 4 it should move day-to-day (today frozen by pinned flow). After 6, re-anchored to guide "Good ≈ 7–8." |
-| Today's bite windows (bars + captions) | Shape right after **Phase 5**; final **Phase 6** | Phase 4: "big water" becomes magnitude/dynamics-aware. Phase 5: dawn/dusk shape. |
+| **Day score** (0–10 badge) | **Responsive as of Phase 4 (done)**; final at **Phase 6** | Phase 4 landed: static level pinning removed, `flowTrend` revived → the score now moves day-to-day with changing flow and gauges differentiate. Still re-anchored to "Good ≈ 7–8" at Phase 6. |
+| Today's bite windows (bars + captions) | **Shape settled at Phase 5 (done)**; final **Phase 6** | Phase 4 made "big water" magnitude/dynamics-aware. Phase 5 fixed the evening peak — the star/optimum window now lands in the 6–8 PM hatch, not the post-sunset bin. Magnitudes recalibrate at Phase 6. |
 | Where to fish (Today/Tomorrow ranking) | **Phase 6** (needs Phase 4 first) | Phase 4: gauges stop tying, start differentiating. Phase 6: ranking stable/calibrated. |
 | What's working now (dry/nymph/DD/streamer) | **Phase 6** (patterns at **Phase 7**) | The "four identical scores" section — on the OLD rig engine BY DESIGN until Phase 6. Expect it unchanged/static until then; not a new bug. |
 | Chart forecast lines | temp **Phase 3** · flow **Phase 4** | Temp line already corrected; flow/clearing dynamics arrive with Phase 4. |
@@ -396,7 +447,152 @@ values and "what's working now" finally comes right.
 
 ## ── STATUS LOG (living — newest on top) ──
 
-### 2026-07-10 (d) · Phase 3 CLOSED — live deploy verified; 06 stress patch specced
+### 2026-07-12 (b) · Phase 5 CLOSED — light & time-of-day; evening-peak placement fixed
+- **Files delivered:** `index-5-1.html`, `03-bite-windows-5-1.md` (rewritten),
+  `build-tracker-13.md`. `fetch-data.mjs` **unchanged** — Phase 5 is entirely frontend
+  block-shape logic; the pipeline already emits everything the light curve reads.
+- **Root cause found (traced through live `data.json`, not memory).** Ran the shipped
+  `computeBlocks` headless against all 8 live gauges (extracted the inline `<script>`,
+  `node --check` clean, isolated `_bandFor`/`bestBlockIdx`/`computeBlocks`). The engine
+  *looked* fine in code review, but the seasonal `duskC` placement was
+  `ssHr − ((1.0 + 1.5·springFall) − 0.8·heat)` → center **~20.5 h** in July (only ~0.8 h
+  before a 21.3 sunset, *with heat pushing it later still*). Block 9 (6–8 PM) has midpoint
+  19; block 10 (8–10 PM) has midpoint 21 — the center overshot the true evening-hatch block
+  and landed on the **post-sunset** bin. Because the star (`bestBlockIdx`) and the day-score
+  best-4 h term both reward the single highest block, the app's "best window" fell **after
+  last light** on **8/8** prime/cool gauges, and block 10 — captioned "fading light" — outscored
+  the real hatch window. Confirmed live: 8/8 starred 8–10 PM before the fix.
+- **Fix (index.html — one formula + its comment block).** `duskC = ssHr − (1.8 +
+  1.2·springFall + 0.4·heat)`:
+  - high summer: peak ~1.8 h before sunset (July center ≈ 19.4) → lands in **block 9 (6–8 PM)**;
+  - shoulders: ~3.0 h before sunset → mid-evening (blocks 8–9), matching earlier spring/fall bugs;
+  - heat pulls the window slightly **earlier** (was later) — warm late-afternoon is the day's
+    lowest-margin water, directionally consistent with the `heatX` dusk-easing already present.
+  The comment block was rewritten to document the fix and the bin-alignment reasoning.
+- **Amplitudes / tilt reviewed, deliberately NOT re-tuned.** `dawnAmp = 0.40 + 0.18·heat`,
+  `duskAmp = 0.50 + 0.20·heat` (dusk's modest lead), `heatX` thermal-refuge tilt, `pw`,
+  `midBase`, and the cloud response are all left as shipped. The dusk-lead **direction** and
+  the seasonal-homogeneity spread are literature-supported (Ovidio et al. 2002 — dusk-peak in
+  all seasons + spring/summer homogenization; invertebrate-drift dusk peak); the specific
+  amplitude magnitudes are **derived-in-repo** against the fly-shop "Good ≈ 7–8" anchor, and
+  the refuge-tilt magnitudes / light floors are labeled **assumption**. All three splits are
+  written into the new `03` `Sources` section.
+- **Scope guards honored.** SHAPE only. No `_bandFor` MULT/HEAT edit (Phase-1 biology — light
+  multiplies it, never redefines it). The two load-bearing `66`s (HEAT anchor `[66,0.72]` +
+  the `t>=66` caption hinge) and `HOOT_OWL_F=73` / `STRESS_RED_F=70` confirmed **byte-identical**
+  (only line numbers shifted +8 from the added comment lines). No `categoryScores` re-anchor
+  (Phase 6). `06-*.md` untouched (ask-first).
+- **Validation.** Extracted inline script → `node --check` clean. Headless run of the shipped
+  engine vs live `data.json` (generatedAt 2026-07-12 14:08Z, 8 gauges): **post-sunset (8–10 PM)
+  stars 8/8 → 0/8**; evening star now 6–8 PM; day scores on prime gauges rose ~0.3–0.7 (e.g.
+  Lolo abv 6.0→6.4, East Fork 5.9→6.4) toward "Good ≈ 7–8"; Missoula (66.2 °F, heat 0.73)
+  correctly keeps its **dawn** thermal-refuge star, confirming `heatX` untouched. Synthetic
+  controls: May/Sep/Oct pull the peak progressively earlier as the day shortens (Oct even drops
+  a post-sunset block 9 to the dark floor — correct, the fishable evening genuinely ends earlier);
+  hot water (66/70 °F) dawn-leads; overcast lifts the midday blocks; null-temp floors at 1 with
+  no NaN. `diff` vs `index-4-1` shows only the `duskC` line + its comment changed (plus the
+  version stamp).
+- **Deploy:** commit `index.html` (frontend-only). No `fetch-data.mjs`/`data.json` change; next
+  Actions run unaffected. On the live site the "Optimum window"/star should shift from an
+  8–10 PM read to the 6–8 PM evening hatch on prime-temp gauges — the visible Phase-5 change.
+
+#### End-of-phase doc audit (standing rule — every logic file)
+| Doc | Action | Note |
+|---|---|---|
+| `00-overview.md` | **no update needed** | System map; the shared conditions object and the block engine's *place* in the system are unchanged. Light-curve internals live in `03`. |
+| `01-temperature.md` | **no update needed** | Temp estimation/forecast; untouched by a block-shape change. |
+| `02-chart-forecasts.md` | **no update needed** | Forecast series (flow/stage/temp lines + confidence); Phase 5 changed block scoring, not any forecast line. |
+| `03-bite-windows.md` | **REWRITTEN → `-5-1`** | Light-curve section (§Logic/calc 2) rebuilt to match shipped code: the fixed `duskC` placement with an inline Phase-5-fix note, `dawnAmp`/`duskAmp`/`heatX`/`pw`/`midBase` and cloud response documented, block-midpoint framing made explicit, flow section pointed to `07`, day-score note updated, and a new `Sources` section added (three-way cited/derived/assumption split, 🏔 regional preferred). |
+| `04-where-to-fish.md` | **no update needed** | Gauge ranking; consumes `g.blocks` unchanged in shape. Rankings may shift slightly downstream but the doc's logic is untouched. |
+| `05-whats-working-now.md` | **no update needed** | Rig engine copy; runs the old engine by design until Phase 6. Not touched. |
+| `06-thermal-response-and-stress.md` | **no update needed** | Thermal/stress; ask-first doc, not touched. `03` cross-refs it for `band.mult`/`band.heat` and the two `66`s; `06` remains authoritative on the temp curve. |
+| `07-flow.md` | **no update needed** | Flow dynamics (Phase 4); `03`'s flow paragraph now points to it, no reciprocal edit required. |
+| `README.md` / `README-logic.md` | **no update needed this pass** | Logic-file listing still needs `07-flow.md` added (carried from Phase 4) — bundle that housekeeping with the Phase-9 consolidation so it isn't lost. |
+| `MIGRATION.md` | **no update needed** | No data-shape migration; frontend scoring only. |
+
+### 2026-07-12 (a) · Phase 4 CLOSED — flow, dynamics-first
+- **Files delivered:** `index-4-1.html`, `07-flow-4-1.md` (new), `build-tracker-12.md`.
+  `fetch-data.mjs` **unchanged** — all Phase-4 logic is frontend; the pipeline already
+  emits the raw flow series the engine needs.
+- **Root cause found (traced through live `data.json`, not memory).** Ran the actual
+  `flowTrendFrom` against all 8 live gauges: `spike=0, clearing=0` on every one.
+  `clearing` was **structurally dead** — it required a prior in-window crest (≥1.30× off a
+  pre-rise base), but in a recession the peak is the *oldest* sample so no base precedes
+  it, `isEvent` is always false, and `clearing` can never fire. Four gauges were falling
+  10 days straight (the prime dropping-and-clearing window) and scored zero clearing while
+  simultaneously eating a −20% static level penalty. That dead signal + the pinning level
+  bands are why the day score froze across days of changing flow.
+- **Fix (index.html):**
+  - `flowTrendFrom` rewritten. `clearing` = `dayShape × drawdownShape × (1−spike)`, **no
+    crest gate** — a clean recession is the signal (falling-day clock × drawdown off recent
+    peak). `spike` = **rate-of-rise**: steepest single day-over-day rise in a 2-day window
+    (one sharp day trips it; window filters lone sensor wobble).
+  - `computeBlocks` `flowAdj`: removed the static `≥1.5×→0.80` / `≥1.25×→0.90` level
+    penalties (they pinned 6/8 gauges to one step, 1.5×==2.7×). Dynamics now primary:
+    spike −55%, clearing **+25%** (was +18%). Kept only the low-water × harsh-midday
+    guardrail. True blowout is caught by `spike`, not a level threshold.
+  - `blockReasons`: dropped the `ratio≥1.4 → 'big water'` level limiter (elevated-but-green
+    water isn't a limiter); spike-driven off-color caption kept.
+  - `categoryScores`: dynamics-aware notes (clearing → seams; spike → streamer); level
+    bands reworded as fish-*location* context, not "×normal" penalty. **No score re-anchor
+    (Phase 6).**
+  - Context line: `ratio` relabeled "× recent median" (was "× normal").
+- **`normal` demoted.** `computeNormal` is a this+last-year median (Bell "normal" 557 sits
+  between this year's 1100+ and last year's ~600) — meaningless as a divisor. It's now
+  informational context only; nothing in the bite score divides by it. This defuses the
+  true-normal storage question for the bite. Specced (not built) in `07`: last-year as a
+  **gradient/slope** reference (this-yr vs last-yr recession at the same calendar date) —
+  precondition is verifying per-gauge `lastYear` calendar overlap (coverage is uneven).
+- **Science, cited in `07`.** Rate-of-rise → turbidity and clockwise hysteresis (falling
+  limb runs cleaner at equal flow) are the physical basis; turbidity → reduced reactive
+  distance/feeding is the fish side (Sweka & Hartman 2001; Barrett et al. 1992). Westslope
+  fine-sediment sensitivity flagged 🏔 (Weaver & Fraley 1991 via MT Chapter AFS). Thresholds
+  honestly labeled derived-in-repo / assumption; hysteresis papers are general fluvial, not
+  Bitterroot/cutthroat-specific — direction cited, magnitudes not overclaimed.
+- **Validation.** Extracted inline script → `node --check` clean. Headless run of the
+  shipped `flowTrendFrom`+`computeBlocks` vs live data: `clearing` now fires 0.4–0.75 on
+  recessing gauges, `flowAdj` ranges 1.0–1.188 (reward, not flat penalty), gauges
+  differentiate; two Lolo gauges that ticked up ~1% at the bottom correctly stay neutral.
+  Synthetic controls: fast rise → spike 1.0; one sharp +57% day → spike 0.94; 3 gentle
+  +5% days → spike 0; clean 5-day recession → clearing 1.0. Confirmed the two load-bearing
+  `66`s, `HOOT_OWL_F=73`, `STRESS_RED_F=70` byte-identical (only line numbers shifted).
+- **Scope guards honored:** flow only; no `categoryScores` re-anchor (Phase 6); no touch to
+  the `66`s or stress/callout thresholds. `06-*.md` and `04` untouched.
+- **Deploy:** commit `index.html` (frontend-only). No `fetch-data.mjs`/`data.json` change
+  needed; next Actions run is unaffected. Day score should now respond day-to-day and
+  gauges differentiate — the Phase-4 unlock in §4b.
+
+#### End-of-phase doc audit (standing rule — every logic file)
+| Doc | Action | Note |
+|---|---|---|
+| `00-overview.md` | **no update needed** | High-level map; flow's role unchanged at the overview level. Optional one-line pointer to `07` at Phase 9 consolidation. |
+| `01-temperature.md` | **no update needed** | Temp estimation; untouched by flow. |
+| `02-chart-forecasts.md` | **no update needed** | Flow *forecast tail* (GloFAS-anchored) and the terminal guard are unchanged; Phase 4 changed the *scoring* of flow dynamics, not the forecast series. `07` cross-refs it; no edit required. |
+| `03-bite-windows.md` | **no update needed this pass** | The block engine's flow *inputs* changed but `03` describes block structure/light; its factor-4 flow mention now points conceptually to `07`. Flagged for a one-line cross-ref at Phase 6 when the engines unify. |
+| `04-where-to-fish.md` | **no update needed** | Gauge ranking; **not** flow (the recurring naming trap). Untouched. |
+| `05-whats-working-now.md` | **no update needed** | Rig engine copy; runs the old engine by design until Phase 6. `categoryScores` wording nudged but magnitudes unchanged — no doc change owed until the Phase-6 re-anchor. |
+| `06-thermal-response-and-stress.md` | **no update needed** | Thermal/stress; ask-first doc, not touched. Low-water×thermal guardrail cross-refs it; no edit. |
+| `07-flow.md` | **NEW — delivered** | Authoritative flow doc (`-4-1`). Dynamics-first logic, the dead-signal root cause, cited science, the demoted-`normal` note, and the specced last-year-gradient / true-normal open items. |
+| `README.md` | **no update needed this pass** | Add `07-flow.md` to the logic-file listing at the next housekeeping/Phase-9 pass (noted here so it isn't lost). |
+| `MIGRATION.md` | **no update needed** | No data-shape migration; frontend scoring only. |
+
+### 2026-07-10 (e) · Tracker housekeeping — real logic-file map; flow doc = new 07-flow
+- **File delivered:** `build-tracker-11.md` (docs-only; no code touched).
+- **Corrected the logic-file map (§3)** to list the actual `logic/` files
+  (`00`–`06` + `README`) instead of the vague "00–05 + README". Key fix: there is **no
+  flow doc** — `04` is **where-to-fish**, not flow — so the Phase-4 flow doc is a **new
+  `07-flow.md`** (next free number). The earlier Phase-4 prompt wrongly said "rewrite
+  `04-flow`"; that file never existed.
+- **§3 (standing end-of-phase doc rule)** made range-agnostic (audits every `logic/` file
+  incl. new docs a phase introduces), and the **Phase-4 spec (§4 item 4)** now names its
+  doc deliverable (`07-flow.md`) + upload set + scope guards.
+- **Confirmed committed (Uber's repo screenshot):** `01-temperature` (rewrite), `02-chart-
+  forecasts` (real-band doc), and `06-thermal-response-and-stress-3-3` are all in `logic/`.
+  Phase 3 doc set fully landed.
+- **No open items.** Phase 3 stays ☑ CLOSED. Next full phase: Phase 4 (flow, dynamics-first)
+  — prompt + upload list ready; flow doc will be `07-flow-4-1.md`; tracker next is `-12`.
+
+### 2026-07-10 (d) · Phase 3 CLOSED — live deploy verified; 06 rewritten (-3-3)
 - **Live deploy verified (Uber).** The deployed site renders all 8 gauges; the chart
   forecast-warning chiclet + temps/dates hover work live; **Missoula reads green Stress +
   amber "Water Temp" callout** (screenshot confirmed) — the current-vs-forecast split holds
