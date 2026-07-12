@@ -1,4 +1,4 @@
-<!-- version: 07-flow-6-2.md -->
+<!-- version: 07-flow-7-1.md -->
 # 07 · Flow (Dynamics-First)
 
 *New in Phase 4; **reconciled with the shipped code at the Phase-6 close
@@ -12,6 +12,15 @@ bite-engine flow math (§7a–7c `spike`/`clearing`/`flowAdj`) is **unchanged** 
 Phase 4. The science this doc already cited (rate-of-rise [S1], clockwise hysteresis
 [S2], turbidity→reactive-distance [S3]) is exactly what grounded the Phase-6 flow
 decision — Phase 6 completed the dynamics-first thesis rather than revising it.*
+
+*Phase 7 update (`-7-1`). No change to the flow math (§7a–7c) — this is a **consumer**
+note only. Phase 7 gave `spike`/`clearing` a **second rig-side consumer**: `calcPicks`
+(the calculated fly picks, `05` §5c) previously ranked fly size off flow **level**
+alone and was blind to these signals, contradicting `categoryScores` on-screen during a
+clearing recession. Phase 7 threaded `spike`/`clearing` through `liveConditions` so the
+**same** conditions object now feeds both `categoryScores` (§7d) and `calcPicks`, and
+gave `calcPicks` the identical dynamics-first read (same `≥0.35` / `≥0.3` thresholds, no
+new constants). Both rig-side consumers now read flow the same way. See `05` §5c.*
 
 The one-line thesis: **flow *level* mostly relocates fish; flow *dynamics* gate the
 bite.** A river running high on a fat snowpack fishes fine; a river rising fast runs
@@ -144,6 +153,14 @@ noting "score magnitudes here are not re-anchored — that is Phase 6." Phase 6 
 Net: on the rig side, **rate drives, level only locates**, consistent with the bite side.
 See `05` §5a for the shipped rig-engine detail.
 
+**Phase-7 addition — `calcPicks` is now a second consumer of these same signals.** The
+`spike ≥ 0.35` / `clearing ≥ 0.3` reads described here for `categoryScores` are, as of
+Phase 7, reused verbatim by `calcPicks` (calculated fly picks, `05` §5c) via the shared
+`liveConditions` conditions object. Before Phase 7 `calcPicks` sized flies off level
+alone and could contradict this ranking on-screen; it now applies the identical
+dynamics-first logic — same thresholds, same branch order, no new constants. The flow
+signal has one definition (here, §7a/§7b) and now two consistent rig-side consumers.
+
 ### 7e. Turbidity → feeding (why clarity matters to the fish)
 
 The suppression side is well documented for salmonids: reactive distance decreases
@@ -227,6 +244,8 @@ model addition (event-state tracking, not a threshold tweak), and it wants groun
   captions, the "What's working now" context line, and the Tomorrow column.
 - `flowAdj` per block inside `computeBlocks` → feeds `dayScore` and the bite bars.
 - Dynamics-aware rig notes in `categoryScores` (no magnitude re-anchor — Phase 6).
+- Dynamics-aware **fly-size ranking in `calcPicks`** (`05` §5c) — Phase 7; reuses the
+  same `spike`/`clearing` reads via `liveConditions`.
 
 ---
 
@@ -236,9 +255,11 @@ model addition (event-state tracking, not a threshold tweak), and it wants groun
 `data.json` (all 8 gauges) plus synthetic rise/recession controls. Absolute-level scoring
 is intentionally gone except the low-water × midday guardrail; as of **Phase 6** the rig
 side matches — its scaled level bands are collapsed to one coarse location cue (§7d), and
-`categoryScores` temperature magnitudes are re-anchored to `_bandFor` (`05`, `06`). The
-last-year-gradient signal, the hysteresis-aware turbidity signal, and the
-true-climatological-normal decision are specced above, not built this pass.
+`categoryScores` temperature magnitudes are re-anchored to `_bandFor` (`05`, `06`). As
+of **Phase 7**, `calcPicks` reads these same `spike`/`clearing` signals via
+`liveConditions` — the two rig-side consumers are now consistent, and no consumer sizes
+off level alone. The last-year-gradient signal, the hysteresis-aware turbidity signal,
+and the true-climatological-normal decision are specced above, not built this pass.
 
 ---
 
