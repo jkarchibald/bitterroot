@@ -1,8 +1,8 @@
-<!-- version: build-tracker-26.md -->
+<!-- version: build-tracker-27.md -->
 
 # Bitterroot Dashboard — Build Tracker
 
-Global counter: **26**. Living document. Each phase entry carries its outcome,
+Global counter: **27**. Living document. Each phase entry carries its outcome,
 validation surface, deliverables, and the upload set required to start the next
 phase.
 
@@ -252,9 +252,50 @@ tip. Easy, cheap, repeatable — confirmed.
    tables (candidate-add / diff signal, per the "consider not auto-add" guardrail). Rig/hatch
    atoms with no shop variant yet are intentionally NOT pre-seeded -- the map normalizes shop
    names, not every rig fly; new rig-only flies get aliases when a shop first names them.
-2. **Scraper + all sources — SECOND.** `fetch-shop-reports.mjs`: Orvis x3 first
-   (structured), then Grizzly Hackle + Fly Fish Food (prose tier). Adding shops lives
-   here, not earlier — scraping un-normalizable names just yields noise.
+2. **Scraper + all sources — SECOND. — STRUCTURED TIER DONE (Chat 2, 2026-07-12).**
+   `fetch-shop-reports.mjs`: Orvis x3 first (structured), then Grizzly Hackle + Fly Fish
+   Food (prose tier). Adding shops lives here, not earlier — scraping un-normalizable
+   names just yields noise.
+   **Delivered this chat (Orvis structured tier only):** `fetch-shop-reports.mjs` +
+   `.github/workflows/fetch-shop-reports.yml` (separate pipeline, own twice-daily schedule,
+   `contents:write` only, concurrency-guarded) + reconciled seed as the append target.
+   Parses fly table from `data-shop-name`/`data-shop-id` attrs, day rating from the
+   amCharts `chart.data` block (highest `number` wins, orvis-5step), plus temp/date/
+   hatches/tip. Canonicalizes every `nameRaw` through `canon()`; honors the UNKNOWN-NAME
+   CONTRACT (see below). APPEND-only with dedup on `id` (source+idSlug+reportDate).
+   **Validated headless (fixtures; live fetch blocked in sandbox by `host_not_allowed`,
+   GitHub Actions egress is open):** `node --check` clean; scrape of all 3 fixtures
+   reproduces the seed field-for-field (canonicals, rank, type, colors, sizes, rating,
+   temp, gauges, drainage); re-run dedups to 0 appended; a planted unmapped name
+   ("Sex Dungeon") logged, landed with `nameRaw` preserved + `nameCanonical:null`, and
+   appended once to `_unmappedNames[]` without blocking the run.
+   **`id` scheme note:** `id = source-idSlug-reportDate`, where `idSlug` is an explicit
+   per-source field (`westfork`/`eastfork`/`bitterroot`) rather than URL-derived — a
+   URL-derived slug produced `west-fork-bitterroot` and would not match the seed ids,
+   duplicating every report on every run. Locked to match the seed exactly.
+   **PROSE TIER DEFERRED** to the next chat (Grizzly Hackle + Fly Fish Food), which needs
+   the prose-to-structured-fly extraction step. `tipFlies:[]` is emitted empty until then.
+   **RATING SOURCE — primary/fallback (decided Chat 2):** the rating is a per-source
+   *chain*, not a single source. Mainstem's true primary is the Blackfoot **own-site**
+   `width:XX%` fish-bar (fresher, river-native → pct/8); Orvis amCharts is the **fallback**
+   (→ orvis-5step/7.5). The forks have no own-site page, so Orvis is their only source.
+   THIS CHAT SHIPS ORVIS-ONLY: the mainstem rating is Orvis (`Good`/7.5) for now. Seed's
+   mainstem rating was reconciled from the hand-authored own-site `80%`/pct/8 down to
+   `Good`/orvis-5step/7.5 so the seed reflects exactly what the live pipeline emits today
+   (no phantom value no shipped code can reproduce). Wiring the own-site parser as the
+   mainstem **primary** (with Orvis fallback, and a `rating.ratingSource` tag on the record
+   so the time series never silently switches scales) is the **FIRST TASK OF THE NEXT
+   CHAT.** When it lands, the mainstem rating upgrades to own-site pct via the normal
+   append flow — the Orvis rows already banked are untouched (append-only).
+   **Seed provenance (recorded):** the seed was hand-authored during design (pre-pipeline)
+   by reading the live pages directly; its canonicals were pre-decided and the alias layer
+   (step 1) was fit to reproduce them. The mainstem `80%` came from the owner reading the
+   own-site width bar by eye. Chat 2 is the seed's first repo landing; from here the
+   scraper maintains the file, so seed/scraper agreement is now enforced (reconciled above).
+   **ISOLATION RE-AFFIRMED:** nothing the scraper writes feeds the day score or bite
+   windows. `index.html` does not read `shop-reports.json`; all scoring runs off `data.json`
+   (gauge pipeline). Shop rating = human sanity-check on the day score, not an engine input;
+   shop temp = soft cross-check. Rig-table influence remains diff-and-review, never auto-fed.
    **UNKNOWN-NAME CONTRACT (LOCKED 2026-07-12, owner):** when the scraper hits a `nameRaw`
    that `canon()` cannot resolve, it **logs-and-keeps-going -- never blocks the scrape.** The
    full record still lands (raw name preserved on the fly), and the unresolved name is
@@ -357,9 +398,10 @@ than per-record guesses.
 design. Lifecycle:
 - *Now / Chat 1 (alias layer):* seed is a local working file only; no push. Chat 1 just
   reads it to build the name map.
-- *Chat 2 (scraper) = first repo landing.* Commit `fetch-shop-reports.mjs` (new) +
-  `calibration/shop-reports.json` (seed, as the append target) + a NEW GitHub Actions
-  workflow to run the scraper on a schedule.
+- *Chat 2 (scraper) = first repo landing.* **DONE 2026-07-12.** Commit
+  `fetch-shop-reports.mjs` (new) + `calibration/shop-reports.json` (reconciled seed, as the
+  append target) + `.github/workflows/fetch-shop-reports.yml` (new, separate schedule).
+  Orvis structured tier only; prose tier + own-site-primary rating deferred to Chat 3.
 
 Hard rules for the pipeline:
 1. **Separate from `fetch-data.mjs` — never merged.** `fetch-shop-reports.mjs` ->
