@@ -1,14 +1,24 @@
-<!-- version: 05-whats-working-now-6-1.md -->
+<!-- version: 05-whats-working-now-7-1.md -->
 # 05 · What to Use Now (Seasonal vs. Calculated Picks)
 
 *Phase 6 rewrite. The category-scoring engine (`categoryScores`) was re-anchored to
 the same westslope-cutthroat response authority the bite engine uses (`_bandFor`),
 replacing its old parallel temperature step-bands — the root cause of the "four
 identical scores." The flow block was simultaneously re-grounded: level demoted to a
-coarse location cue, dynamics (rate-of-rise) left as the bite signal. The fly-table
-machinery (§5b/5c) is unchanged. A new §Appendix records **Option C** — the deferred
-full-rebuild alternative — and the fish-vs-bugs reasoning that selected the shipped
-approach.*
+coarse location cue, dynamics (rate-of-rise) left as the bite signal. A §Appendix
+records **Option C** — the deferred full-rebuild alternative — and the fish-vs-bugs
+reasoning that selected the shipped approach.*
+
+*Phase 7 update (`-7-1`). Two changes reached the fly-table machinery that Phase 6
+had left alone. **§5c (`calcPicks`)** was made dynamics-first: it had been ranking fly
+size off flow **level** alone (via its own private step-buckets) and was blind to
+`spike`/`clearing`, so on a clearing recession it upsized ("high water → bigger")
+while §5a's score engine correctly said "downsize, work the seams" — contradictory
+picks on one screen. Dynamics are now threaded through `liveConditions` so the **same**
+conditions object feeds both engines, and `calcPicks` reuses §5a's continuous,
+dynamics-first flow read (no new constants). **§5b/§5c rigs** were also de-duplicated:
+each gauge now carries an independently-authored `rig` (Part B). The §293 thermal→
+hatch-timing coupling is re-scoped to Phase 10.*
 
 For each of four categories — dry, nymph, dry-dropper, streamer — the dashboard
 shows up to four flies: two **seasonal** picks (from the month's hatch tables) and
@@ -149,20 +159,78 @@ percentage of the max. Same engine shape as `computeBlocks` — point it at the 
 
 ### 5b. Seasonal picks — `seasonalPicks`
 
-*(Unchanged in Phase 6.)* Calendar-driven. `hatchesForMonth(m)` filters
+*(Logic unchanged in Phase 6/7.)* Calendar-driven. `hatchesForMonth(m)` filters
 `HATCH_CALENDAR` to in-season insects (ordered chronologically, most-specific-first).
 For the category, walk those hatches, look each up in `HATCH_FLY` for a concrete
 pattern, take the first two. If fewer than two, top up from the gauge's `rig`, then
 `UNIVERSAL`. Result: two flies tagged with the insect they imitate.
 
-### 5c. Calculated picks — `calcPicks`
+*Phase 7 rig note:* the per-gauge `rig` tables (drawn on here and in §5c) were
+previously **duplicated** — the three mainstem gauges (darby/bell/msla) shared one
+byte-identical Bell rig, and the two Lolo gauges shared another. As of `-7-1` every
+gauge carries an **independently-authored** `rig`, tuned to that gauge's live
+character (temp/flow/species), drawn from `HATCH_FLY` + sanctioned existing patterns.
+These are derived-from-hatch-table starting points; fly-shop ground-truth (Phase 8)
+refines them. The `rig` is an authored **menu**; §5c is the condition-driven
+**selector** over it — the strings are static, the selection over them is live.
 
-*(Unchanged in Phase 6.)* Same candidate pool (this month's hatch flies + gauge rig +
-a search pattern + universal), de-duplicated, but **ranked by fit to live readings**:
-size bias (high/cold → bigger; clear/low → smaller), color/pattern bias (overcast →
-mayfly imitations on top; bright sun → flashy subsurface), and an in-season bonus. Top
-two become calc pri/alt, each tagged with a live reason; a calc pick that coincides
-with a seasonal pick is flagged "matches seasonal."
+### 5c. Calculated picks — `calcPicks` *(dynamics-first as of Phase 7)*
+
+Same candidate pool as before (this month's hatch flies + gauge `rig` + a search
+pattern + universal), de-duplicated, then **ranked by fit to live readings**. The
+ranking is the part Phase 7 rebuilt.
+
+**Before (retired, `-6-1` and earlier):** `calcPicks` derived its size bias from flow
+**level** alone, through its **own private step-buckets** independent of §5a —
+`clear = ratio<=0.85`, `high = ratio>=1.25`, and `high || cold → bigger flies`. It
+never read `spike`/`clearing`; `liveConditions` didn't even carry them. Two
+consequences, both live-observed on 2026-07-12 (all 8 gauges in a clearing recession,
+`spike=0`, `clearing` 0.4–0.75 on 5 of 8, at high level ratio 1.2–2.05×):
+
+1. calc stamped **"high water → bigger"** on every gauge — the exact opposite of the
+   correct call (dropping, clearing → downsize and fish the seams);
+2. it **contradicted §5a on the same screen** — `categoryScores` reads `_flowTrend`
+   and said "dropping & clearing: prime window — work the seams," while the calc picks
+   underneath it said "bigger." Same level-vs-dynamics confusion Phase 6 fixed in
+   §5a, one layer down.
+
+**After (shipped, `-7-1`):** two coordinated changes.
+
+- **Wiring.** `liveConditions` now carries `spike`/`clearing` (from `g._flowTrend`,
+  `07`) on the conditions object it returns. This keeps the single-conditions-object
+  contract: **one** `liveConditions(g)` call feeds both §5a and §5c, so they can never
+  again read different flow signals. (Passing `g._flowTrend` separately into
+  `calcPicks` was rejected — it would re-introduce the two-source split that caused
+  the bug and break the "plain conditions object, never gauge `g`" rule.)
+
+- **Ranking.** calc's private buckets are replaced by the **same continuous,
+  dynamics-first read as §5a**, same branch order, **same thresholds, no new
+  constants**:
+  - `spike >= 0.35` → **bigger, darker** (favor low hook #; dark/flashy meat bonus);
+  - else `clearing >= 0.3` → **downsize, seam dries** (favor high hook #);
+  - else **level as coarse location context only** — `ratio >= 1.2` → "bigger water
+    → fish edges & seams" (a mild profile nudge, **never** a size penalty);
+    `ratio <= 0.8` → "low water → downsize, go subtle";
+  - cold water (`t < 50`) still biases bigger/deeper; overcast → mayfly imitations on
+    top; bright sun → flashy subsurface; in-season hatch bonus — all retained.
+
+The reason string was rewritten to §5a's exact language, so a calc pick's reason can
+never contradict its category score.
+
+**Result (headless, live 8 gauges × 4 categories):** 13/32 primary flies changed,
+all correct-direction; **zero gauges still read "high water → bigger."** Clearing
+gauges downsize (e.g. Golden Stimulator → Yellow Sally, Golden Stone Nymph → Drowned
+Ant); the genuinely-flat high gauges (no dynamics signal) keep their flies and take
+only the mild location note. calc is now **consistent with `categoryScores`**, not
+contradicting it.
+
+Top two candidates become calc pri/alt, each tagged with the live reason; a calc pick
+that coincides with a seasonal pick is flagged "matches seasonal." **Today-only** — no
+forecast horizon.
+
+*(For the flow-dynamics definitions `spike`/`clearing` themselves — the rate-of-rise
+and falling-limb math and their sources — see `07`. §5c consumes them; it does not
+define them.)*
 
 ### How a specific pattern / size / color is chosen
 
@@ -195,7 +263,7 @@ computed.
 |-------|---------------|-------------------------------|
 | Water temp | `series.watertemp.latest` | → today's mean → `normal.watertemp` → null → `t==null` fixed nymph-default branch |
 | Flow / `flowRatio` | `series.flow.latest ÷ normal.flow` | → today's mean; `normal.flow` missing → ratio 1.0 |
-| Flow dynamics | `g._flowTrend.spike` / `.clearing` (`07`) | absent → 0 (no dynamics term; level nudge only) |
+| Flow dynamics | `g._flowTrend.spike` / `.clearing` (`07`), carried on the `liveConditions` object → read by **both** §5a and §5c | absent → 0 (no dynamics term; level nudge only) |
 | Cloud | `weather.hourly[].cloudPct` daytime avg | absent → 40% |
 | Precip proxy | `weather.daily[].precipIn` | → 0% |
 | In-season insects | `CUR_MONTH` filtering `HATCH_CALENDAR` | month is a constant, not `data.json today` |
@@ -219,13 +287,22 @@ never generates a fly.
 
 ## Status
 
-**Phase 6 complete.** Category scoring is data-driven and live, re-anchored to the
-cutthroat response curve shared with the bite engine, and re-grounded on flow. The
-"four identical scores" symptom is resolved at the assembly level on all measured
-gauges. This flips Phase 1 (response curve) from PROVISIONAL to fully done. Fly tables
-remain authored and static by design (patterns are Phase 7). Score *magnitudes* are
-now anchored to the same `_bandFor` authority as the bite engine; final ground-truth
-re-calibration against fly-shop reports is Phase 8.
+**Phase 7 complete.** Category scoring (§5a) is data-driven and live, re-anchored to
+the cutthroat response curve shared with the bite engine, and re-grounded on flow
+(Phase 6). The "four identical scores" symptom is resolved at the assembly level on
+all measured gauges; this flipped Phase 1 (response curve) from PROVISIONAL to done.
+
+Phase 7 closed the two remaining fly-table gaps: **§5c (`calcPicks`)** now reads flow
+**dynamics** through `liveConditions` and reuses §5a's continuous, dynamics-first flow
+logic — it no longer sizes off level alone, and can no longer contradict the category
+scores on-screen. **Per-gauge `rig` tables** are now independently authored (no
+duplicate groups). Both verified headless on the live 8 gauges.
+
+Fly patterns remain **authored** (never generated) — that is by design, not a gap. The
+Phase 7 rigs are derived-from-hatch-table starting points; final ground-truth
+re-calibration against fly-shop reports (`calibration/shop-reports.md`), for both fly
+selection and score magnitude, is **Phase 8**. The thermal→hatch-timing coupling
+(below) is re-scoped to Phase 10.
 
 ---
 
@@ -290,12 +367,15 @@ on thermal×light×flow compounding, deferred by scope). On **insects** they are
 the bugs" does not distinguish them, and any impression that C reasons better about
 hatches would be false.
 
-### One real coupling neither B nor C captures (logged for Phase 7)
+### One real coupling neither B nor C captures (logged → re-scoped to Phase 10)
 
 Warm water legitimately shifts hatch **timing** (compresses emergence into cooler
 hours) and can favor certain taxa — a genuine temperature→insect coupling. It belongs
-in the hatch/timing subsystem (candidate Phase 7), **not** smuggled into
-`categoryScores` under either B or C.
+in the hatch/timing subsystem, **not** smuggled into `categoryScores` under either B
+or C. *Phase 7 note:* Phase 7 deliberately did **not** build this — its scope guard
+kept `hatchesForMonth` a pure calendar. The coupling is re-scoped to **Phase 10**
+(hatch-calendar re-plumb), where making the calendar condition-aware is the stated
+work. Still logged, still separate from the fish-side model.
 
 ### If a future phase builds C
 
