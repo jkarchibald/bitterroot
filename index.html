@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- version: index-5-1.html -->
+<!-- version: index-6-1.html -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -645,29 +645,72 @@ function categoryScores(g){
   const t=c.temp;
   const s={dry:0,nymph:0,dd:0,streamer:0};
   const notes=[];
-  // --- temperature band (primary, biggest weight) ---
+  // --- temperature (primary, biggest weight) ---
+  // PHASE 6 re-anchor: the rig engine now reads the SAME westslope-cutthroat
+  // response authority as the bite engine (_bandFor), instead of its old parallel
+  // step-bands. That split was the "four identical scores" root cause: every gauge
+  // in the 50-60F bucket returned an identical vector regardless of real temp, and
+  // the plateau gauges (56/57/59F) could not differentiate. _bandFor gives BOTH a
+  // continuous feeding drive (`mult`, peak ~0.88 across the 55-59F optimum) AND a
+  // thermal-stress index (`heat`, monotonic up). We use both: `mult` sets the total
+  // activity budget + the surface (dry/dd) drive; `heat` tilts share from surface
+  // toward subsurface (nymph/streamer) as water warms; a cold ramp handles the
+  // cold-water subsurface tilt that low `mult` alone can't distinguish from hot.
+  // NO new threshold constants — all pre-73 degradation lives in _bandFor's curve.
+  // (heat-as-category-tilt is derived-in-repo; see logic/05 + logic/06.)
   if(t==null){ s.nymph+=40; s.streamer+=25; s.dd+=20; s.dry+=15; notes.push("temp unknown \u2192 default to nymph"); }
-  else if(t<40){ s.nymph+=55; s.streamer+=30; s.dd+=5; s.dry+=2; notes.push("very cold (<40\u00b0F): deep slow nymphs"); }
-  else if(t<50){ s.nymph+=48; s.dry+=22; s.dd+=20; s.streamer+=20; notes.push("cold (40-50\u00b0F): nymph primary, surface on hatches"); }
-  else if(t<60){ s.dry+=45; s.dd+=42; s.nymph+=32; s.streamer+=22; notes.push("prime (50-60\u00b0F): dries & dry-dropper"); }
-  else if(t<68){ s.dd+=42; s.dry+=38; s.streamer+=24; s.nymph+=24; notes.push("warm (60-68\u00b0F): terrestrials & hopper-dropper"); }
-  else if(t<73){ s.dd+=30; s.dry+=26; s.nymph+=24; s.streamer+=18; notes.push("stress (68-73\u00b0F): fish early/late, land fish fast"); }
-  else if(t<77){ s.nymph+=26; s.streamer+=20; s.dd+=10; s.dry+=6; notes.push("hoot-owl (73-77\u00b0F): minimize \u2014 morning only, or rest the fish"); }
-  else { s.nymph+=8; s.streamer+=6; s.dd+=2; s.dry+=2; notes.push("lethal (\u226577\u00b0F): don't fish \u2014 trout mortality is high"); }
-  // --- flow dynamics & clarity (rig ranking) ---
-  // PHASE 4: clarity comes from the DYNAMICS signal (flowTrend spike), not the
-  // level — big-but-green water is not "off-color" (logic/07). Level is treated as
-  // fish-LOCATION context (bigger water -> fish edges/seams; low -> downsize), not a
-  // clarity/penalty claim, and the ratio is labeled as vs. recent flow, not a real
-  // "normal." (Score magnitudes here are NOT re-anchored — that's Phase 6.)
+  else {
+    const b = _bandFor(t);                     // {key, mult, heat}
+    const BUDGET = 160 * b.mult;               // 0.88*160 ~= 141 at prime; falls with mult
+    const cold = Math.max(0, Math.min(1, (50 - t) / 10));   // 1 at <=40F, 0 at >=50F (kept OUT of 55-59 prime)
+    // surface-suppression from heat: a SOFT ramp, not a hard knee. A hard clip at 0.42
+    // zeroed all heat signal below it — which erased the monotonic separation that DOES
+    // exist across the 55-59F plateau (heat 0.30 vs 0.36), re-collapsing plateau gauges
+    // to an identical vector. Instead let a gentle signal through below 0.42 (so 56F and
+    // 57.5F differ slightly, as they should) and ramp steeply above it.
+    const heat = b.heat;
+    const hs   = heat <= 0.42 ? (heat / 0.42) * 0.12
+                              : 0.12 + ((heat - 0.42) / 0.58) * 0.88;
+    let dry      = (1 - hs) * (1 - cold);
+    let dd       = (1 - 0.75 * hs) * (1 - 0.8 * cold);       // hopper-dropper more heat-robust than a bare dry
+    let nymph    = 0.42 + 0.75 * cold + 0.75 * hs;           // all-purpose subsurface: strong cold AND warm
+    let streamer = 0.34 + 0.5  * cold + 0.45 * hs;
+    const sum = dry + dd + nymph + streamer;
+    s.dry      += Math.max(0, Math.round(BUDGET * dry / sum));
+    s.dd       += Math.max(0, Math.round(BUDGET * dd / sum));
+    s.nymph    += Math.max(0, Math.round(BUDGET * nymph / sum));
+    s.streamer += Math.max(0, Math.round(BUDGET * streamer / sum));
+    // caption reads the continuous zone key (same authority as the bite engine)
+    const cap = b.key==='cold'||b.key==='fishy' ? "cold water: nymph primary, surface on hatches"
+              : b.key==='good'||b.key==='prime'  ? "prime temp: dries & dry-dropper"
+              : b.key==='upper'||b.key==='warm'  ? "warm water: hopper-dropper, get subsurface as it warms"
+              : b.key==='stress'                 ? "thermal stress: fish early/late, deep & fast, land quickly"
+              : b.key==='hotwater'               ? "hoot-owl range: minimize \u2014 morning only, or rest the fish"
+              :                                    "lethal temp: don't fish \u2014 trout mortality is high";
+    notes.push(cap);
+  }
+  // --- flow: DYNAMICS drive the bite; LEVEL is only fish-location context ---
+  // PHASE 6, science-grounded (turbidity/reactive-distance + rising-limb hysteresis
+  // literature; see logic/07 Sources): bite suppression from off-color water is a
+  // RATE-of-rise phenomenon (first-flush sediment peaks on the rising limb, BEFORE
+  // the discharge peak), captured by flowTrend.spike; the clearing rebound is the
+  // falling-limb signal. Absolute LEVEL (flowRatio) does NOT track clarity or bite
+  // quality — at equal cfs the water can be muddy rising and clear falling. Level
+  // only RELOCATES fish (up -> edges/seams/bigger profile; low -> downsize). So the
+  // old scaled >=1.2x/>=1.4x level penalties are removed: level is now a single
+  // small, coarse, UNSCALED location nudge. It also rides a non-climatological
+  // `normal` (~recent-flow median), a further reason not to scale it. The
+  // rate signals (spike/clearing) are UNCHANGED from Phase 4.
+  // FUTURE (logic/07): a turbidity- or rate-aware signal WITH rising/falling-limb
+  // (hysteresis) asymmetry is the real upgrade; flagged, not built this pass.
   const ft = g._flowTrend || {};
   const spikeNow = +ft.spike || 0, clearingNow = +ft.clearing || 0;
   if(spikeNow>=0.35){ s.streamer+=28; s.nymph+=14; s.dry-=14; s.dd-=8; notes.push("rising/off-color water: streamer"); }
   else if(clearingNow>=0.3){ s.dry+=10; s.dd+=10; s.nymph+=6; notes.push("dropping & clearing: prime window \u2014 work the seams"); }
-  else if(c.flowRatio>=1.4){ s.streamer+=16; s.nymph+=10; s.dry-=6; s.dd-=2;
-    notes.push("bigger water: fish the edges & seams, larger profile"); }
-  else if(c.flowRatio>=1.2){ s.streamer+=16; s.nymph+=8; s.dry-=4; notes.push("elevated water: bigger profile"); }
-  else if(c.flowRatio<=0.8){ s.dry+=12; s.dd+=8; s.nymph+=4; s.streamer-=6; notes.push("low/clear water: downsize, go subtle"); }
+  else if(c.flowRatio>=1.2){ s.streamer+=10; s.nymph+=6; s.dry-=4; s.dd-=2;
+    notes.push("bigger water (vs. recent flow): fish edges & seams, larger profile"); }
+  else if(c.flowRatio<=0.8){ s.dry+=8; s.dd+=6; s.nymph+=3; s.streamer-=4;
+    notes.push("low water (vs. recent flow): downsize, go subtle"); }
   // --- light ---
   if(c.cloud>=65){ s.dry+=12; s.dd+=8; s.nymph+=4; notes.push("overcast ("+c.cloud+"%): BWO/emergers & dries"); }
   else if(c.cloud<=20){ s.nymph+=10; s.dd+=6; s.dry-=4; notes.push("bright sun ("+c.cloud+"%): deeper nymph, bank terrestrials"); }
