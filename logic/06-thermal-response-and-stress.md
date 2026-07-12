@@ -1,4 +1,4 @@
-<!-- version: 06-thermal-response-and-stress-6-2.md -->
+<!-- version: 06-thermal-response-and-stress-6-3.md -->
 # 06 — Thermal response curve & stress ladder
 
 *Authoritative doc for Phase-1 (response curve) and Phase-2 (stress ladder + DO
@@ -20,8 +20,18 @@ doc table in `BUILD_TRACKER.md`.*
 Species assumption: **westslope cutthroat trout** (*Oncorhynchus clarkii lewisi*)
 across all Bitterroot-drainage reaches. Cutthroat are colder-adapted than the
 browns/rainbows the statewide FWP 73°F rule was written around ([S7]), so this drainage
-runs a colder curve. Where mixed brown/rainbow water later warrants a warmer
-curve, add it as a per-reach override — the universal science stays locked.
+runs a colder curve. The drainage is in fact **multi-species** — FWP long-term
+electrofishing shows a longitudinal gradient from cutthroat-dominant in the upper
+river and forks to rainbow/brown-dominant in the lower mainstem ([S10], detailed in
+§1a). This was reviewed (2026-07-12) and the single-curve design is **deliberately
+kept**: cutthroat governs the **welfare** ceiling drainage-wide (coldest-adapted →
+protecting it conservatively protects the warmer-tolerant browns/rainbows on every
+mixed reach), and the three salmonids **share feeding-window *timing*** — the same
+crepuscular/hatch-driven windows the bite chart already renders — so no separate
+per-species bite chart or per-reach feeding curve is warranted. The per-reach warmer
+override remains available as a hook but is **not** a pending task; see §1a for the
+decision and its basis. Where a future reach genuinely warrants a warmer *feeding*
+curve, add it as a per-reach override — the universal welfare science stays locked.
 
 ## 1. Feeding-response curve — `_bandFor(tempF)` → `{key, mult, heat}`
 
@@ -74,7 +84,55 @@ cutthroat chronic-lethal), so nothing downstream depends on `key`.
 (§5) this branch should become rare-to-dead once the pipeline guarantees an
 estimated temp for every gauge (Phase 3).
 
-## 2. Legal / chart line vs. welfare line — the two-tier constants
+## 1a. Species composition by reach — why one curve is kept (decided 2026-07-12)
+
+The Bitterroot is a genuinely multi-species trout fishery, and the composition is
+**known and sourced** (FWP long-term electrofishing, mark-recapture, fish ≥ ~7 in;
+[S10]). The pattern is a **longitudinal gradient**, not a single mix:
+
+| Reach (≈ gauge) | Dominant trout | Notes ([S10]) |
+|---|---|---|
+| West Fork @ Conner (`ef-connor`/`wf-conner`) | **Westslope cutthroat** (most abundant), then rainbow, then brown | Cutthroat strongholds; C&R since 1990. |
+| Upper Bitterroot @ Hannon = **Darby** (`darby`) | **Cutthroat-led**, rainbow near long-term avg, brown present (recently declining) | Strong cutthroat response to 1990 harvest limits. |
+| Hamilton (below Darby) | **Rainbow-dominant** | Cutthroat rare here — usually < 50 fish/mi. |
+| Stevensville (≈ lower mainstem toward `bell`) | **Rainbow-dominant**, notable browns | Cutthroat rare; browns typically < 100 fish/mi, over half > 12 in. |
+| Missoula mainstem (`msla`) | **Rainbow / brown** (warmest, furthest down) | Lower-river non-native stronghold. |
+
+So: cutthroat-dominant up top (forks, Darby) → rainbow/brown-dominant down low
+(Hamilton, Stevensville, Missoula). Brook and bull trout are caught infrequently in
+mainstem surveys and are not population-estimated ([S10]); brook are mainly tributary
+fish and bull trout are ESA-listed (not a target species).
+
+**Decision — keep the single cutthroat curve; do not add a per-species chart or a
+per-reach feeding curve.** Two independent reasons, both grounded:
+
+1. **Welfare ceiling → coldest species, conservatively correct.** Browns and rainbows
+   tolerate a few degrees warmer than cutthroat. Setting the stress/hoot-owl welfare
+   line to the *coldest*-adapted species (cutthroat) therefore protects the
+   warmer-tolerant species automatically on every mixed reach — the reach is safe for
+   browns/rainbows well before it is safe for cutthroat. FWP's own framing reinforces
+   this: westslope cutthroat are the most susceptible/vulnerable to angling and serve
+   as the index for overall fishery health ([S10]). This is the one thing that stays
+   **locked** regardless of species mix — getting it wrong kills fish.
+2. **Feeding-window *timing* is shared across the three salmonids.** Where the species
+   differ is the *magnitude/ceiling* of thermal tolerance, not the *shape or timing* of
+   the daily feeding window: all three are cold-water salmonids that feed best in the
+   cool parts of the day, pull off the surface as water warms, and key on the same
+   crepuscular and hatch-driven windows. The bite-window chart shows *when*, and the
+   *when* is already correct for all three. A per-species chart would redraw the same
+   timing three times; a per-reach feeding curve would shift only the warm-water
+   *magnitude*, which is exactly what the (locked, conservative) cutthroat welfare
+   ceiling already governs.
+
+**What this is NOT.** It is not a claim that a brown on the lower river behaves
+identically to a cutthroat up top at 64 °F — the browns present may feed a touch better
+in warmer water than the cutthroat curve implies. It is a decision that (a) that
+difference is a *feeding-magnitude* refinement, not a timing or welfare error, and (b)
+the conservative direction (slightly understating the warm-water bite on brown-heavy
+reaches) is the safe one for a tool whose welfare job is to keep anglers off stressed
+fish. If a future phase adds a per-reach *feeding* weighting, it must keep the cutthroat
+*welfare* ceiling untouched (coldest governs) and cite the per-reach composition above.
+**No program change results from this review — it confirms the current design.**
 
 Two different numbers, deliberately kept apart:
 - `HOOT_OWL_F = 73` — the **FWP legal/chart** reference (statewide hoot-owl
@@ -367,6 +425,16 @@ Montana / regional (local support) 🏔:
   design split: the cutthroat thermal curve is universal science, but *which* stock
   lives in *which* reach is local — basis for per-reach overrides over a blended
   median. (§ intro, §1)
+- **[S10] Lindstrom, J. (2022).** 🏔 *Montana FWP* — Analysis and Management
+  Implications of Long-Term Trout Population Monitoring on the Bitterroot River and
+  Lower West Fork Bitterroot River, Western Montana (Nov 2022; Statewide Fisheries
+  Management Plan 2022 supplement), plus the FWP 2023–2026 SWFMP *Bitterroot River
+  Drainage* section. Long-term electrofishing mark-recapture (fish ≥ ~175 mm/7 in;
+  fall sampling) at Conner (lower West Fork), Hannon (upper Bitterroot ≈ Darby),
+  Hamilton, and Stevensville. — the **reach-by-reach species-composition source** for
+  §1a: cutthroat-dominant upper river/forks → rainbow/brown-dominant lower mainstem;
+  cutthroat as the most angling-susceptible species and the fishery-health index.
+  Brook/bull trout infrequent in mainstem surveys, not population-estimated. (§ intro, §1a)
 
 Derived-in-repo (method above; not cited to a paper):
 - Per-gauge elevations (barometric inversion of Open-Meteo station `pressureHpa`,
