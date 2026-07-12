@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "note": "Fly-name alias layer (Phase 8, build-step 1). Maps every raw shop nameRaw AND every atomic rig/hatch token to exactly one canonical name, so cross-shop agreement can be counted and shop flies diffed against per-gauge rig tables. Lookup is case/punct-insensitive via normKey() in fly-aliases.mjs; the keys below are stored in their raw display form for auditability. inRig=false canonicals are flies that appear in shop reports but have no rig/hatch counterpart yet -- candidate-add signals, NOT alias misses.",
+  "canonical": {
+    "Parachute Adams":  { "aliases": ["Adams", "Adams Parachute Dry Fly", "Parachute Adams"], "inRig": true },
+    "Purple Haze":      { "aliases": ["Adam's Purple Parachute", "Purple Haze"], "inRig": true },
+    "Prince Nymph":     { "aliases": ["Bead Head Prince", "Fly Formerly Known As Prince", "Prince", "Prince Nymph"], "inRig": true },
+    "Pheasant Tail":    { "aliases": ["Tunghead Hot Spot Pheasant Tail Jig", "Tunghead Soft Hackle Pheasant Tail", "Pheasant Tail", "PT"], "inRig": true },
+    "Hare's Ear":       { "aliases": ["Bead Head Hare's Ear Nymph", "Hare's Ear"], "inRig": true },
+    "Chubby Chernobyl": { "aliases": ["Chubby", "Chubby Chernobyl"], "inRig": true },
+    "Elk Hair Caddis":  { "aliases": ["Elk Wing Caddis", "Elk Hair Caddis"], "inRig": true },
+    "Stimulator":       { "aliases": ["Stimulator"], "inRig": true },
+    "Sparkle Minnow":   { "aliases": ["Sparkle Minnow"], "inRig": true },
+    "San Juan Worm":    { "aliases": ["San Juan Worm", "Worm"], "inRig": true },
+    "Pat's Rubber Legs":{ "aliases": ["Pat's Rubber Legs", "Rubber Legs"], "inRig": true },
+    "Water Walker":     { "aliases": ["Water Walker"], "inRig": true },
+    "Sparkle Pupa":     { "aliases": ["La Fontaine Sparkle Pupa", "Sparkle Pupa"], "inRig": false },
+    "Quigley Cripple":  { "aliases": ["Quigley Cripple"], "inRig": false },
+    "Double Bunny":     { "aliases": ["Double Bunny"], "inRig": false },
+    "Kreelex":          { "aliases": ["Kreelex"], "inRig": false },
+    "TJ Hooker":        { "aliases": ["TJ Hooker"], "inRig": false }
+  }
+}
