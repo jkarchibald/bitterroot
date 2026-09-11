@@ -50,6 +50,16 @@ and the engine has to be built twice.
 This is why `03`, `04`, and `05` all reduce to "feed different inputs to the same
 function."
 
+**`08` (spawn migration) is a deliberate exception to this architecture, not a
+fourth consumer of it.** `06` and `07` both plug cleanly into the conditions
+object above (`06` via `_bandFor` on `waterTempF`; `07` populates `flowTrend`
+directly) — `08` does not. It reads raw `series.watertemp.thisYear[]` /
+`.forecast[]` for **two gauges at once** (a tributary and its mainstem anchor,
+compared against each other), and produces a `{tier, phase}` state rather than
+a score fed through the shared packet. It does not appear in the pipeline
+diagram below because it genuinely doesn't flow through it — see `08` §2 for
+its own inputs.
+
 ---
 
 ## The conditions object — defined in full
@@ -144,6 +154,7 @@ each time:
 | Bite windows + day score | 03 | Engine live & pure; today/forecast wiring is the in-progress build |
 | Where to fish | 04 | Today live once blocks are live; tomorrow column in progress |
 | What to use now | 05 | Scoring data-driven; flies authored |
+| Spawn migration (fall brown) | 08 | **Design-only**, not yet implemented. Cross-gauge (tributary vs. mainstem) — does not consume the conditions object above. Spring rainbow/cutthroat unstarted. |
 
 Where a step still reads a hardcoded array instead of live conditions, its own
 file's **Status** section says so explicitly.

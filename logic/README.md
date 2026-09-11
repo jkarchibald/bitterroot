@@ -21,6 +21,9 @@ of them top to bottom and understand that piece without opening another.
 | [`03-bite-windows.md`](03-bite-windows.md) | Today's twelve 2-hour bite blocks, the day-score badge, and the optimum-window readout |
 | [`04-where-to-fish.md`](04-where-to-fish.md) | Cross-gauge ranking and best/backup window selection, today and tomorrow |
 | [`05-whats-working-now.md`](05-whats-working-now.md) | "What to use now" — seasonal vs. calculated fly picks and how a specific pattern/size/color is chosen |
+| [`06-thermal-response-and-stress.md`](06-thermal-response-and-stress.md) | The temperature→feeding/catchability curve and the stress ladder — the single temperature authority for both the bite engine and the rig engine |
+| [`07-flow.md`](07-flow.md) | Flow, dynamics-first — how rate-of-rise/falling-limb clearing gates the bite and the rig ranking, separately from flow *level* |
+| [`08-spawn-migration.md`](08-spawn-migration.md) | Fall brown trout spawn-migration status (tier × phase) and 7-day outlook, per tributary system. Spring rainbow/cutthroat is a placeholder — design-only, not yet implemented |
 
 ## Document conventions
 
