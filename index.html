@@ -102,9 +102,8 @@ button, .btn { font-size: 12px; font-weight: 500; }
    color tracks movement-significance, not a conservation/fishing-quality
    judgment (see build-tracker Phase 8e). Quiet reuses the existing "out of
    range" neutral; Watch is the one genuinely new color (--t3-salmon). */
-.spawn-section{ margin-top:10px; }
-.spawn-card{ background:var(--t3-bg-card); border:1px solid var(--t3-border-card); border-radius:8px; padding:14px 16px; margin-bottom:10px; }
-.spawn-card:last-child{ margin-bottom:0; }
+.spawn-section{ margin-top:10px; display:grid; gap:14px; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
+.spawn-card{ background:var(--t3-bg-card); border:1px solid var(--t3-border-card); border-radius:8px; padding:14px 16px; }
 .spawn-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
 .spawn-name{ font-weight:600; color:var(--t3-text-primary); }
 .spawn-badge{ display:inline-block; padding:3px 10px; border-radius:6px; font-size:12px; font-weight:600; white-space:nowrap; }
@@ -1717,16 +1716,43 @@ const SPAWN_OUTLOOK_DAYS = 7;
 const SPAWN_BIAS_EARLY_F = 1, SPAWN_BIAS_LATE_F = 1; // asymmetric, logic/08 §3d
 
 const SPAWN_SYSTEMS = [
-  { name: "East Fork",  tribKey: "ef-connor",  mainstemKeys: ["darby","bell"] },
+  { name: "East Fork",  tribKeys: ["ef-connor"],  tribCombine: "avg", mainstemKeys: ["darby","bell"] },
   // IMPLEMENTATION NOTE: lolo-hwy93 (below Hwy 93, nearer the Bitterroot
   // confluence) chosen as the mouth-proxy gauge over "lolo" (above Sleeman
   // Creek, further upstream within Lolo Creek itself). This specific choice
   // was NOT resolved in the design conversation — logic/08 §9 lists gauge
   // roles as settled for East Fork only; flag this line if revisiting.
-  { name: "Lolo Creek", tribKey: "lolo-hwy93", mainstemKeys: ["msla"] },
+  { name: "Lolo Creek", tribKeys: ["lolo-hwy93"], tribCombine: "avg", mainstemKeys: ["msla"] },
+  // West Fork has no reliable natural gauge of its own at the confluence —
+  // wf-conner is the dam-controlled tailwater, excluded per logic/08 (flat
+  // ~48°F year-round, no seasonal signal). Owner-specified proxy
+  // (2026-09-11): combine East Fork nr Conner (measured, trustworthy, same
+  // confluence area) with West Fork abv Painted Rocks (the actual West Fork
+  // freestone signal, estimated) and take the COLDER of the two each day —
+  // same coldest-wins conservative pattern already used for the cutthroat
+  // welfare ceiling in logic/06. Shares the same Darby/Bell mainstem anchor
+  // as East Fork (both forks feed the same mainstem reach at Conner).
+  { name: "West Fork",  tribKeys: ["ef-connor","wf-painted"], tribCombine: "min", mainstemKeys: ["darby","bell"] },
 ];
 
 function spawnGaugeByKey(key){ return GAUGES.find(g=>g._key===key); }
+
+// Combine multiple gauges' trailing series into one, aligned from the most
+// recent day backward (overlap only — shorter series don't misalign longer
+// ones). mode 'avg' (mainstem anchors) or 'min' (West Fork proxy — coldest
+// of East Fork nr Conner / West Fork abv Painted Rocks wins, conservative).
+function spawnCombineArrays(arrays, mode){
+  const lens = arrays.map(a=>a.length).filter(l=>l>0);
+  if(!lens.length) return [];
+  const n = Math.min(...lens);
+  const out=[];
+  for(let i=1;i<=n;i++){
+    const vals = arrays.map(a=> a[a.length-i]).filter(v=>v!=null);
+    if(!vals.length) continue;
+    out.unshift(mode==='min' ? Math.min(...vals) : vals.reduce((a,b)=>a+b,0)/vals.length);
+  }
+  return out;
+}
 
 // Trailing daily-mean history for a gauge's water temp, oldest→newest,
 // capped to `days` entries ending at today (g._today).
@@ -1800,16 +1826,12 @@ function spawnCap(s){ return s? s.charAt(0).toUpperCase()+s.slice(1) : s; }
 // Core per-system classifier — {tier, phase} per logic/08 §3c (simple
 // HSI-style rule, deliberately not weighted; see §3c for why).
 function spawnClassifySystem(sys){
-  const trib = spawnGaugeByKey(sys.tribKey);
+  const tribGauges = sys.tribKeys.map(spawnGaugeByKey).filter(Boolean);
   const mains = sys.mainstemKeys.map(spawnGaugeByKey).filter(Boolean);
-  if(!trib || !mains.length) return null;
+  if(!tribGauges.length || !mains.length) return null;
 
-  const tribHist = spawnTrailingTemps(trib, 10);
-  const mainHistArrays = mains.map(m=>spawnTrailingTemps(m,10));
-  const mainHist = tribHist.map((_,i)=>{
-    const vals = mainHistArrays.map(a=>a[i]).filter(v=>v!=null);
-    return vals.length? vals.reduce((a,b)=>a+b,0)/vals.length : null;
-  }).filter(v=>v!=null);
+  const tribHist = spawnCombineArrays(tribGauges.map(g=>spawnTrailingTemps(g,10)), sys.tribCombine||'avg');
+  const mainHist = spawnCombineArrays(mains.map(g=>spawnTrailingTemps(g,10)), 'avg');
 
   if(!tribHist.length){
     return { system: sys.name, tier:'quiet', phase:null, tribNow:null, mainNow:null,
@@ -1837,7 +1859,7 @@ function spawnClassifySystem(sys){
 
   const tribTrend = spawnDisplayTrend(tribHist);
   const mainTrend = spawnDisplayTrend(mainHist);
-  const outlook = spawnOutlook(sys, tier, phase, tribHist);
+  const outlook = spawnOutlook(sys, tier, phase, tribHist, tribGauges);
 
   return { system: sys.name, tier, phase, tribNow,
     mainNow: mainHist.length? mainHist[mainHist.length-1] : null,
@@ -1850,10 +1872,8 @@ function spawnClassifySystem(sys){
 // bias: early on the three "more active" transitions, late on the two
 // "winding down" ones. Staging→Spawning is intentionally NOT projected — a
 // plateau's onset can't be forecast the way a threshold crossing can.
-function spawnOutlook(sys, curTier, curPhase, tribHist){
-  const trib = spawnGaugeByKey(sys.tribKey);
-  if(!trib) return 'Outlook unavailable';
-  const fwd = spawnForwardTemps(trib, SPAWN_OUTLOOK_DAYS);
+function spawnOutlook(sys, curTier, curPhase, tribHist, tribGauges){
+  const fwd = spawnCombineArrays(tribGauges.map(g=>spawnForwardTemps(g,SPAWN_OUTLOOK_DAYS)), sys.tribCombine||'avg');
   const {shape: histShape} = spawnPhaseTrend(tribHist);
   const label = (curTier==='active') ? ('Active \u00b7 '+spawnCap(curPhase)) : spawnCap(curTier);
   if(!fwd.length) return 'Remains '+label+' through 7 days';
