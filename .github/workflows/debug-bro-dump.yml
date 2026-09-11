@@ -1,0 +1,44 @@
+name: debug-bro-dump
+
+# TEMPORARY — one-shot capture of raw BRO HTML to validate the BRO parsers
+# in fetch-shop-reports.mjs against real tags (not web_fetch's markdown
+# rendering). Delete this file once the dump has been reviewed, same as
+# debug-orvis-dump.yml was deleted after it did its job.
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch raw HTML for each BRO source
+        run: |
+          mkdir -p debug-bro-html
+          UA="Mozilla/5.0 (compatible; CFTF-shop-scraper/1.0; +https://jkarchibald.github.io/bitterroot/)"
+
+          urls=(
+            "bro-bitterroot|https://blackfootriver.com/blogs/fishing-reports/bitterroot-river-fishing-report"
+            "bro-clarkfork|https://blackfootriver.com/blogs/fishing-reports/clark-fork-river-fishing-report"
+            "bro-blackfoot|https://blackfootriver.com/blogs/fishing-reports/the-blackfoot-river-fishing-report"
+            "bro-rockcreek|https://blackfootriver.com/blogs/fishing-reports/rock-creek-fishing-report"
+          )
+
+          for entry in "${urls[@]}"; do
+            key="${entry%%|*}"
+            url="${entry#*|}"
+            echo "Fetching $key <- $url"
+            curl -sSL -A "$UA" "$url" -o "debug-bro-html/${key}.html"
+          done
+
+          ls -la debug-bro-html
+
+      - name: Upload HTML as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-bro-html
+          path: debug-bro-html/
+          retention-days: 3
