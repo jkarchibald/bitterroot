@@ -178,7 +178,7 @@ const SOURCES = [
 const BRO_SOURCES = [
   {
     key: "bro-bitterroot-river",
-    idSlug: "bro-bitterroot",
+    idSlug: "bitterroot", // NOT "bro-bitterroot" -- id template already prepends source ("bro-")
     url: "https://blackfootriver.com/blogs/fishing-reports/bitterroot-river-fishing-report",
     source: "BRO",
     river: "Bitterroot (mainstem)",
@@ -188,7 +188,7 @@ const BRO_SOURCES = [
   },
   {
     key: "bro-clark-fork-river",
-    idSlug: "bro-clarkfork",
+    idSlug: "clarkfork",
     url: "https://blackfootriver.com/blogs/fishing-reports/clark-fork-river-fishing-report",
     source: "BRO",
     river: "Clark Fork",
@@ -198,7 +198,7 @@ const BRO_SOURCES = [
   },
   {
     key: "bro-blackfoot-river",
-    idSlug: "bro-blackfoot",
+    idSlug: "blackfoot",
     url: "https://blackfootriver.com/blogs/fishing-reports/the-blackfoot-river-fishing-report",
     source: "BRO",
     river: "Blackfoot",
@@ -208,7 +208,7 @@ const BRO_SOURCES = [
   },
   {
     key: "bro-rock-creek",
-    idSlug: "bro-rockcreek",
+    idSlug: "rockcreek",
     url: "https://blackfootriver.com/blogs/fishing-reports/rock-creek-fishing-report",
     source: "BRO",
     river: "Rock Creek",
