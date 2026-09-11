@@ -56,7 +56,7 @@ jobs:
           added=$(git diff --cached --unified=0 -- calibration/shop-reports.json \
             | grep -c '"id":' || true)
           git commit -m "data: (shop-reports.json): append shop report scrape" \
-            -m "Automated append-only scrape of Orvis structured-tier reports." \
+            -m "Automated append-only scrape of Orvis and BRO structured-tier reports." \
             -m "New id lines in this commit: ${added}. Dedup on id; unresolved" \
             -m "fly names (if any) collected in _unmappedNames for review."
           git push
