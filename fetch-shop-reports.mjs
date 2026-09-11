@@ -120,6 +120,102 @@ const SOURCES = [
     drainage: "bitterroot",
     active: true,
   },
+  // ---- pull-and-park (LOCKED 2026-07-12 design, actually wired 2026-09-11) --
+  // Off-gauge rivers this app doesn't score yet. Collected + dated from day
+  // one so future drainages start with banked history, not from zero.
+  // active:false, gauges:[] — never enter the active calibration set.
+  {
+    key: "blackfoot-river",
+    idSlug: "blackfoot",
+    url: "https://fishingreports.orvis.com/west/montana/blackfoot-river",
+    source: "Orvis",
+    river: "Blackfoot",
+    gauges: [],
+    drainage: "blackfoot",
+    active: false,
+  },
+  {
+    key: "rock-creek",
+    idSlug: "rockcreek",
+    url: "https://fishingreports.orvis.com/west/montana/rock-creek",
+    source: "Orvis",
+    river: "Rock Creek",
+    gauges: [],
+    drainage: "clark-fork", // per locked bucket: Clark Fork proper + Rock Creek
+    active: false,
+  },
+  {
+    key: "clark-fork-river",
+    idSlug: "clarkfork",
+    url: "https://fishingreports.orvis.com/west/montana/clark-fork-river",
+    source: "Orvis",
+    river: "Clark Fork",
+    gauges: [],
+    drainage: "clark-fork",
+    active: false,
+  },
+];
+
+// ---- BRO (Blackfoot River Outfitters own site) source registry --------------
+// Added 2026-09-11 — the "own-site rating PRIMARY" this file's original header
+// deferred to "LATER chats." Trigger: the Orvis-hosted Bitterroot mainstem
+// page went stale (no update Aug 28 -> Sep 11+) while BRO's own site kept
+// updating normally (confirmed fresher, Sep 4) — exactly the gap the original
+// design intended BRO-primary to cover.
+//
+// Structurally different site (Shopify, not Orvis' Joomla template) — own
+// parser set below, NOT the Orvis parsers. Same pull-and-park pattern:
+// Bitterroot mainstem is active (real gauges exist); Clark Fork, Blackfoot,
+// Rock Creek are parked (active:false, gauges:[]) until those drainages exist.
+//
+// No standalone East/West Fork report on BRO's site — they publish ONE
+// combined "Bitterroot River" report, unlike Orvis' three-way fork split. So
+// BRO only covers the mainstem here; East Fork and West Fork stay Orvis-only.
+//
+// Data-quality note carried into buildRecordBRO(): BRO's page has no 5-step
+// Poor/Fair/Good/VeryGood/Hot rating widget the way Orvis does — `rating`
+// stays null for every BRO record rather than inventing one from prose.
+const BRO_SOURCES = [
+  {
+    key: "bro-bitterroot-river",
+    idSlug: "bro-bitterroot",
+    url: "https://blackfootriver.com/blogs/fishing-reports/bitterroot-river-fishing-report",
+    source: "BRO",
+    river: "Bitterroot (mainstem)",
+    gauges: ["darby", "bell", "msla"],
+    drainage: "bitterroot",
+    active: true,
+  },
+  {
+    key: "bro-clark-fork-river",
+    idSlug: "bro-clarkfork",
+    url: "https://blackfootriver.com/blogs/fishing-reports/clark-fork-river-fishing-report",
+    source: "BRO",
+    river: "Clark Fork",
+    gauges: [],
+    drainage: "clark-fork",
+    active: false,
+  },
+  {
+    key: "bro-blackfoot-river",
+    idSlug: "bro-blackfoot",
+    url: "https://blackfootriver.com/blogs/fishing-reports/the-blackfoot-river-fishing-report",
+    source: "BRO",
+    river: "Blackfoot",
+    gauges: [],
+    drainage: "blackfoot",
+    active: false,
+  },
+  {
+    key: "bro-rock-creek",
+    idSlug: "bro-rockcreek",
+    url: "https://blackfootriver.com/blogs/fishing-reports/rock-creek-fishing-report",
+    source: "BRO",
+    river: "Rock Creek",
+    gauges: [],
+    drainage: "clark-fork",
+    active: false,
+  },
 ];
 
 // ---- tiny HTML helpers ------------------------------------------------------
@@ -312,6 +408,137 @@ function parseFlies(html, canon, onUnmapped) {
   return flies;
 }
 
+// ---- BRO parsers (Shopify site — structurally different from Orvis) --------
+// CAUTION, read before trusting this in production: these were written
+// against a markdown-RENDERED capture of the live pages (fetched via a tool
+// that converts HTML to markdown), not the raw HTML tags the scraper will
+// actually receive. This is exactly the failure mode this file's own header
+// already documents burning the original Orvis parsers ("8-2 parsers were
+// written against fixtures that GUESSED the DOM... reportDate came back
+// empty and every source was skipped"). Recommended before this ships: the
+// same debug-dump workflow already used once for Orvis (a temporary
+// debug-bro-dump.yml capturing real HTML, then deleted) to confirm these
+// regexes actually match, the same way `-8-3` fixed the Orvis parsers against
+// real captured markup instead of guesses.
+
+const BRO_MONTHS = { January:1, February:2, March:3, April:4, May:5, June:6,
+  July:7, August:8, September:9, October:10, November:11, December:12 };
+
+// "Last updated: September 4, 2026" -> "2026-09-04"
+function parseBRODate(html) {
+  const m = /Last updated:?\s*([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/i.exec(html);
+  if (!m) return null;
+  const mo = BRO_MONTHS[m[1]];
+  if (!mo) return null;
+  const dd = String(Number(m[2])).padStart(2, "0");
+  const mm = String(mo).padStart(2, "0");
+  return `${m[3]}-${mm}-${dd}`;
+}
+
+// "Water temperature at mid-day" ... "70"  (SOFT cross-check only, same as Orvis)
+function parseBROWaterTemp(html) {
+  const m = /Water temperature at mid-day[\s\S]{0,80}?(\d{2,3})/i.exec(html);
+  return m ? Number(m[1]) : null;
+}
+
+// "Tip of the Week:" ... up to the next real section label ("**Label:**") or
+// a markdown heading. NOTE: bounding on "next bold text" alone is wrong here
+// -- BRO's prose itself contains inline bold (city names, temp ranges, e.g.
+// "**Stevensville, Montana**") that isn't a section boundary. Real section
+// labels take the specific "**Label:**" shape (colon inside the bold run,
+// right before the closing **); inline emphasis doesn't. Bound on that
+// specific shape instead. Caught by testing against real fetched content
+// (2026-09-11) -- an earlier version of this parser truncated mid-sentence
+// on the first inline bold it hit.
+function parseBROTip(html) {
+  const m = /Tip of the Week:?\*{0,2}\s*([\s\S]{0,600}?)(?=\*\*[A-Za-z0-9][^*]{0,40}:\*\*|\n\s*\n\s*#|$)/i.exec(html);
+  return m ? stripTags(m[1]).trim() || null : null;
+}
+
+// "7 Day Outlook:" ... same bounding fix as parseBROTip.
+function parseBROOutlook(html) {
+  const m = /7 Day Outlook:?\*{0,2}\s*([\s\S]{0,600}?)(?=\*\*[A-Za-z0-9][^*]{0,40}:\*\*|\n\s*\n\s*#|$)/i.exec(html);
+  return m ? stripTags(m[1]).trim() || null : null;
+}
+
+function parseBROWaterCondition(html) {
+  const m = /Water Condition[\s\S]{0,60}?\n+\s*([A-Za-z][A-Za-z ]{2,40})/i.exec(html);
+  return m ? stripTags(m[1]).trim() || null : null;
+}
+
+// Fly names from the "[River] {Dries,Nymph,Streamer(s)} Recommendations"
+// product-card sections. type comes from the section heading itself (more
+// reliable here than Orvis' canonical-name inference, since BRO groups by
+// category explicitly) rather than TYPE_BY_CANON. NOTE: these are BRO's
+// curated shop category listings for that river, not necessarily a literal
+// ranked "what's hot today" pick list the way Orvis' gear-row table claims to
+// be -- lower-confidence provenance, flagged via `flySource` on the record.
+//
+// BUG FOUND BY TESTING AGAINST REAL CAPTURED CONTENT (2026-09-11): each
+// category name appears TWICE on the page -- once in a plain nav-style list
+// near "Featured Flies" ("Bitterroot River Dries Recommendations" as bare
+// text, no products following), and again as the real heading directly
+// before that category's actual product cards. An earlier version matched
+// either occurrence indiscriminately and pulled flies into the wrong
+// category. Fix: anchor on the markdown "## " heading prefix specifically,
+// which in the captured content marks the real section, not the nav mention.
+// Confirmed working against real fetched Bitterroot page content. Still
+// unverified against raw HTML (see file-level caution above) -- if the real
+// DOM doesn't preserve an equivalent heading-vs-plain-text distinction after
+// full HTML parsing, this needs re-checking via the recommended debug-dump.
+function parseBROFlies(html, canon, onUnmapped) {
+  const flies = [];
+  const catRe = /##[^\n]{0,30}?(Dries|Nymph|Streamers?)\s+Recommendations([\s\S]{0,4000}?)(?=##[^\n]{0,30}?(?:Dries|Nymph|Streamers?)\s+Recommendations|##\s*About This Water|$)/gi;
+  const typeMap = { dries: "dry", nymph: "nymph", streamer: "streamer", streamers: "streamer" };
+  let cm;
+  let rank = 0;
+  while ((cm = catRe.exec(html))) {
+    const type = typeMap[cm[1].toLowerCase()] || null;
+    const block = cm[2];
+    const nameRe = /\/products\/[^)\]\s"]+[)\]]?\s*\n*!?\[([^\]]+)\]/g;
+    let nm;
+    while ((nm = nameRe.exec(block))) {
+      const nameRaw = decodeEntities(nm[1]).trim();
+      if (!nameRaw) continue;
+      rank += 1;
+      const nameCanonical = canon(nameRaw);
+      if (nameCanonical === null) onUnmapped(nameRaw);
+      flies.push({ rank, nameRaw, nameCanonical, type, colors: [], sizes: null });
+    }
+  }
+  return flies;
+}
+
+// ---- assemble one record (BRO) -----------------------------------------------
+function buildRecordBRO(src, html, canon, onUnmapped) {
+  const reportDate = parseBRODate(html);
+  const flies = parseBROFlies(html, canon, onUnmapped);
+  const id = `${src.source.toLowerCase()}-${src.idSlug}-${reportDate}`;
+
+  return {
+    id,
+    scrapedAt: new Date().toISOString(),
+    reportDate,
+    source: src.source,
+    reporter: "Blackfoot River Outfitters", // no named individual on BRO's own site
+    url: src.url,
+    river: src.river,
+    gauges: src.active ? src.gauges : [],
+    rating: null, // BRO's own site has no 5-step rating widget -- never invented
+    shopWaterTempF: parseBROWaterTemp(html), // SOFT cross-check only
+    hatches: [], // no equivalent structured hatch list found on BRO's template
+    bestTime: null,
+    technique: parseBROOutlook(html), // repurposed slot: BRO's "7 Day Outlook" prose
+    waterCondition: parseBROWaterCondition(html), // BRO-only field, not on Orvis records
+    flies,
+    flySource: "shop-recommendations", // lower confidence than Orvis' ranked gear-row table
+    tip: parseBROTip(html),
+    tipFlies: [],
+    drainage: src.drainage,
+    active: src.active,
+  };
+}
+
 // ---- assemble one record ----------------------------------------------------
 function buildRecord(src, html, canon, onUnmapped) {
   const reportDate = parseReportDate(html);
@@ -384,7 +611,8 @@ function main() {
     let sourcesTried = 0;
     const runUnmapped = [];
 
-    for (const src of SOURCES) {
+    const allSources = [...SOURCES, ...BRO_SOURCES];
+    for (const src of allSources) {
       sourcesTried += 1;
       let html;
       try {
@@ -410,7 +638,9 @@ function main() {
 
       let rec;
       try {
-        rec = buildRecord(src, html, canon, onUnmapped);
+        rec = src.source === "BRO"
+          ? buildRecordBRO(src, html, canon, onUnmapped)
+          : buildRecord(src, html, canon, onUnmapped);
       } catch (err) {
         console.warn(`[warn] parse failed for ${src.key}: ${err.message}`);
         continue;
@@ -492,6 +722,14 @@ export {
   normalizeSizes,
   buildRecord,
   SOURCES,
+  BRO_SOURCES,
+  buildRecordBRO,
+  parseBRODate,
+  parseBROWaterTemp,
+  parseBROTip,
+  parseBROOutlook,
+  parseBROWaterCondition,
+  parseBROFlies,
   ORVIS_5STEP,
   TYPE_BY_CANON,
 };
