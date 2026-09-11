@@ -1,8 +1,8 @@
-<!-- version: build-tracker-30.md -->
+<!-- version: build-tracker-31.md -->
 
 # Bitterroot Dashboard — Build Tracker
 
-Global counter: **30**. Living document. Each phase entry carries its outcome,
+Global counter: **31**. Living document. Each phase entry carries its outcome,
 validation surface, deliverables, and the upload set required to start the next
 phase.
 
@@ -558,6 +558,86 @@ ground-truth can inform whether the current band is even biased.
 **Scope guard:** forecast-`max`/diel-band derivation for measured gauges only. Does not
 touch `_bandFor`, the two 66s, `HOOT_OWL_F`/`STRESS_RED_F`, the welfare ceiling, or the
 scoring engines. Any band change is validated headless on live `data.json` before ship.
+
+### Phase 8e — spawn migration design excursion (fall brown trout) — **DESIGN COMPLETE, IMPLEMENTATION PENDING**
+
+**Origin:** conversational excursion, not a scoped prompt — started from "do we
+have enough data to predict when brown trout will move into tributaries to
+spawn" and ran through four resolved design items (signal, scoring model,
+gauge roles, phase logic) plus a full UI mockup pass, before landing as a
+logic doc. No code touched. Letter jumps 8b → 8e on purpose (excursion), 8c/8d
+unused.
+
+**What it is — four items, each resolved against real data/live source, not
+assumption alone:**
+1. **Signal.** 43–48°F range (US federal HSI + Vermont F&W + Shenandoah NPS,
+   no MT/Rockies study gives a fitted number), trend read as a slope/
+   variability threshold (not a fixed day-count) off the existing
+   `series.watertemp.thisYear[]` arrays already in `data.json` — no new
+   fetching required.
+2. **Scoring.** Deliberately an **HSI-style rule, not weighted** — weighting
+   deferred until `calibration/shop-reports.json` has enough paired
+   observations to fit against honestly. Two axes: tier (Quiet/Watch/Active)
+   × phase (Staging/Spawning/Dropback).
+3. **Gauge roles.** East Fork↔Darby/Bell and Lolo Creek↔Missoula, two fully
+   independent systems. **Both West Fork gauges excluded** (`wf-conner` —
+   dam-controlled tailwater, flat ~48°F year-round, no seasonal signal;
+   `wf-painted` dropped alongside it for this feature only). Role list is
+   feature-local, not a new field on the shared gauge objects.
+4. **Phase logic.** Gradient (tributary vs. mainstem anchor, widening) triggers
+   leaving the mainstem — tier only. Trend-shape (falling/flat/falling) inside
+   the 43–48°F range determines Staging → Spawning → Dropback once in the
+   tributary. 7-day outlook re-runs the same classifier over the forecast,
+   asymmetric ±1°F bias (early on the three "more active" transitions, late on
+   the two "winding down" ones), confirms/extends an already-real historical
+   trend only — cannot originate a transition from a forecast-only blip (same
+   principle as `TERMINAL_GUARD` in `fetch-data.mjs`).
+
+**Verified against live sources mid-design, not just assumed:** pulled
+`fetch-data.mjs` directly from the repo to confirm the watertemp-forecast
+anchoring mechanism (found already correct — anchored to today's real value,
+damped 0.5× on the air-temp delta); pulled the actual `data.json` to verify
+September flow is a genuine seasonal *decline* on every active gauge (ruling
+flow out as a fall trigger — reserved for the spring life-history instead);
+Montana-specific field sources (FWP Bitterroot Star update, FWP electrofishing
+report, a same-drainage USFS cutthroat/bull-trout telemetry study) used to
+ground timing/location once a first pass leaned too hard on European
+telemetry literature — caught and corrected mid-session, not before.
+
+**Color/UI decision, logged as owner call:** status color intentionally maps
+to movement-significance/catchability, matching the bite-window "poor→hot"
+scale straight across (Spawning = hot tier), **not** gated by conservation
+framing — the owner's explicit direction after review of MT FWP's own
+leave-spawning-fish-alone guidance. Recorded here so a future session doesn't
+"fix" this back without knowing it was a deliberate, informed choice.
+
+**Deliverables (docs only, no `index.html`/`fetch-data.mjs` changes):**
+- `logic/08-spawn-migration.md` (new) — §1 fall brown trout fully specced and
+  cited; §8 spring rainbow/cutthroat is an intentional placeholder, flagged
+  not to be derived from §1 (opposite-direction trigger, flow as primary
+  driver there vs. absent here).
+- `logic/00-overview.md` — two-spot edit: note that `08` is a deliberate
+  exception to the conditions-object architecture (cross-gauge, state output,
+  does not flow through the shared packet), and a status row added.
+- `logic/README.md` — `06`/`07`/`08` added to the file table (`06`/`07` were
+  missing from the table despite the files already existing — unrelated gap,
+  fixed opportunistically).
+
+**Validation:** n/a — no code shipped this phase. `08` §9 "Still open" is the
+authoritative list of what implementation must still resolve (weighted-model
+deferral, §8 unstarted, backward-transition-below-Watch undesigned).
+
+**Scope guard:** doc-only. Did not touch `index.html`, `fetch-data.mjs`,
+`_bandFor`, the two 66s, `HOOT_OWL_F`/`STRESS_RED_F`, the welfare ceiling, or
+any Phase 6/7 logic.
+
+**Required to start (implementation phase, upload set):** `build-tracker`
+(latest) first; `logic/08-spawn-migration.md` (the spec); `index.html`
+(current); a fresh `data.json`; `logic/00-overview.md` (for the
+conditions-object boundary note). Implementation should be its own session,
+not appended to this one — per standing practice, new engine logic gets
+validated headless (`node --check` + before/after picks) before it ships, and
+that needs real code in hand, not a description of it.
 
 ### Phase 9 — documentation & IP consolidation
 Reconcile all logic docs against shipped code into one authoritative artifact.
