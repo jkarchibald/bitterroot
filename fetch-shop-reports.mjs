@@ -266,9 +266,18 @@ const BRO_SOURCES = [
 ];
 
 // ---- tiny HTML helpers ------------------------------------------------------
+// Order matters: &amp; MUST decode LAST, not first. Decoding it first (the
+// CodeQL "double escaping or unescaping" finding, js/double-escaping) means
+// a legitimately double-encoded sequence like "&amp;lt;" -- which should end
+// up as the literal text "&lt;" -- gets wrongly unescaped a second time into
+// a raw "<" once the &lt; step runs afterward. Every other entity here is
+// safe to decode in any order relative to each other since none of them
+// produce a bare "&" themselves (only &amp; and the numeric &#38; do, and
+// numeric decode already ran before this point, so its output is inert
+// against the final &amp; pass -- a lone "&" character doesn't match the
+// 5-char "&amp;" pattern).
 function decodeEntities(s) {
   return String(s)
-    .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
@@ -276,6 +285,7 @@ function decodeEntities(s) {
     .replace(/&deg;/g, "\u00b0")
     .replace(/&nbsp;/g, " ")
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n))
+    .replace(/&amp;/g, "&")
     .trim();
 }
 
@@ -751,9 +761,49 @@ function main() {
       );
     }
 
-    if (appended > 0 || runUnmapped.length > 0) {
-      writeFileSync(REPORTS_PATH, JSON.stringify(store, null, 2) + "\n", "utf8");
+    // Staleness DATA (not a job-failure trigger -- owner correction 2026-09-11:
+    // shops legitimately go 7-10 days without updating in winter, so a fixed
+    // day-count threshold that fails the CI job would false-alarm every
+    // off-season. Instead: record the raw age per active source into the
+    // store itself as `_staleness`, recomputed fresh every run (a snapshot,
+    // not an append-only log like `reports`/`_unmappedNames`). No "stale"
+    // label is baked in here -- that judgment is seasonal and belongs at
+    // display time, in index.html, when this gets wired up there. Checked
+    // per active source (both Orvis and BRO -- mainstem checked twice since
+    // it now has independent coverage from each). Computed BEFORE the write
+    // below (and the write is now unconditional) so this snapshot is always
+    // current on disk, even on a run that appended nothing new.
+    const now = new Date();
+    const staleness = [];
+    for (const src of allSources.filter((s) => s.active)) {
+      const latest = store.reports
+        .filter((r) => r.source === src.source && r.river === src.river)
+        .map((r) => r.reportDate)
+        .sort()
+        .at(-1);
+      const daysSinceUpdate = latest
+        ? Math.floor((now - new Date(latest + "T00:00:00Z")) / 86400000)
+        : null; // null = no record at all yet for this source (a different problem than staleness)
+      staleness.push({
+        source: src.source,
+        river: src.river,
+        drainage: src.drainage,
+        latestReportDate: latest ?? null,
+        daysSinceUpdate,
+      });
+      if (daysSinceUpdate === null) {
+        console.warn(`[STALE-DATA] ${src.source} ${src.river}: no records yet`);
+      } else {
+        console.log(`[STALE-DATA] ${src.source} ${src.river}: last report ${latest} (${daysSinceUpdate}d old)`);
+      }
     }
+    store._staleness = staleness;
+
+    // Unconditional write: was previously gated on `appended > 0 ||
+    // runUnmapped.length > 0`, but `_staleness.daysSinceUpdate` needs to
+    // reflect today even on a run that appended nothing new (dedup-only) --
+    // otherwise the snapshot on disk silently goes stale itself.
+    writeFileSync(REPORTS_PATH, JSON.stringify(store, null, 2) + "\n", "utf8");
 
     console.log(
       `\nDone. appended=${appended} skipped(dedup)=${skipped} ` +
@@ -762,6 +812,8 @@ function main() {
         `total_reports=${store.reports.length} ` +
         `total_unmapped=${store._unmappedNames.length}`
     );
+
+
 
     // Guard: if NOTHING parsed across all sources, the run is broken even though
     // each source failed "gracefully." Exit non-zero so the job goes RED instead
