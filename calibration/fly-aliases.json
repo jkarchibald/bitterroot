@@ -2,22 +2,297 @@
   "schemaVersion": 1,
   "note": "Fly-name alias layer (Phase 8, build-step 1). Maps every raw shop nameRaw AND every atomic rig/hatch token to exactly one canonical name, so cross-shop agreement can be counted and shop flies diffed against per-gauge rig tables. Lookup is case/punct-insensitive via normKey() in fly-aliases.mjs; the keys below are stored in their raw display form for auditability. inRig=false canonicals are flies that appear in shop reports but have no rig/hatch counterpart yet -- candidate-add signals, NOT alias misses.",
   "canonical": {
-    "Parachute Adams":  { "aliases": ["Adams", "Adams Parachute Dry Fly", "Parachute Adams"], "inRig": true },
-    "Purple Haze":      { "aliases": ["Adam's Purple Parachute", "Purple Haze"], "inRig": true },
-    "Prince Nymph":     { "aliases": ["Bead Head Prince", "Fly Formerly Known As Prince", "Prince", "Prince Nymph"], "inRig": true },
-    "Pheasant Tail":    { "aliases": ["Tunghead Hot Spot Pheasant Tail Jig", "Tunghead Soft Hackle Pheasant Tail", "Pheasant Tail", "PT"], "inRig": true },
-    "Hare's Ear":       { "aliases": ["Bead Head Hare's Ear Nymph", "Hare's Ear"], "inRig": true },
-    "Chubby Chernobyl": { "aliases": ["Chubby", "Chubby Chernobyl"], "inRig": true },
-    "Elk Hair Caddis":  { "aliases": ["Elk Wing Caddis", "Elk Hair Caddis"], "inRig": true },
-    "Stimulator":       { "aliases": ["Stimulator"], "inRig": true },
-    "Sparkle Minnow":   { "aliases": ["Sparkle Minnow"], "inRig": true },
-    "San Juan Worm":    { "aliases": ["San Juan Worm", "Worm"], "inRig": true },
-    "Pat's Rubber Legs":{ "aliases": ["Pat's Rubber Legs", "Rubber Legs"], "inRig": true },
-    "Water Walker":     { "aliases": ["Water Walker"], "inRig": true },
-    "Sparkle Pupa":     { "aliases": ["La Fontaine Sparkle Pupa", "Sparkle Pupa"], "inRig": false },
-    "Quigley Cripple":  { "aliases": ["Quigley Cripple"], "inRig": false },
-    "Double Bunny":     { "aliases": ["Double Bunny"], "inRig": false },
-    "Kreelex":          { "aliases": ["Kreelex"], "inRig": false },
-    "TJ Hooker":        { "aliases": ["TJ Hooker"], "inRig": false }
+    "Parachute Adams": {
+      "aliases": [
+        "Adams",
+        "Adams Parachute Dry Fly",
+        "Parachute Adams"
+      ],
+      "inRig": true
+    },
+    "Purple Haze": {
+      "aliases": [
+        "Adam's Purple Parachute",
+        "Purple Haze",
+        "Carlson's Purple Haze"
+      ],
+      "inRig": true
+    },
+    "Prince Nymph": {
+      "aliases": [
+        "Bead Head Prince",
+        "Fly Formerly Known As Prince",
+        "Prince",
+        "Prince Nymph"
+      ],
+      "inRig": true
+    },
+    "Pheasant Tail": {
+      "aliases": [
+        "Tunghead Hot Spot Pheasant Tail Jig",
+        "Tunghead Soft Hackle Pheasant Tail",
+        "Pheasant Tail",
+        "PT",
+        "Tunghead Pheasant Tail"
+      ],
+      "inRig": true
+    },
+    "Hare's Ear": {
+      "aliases": [
+        "Bead Head Hare's Ear Nymph",
+        "Hare's Ear",
+        "Bead Head Soft Hackle Hare's Ear Nymph"
+      ],
+      "inRig": true
+    },
+    "Chubby Chernobyl": {
+      "aliases": [
+        "Chubby",
+        "Chubby Chernobyl"
+      ],
+      "inRig": true
+    },
+    "Elk Hair Caddis": {
+      "aliases": [
+        "Elk Wing Caddis",
+        "Elk Hair Caddis"
+      ],
+      "inRig": true
+    },
+    "Stimulator": {
+      "aliases": [
+        "Stimulator"
+      ],
+      "inRig": true
+    },
+    "Sparkle Minnow": {
+      "aliases": [
+        "Sparkle Minnow",
+        "Coffey's Conehead Sparkle Minnow"
+      ],
+      "inRig": true
+    },
+    "San Juan Worm": {
+      "aliases": [
+        "San Juan Worm",
+        "Worm",
+        "Vernille San Juan Worm"
+      ],
+      "inRig": true
+    },
+    "Pat's Rubber Legs": {
+      "aliases": [
+        "Pat's Rubber Legs",
+        "Rubber Legs",
+        "Rubberlegs"
+      ],
+      "inRig": true
+    },
+    "Water Walker": {
+      "aliases": [
+        "Water Walker"
+      ],
+      "inRig": true
+    },
+    "Sparkle Pupa": {
+      "aliases": [
+        "La Fontaine Sparkle Pupa",
+        "Sparkle Pupa"
+      ],
+      "inRig": false
+    },
+    "Quigley Cripple": {
+      "aliases": [
+        "Quigley Cripple"
+      ],
+      "inRig": false
+    },
+    "Double Bunny": {
+      "aliases": [
+        "Double Bunny"
+      ],
+      "inRig": false
+    },
+    "Kreelex": {
+      "aliases": [
+        "Kreelex",
+        "Kreelex copper gold"
+      ],
+      "inRig": false
+    },
+    "TJ Hooker": {
+      "aliases": [
+        "TJ Hooker",
+        "Solitude TJ Hooker- Coffee",
+        "Solitude TJ Hooker- Tan/Brown"
+      ],
+      "inRig": false
+    },
+    "Flash Cripple": {
+      "aliases": [
+        "Flash Cripple-Green Drake",
+        "Flash Cripple-PMD"
+      ],
+      "inRig": false
+    },
+    "Chicago Overcoat": {
+      "aliases": [
+        "MFC Chicago Overcoat- Black",
+        "MFC Chicago Overcoat- White",
+        "MFC Chicago Overcoat- Brown"
+      ],
+      "inRig": false
+    },
+    "Zirdle Bug": {
+      "aliases": [
+        "MFC Jig Zirdle Bug- Natural Over Coffee/Black",
+        "MFC Jig Zirdle Bug- Black",
+        "MFC Jig Zirdle Bug- Brown over Brown/Black"
+      ],
+      "inRig": false
+    },
+    "Woolly Bugger": {
+      "aliases": [
+        "Bead Head Woolly Bugger Streamer",
+        "MFC Beadhead Woolly Bugger- Olive",
+        "MFC Beadhead Woolly Bugger- Black",
+        "MFC Beadhead Woolly Bugger- White"
+      ],
+      "inRig": false
+    },
+    "Sparkle Yummy": {
+      "aliases": [
+        "Jig Sparkle Yummy",
+        "Articulated Sparkle Yummy Sculpin",
+        "Articulated Sparkle Yummy Pearl"
+      ],
+      "inRig": false
+    },
+    "Sili-Leg Stone": {
+      "aliases": [
+        "Rio's Sili-Leg Stone Orange Tungsten Bead- Black",
+        "Rio's Sili-Leg Stone TB- Black"
+      ],
+      "inRig": false
+    },
+    "Duracell": {
+      "aliases": [
+        "Duracell",
+        "MFC Jig Duracell- Copper Top"
+      ],
+      "inRig": false
+    },
+    "Perdigon": {
+      "aliases": [
+        "Perdigon",
+        "Tungsten Jig Yellow Spot",
+        "Solitude Tungsten Jig TNT- PMD",
+        "Solitude Tungsten Jig PMD",
+        "Solitude Tungsten Jig Perdigon- PMD May"
+      ],
+      "inRig": false
+    },
+    "Big Sky Salmon Fly": {
+      "aliases": [
+        "Big Sky Salmon Fly"
+      ],
+      "inRig": false
+    },
+    "20 Incher": {
+      "aliases": [
+        "TH 20 Incher"
+      ],
+      "inRig": false
+    },
+    "Trina's Worm": {
+      "aliases": [
+        "Trina's Worm"
+      ],
+      "inRig": false
+    },
+    "Mini Bugger": {
+      "aliases": [
+        "Jig Mini Bugger"
+      ],
+      "inRig": false
+    },
+    "Zebra Midge": {
+      "aliases": [
+        "Zebra Midge"
+      ],
+      "inRig": false
+    },
+    "Caddis Pupa": {
+      "aliases": [
+        "Bead Head Caddis Pupa"
+      ],
+      "inRig": false
+    },
+    "Spanish Bullet": {
+      "aliases": [
+        "Spanish Bullet"
+      ],
+      "inRig": false
+    },
+    "Trina's Carnage": {
+      "aliases": [
+        "Trina's Carnage Drake-Green"
+      ],
+      "inRig": false
+    },
+    "On Point Para Wulff": {
+      "aliases": [
+        "On Point Para Wulff - PMD"
+      ],
+      "inRig": false
+    },
+    "Film Critic": {
+      "aliases": [
+        "Rio's Film Critic- PMD"
+      ],
+      "inRig": false
+    },
+    "Henry's Fork Foam Stone": {
+      "aliases": [
+        "Henry's Fork Foam Stone- Golden Stone"
+      ],
+      "inRig": false
+    },
+    "Jake's Depth Charge Jig Worm": {
+      "aliases": [
+        "MFC Jake's Depth Charge Jig Worm- Hot Pink"
+      ],
+      "inRig": false
+    },
+    "Power Worm": {
+      "aliases": [
+        "Hot Bead Power Worm- Red"
+      ],
+      "inRig": false
+    },
+    "Thin Mint Bugger": {
+      "aliases": [
+        "Rio Thin Mint Bugger TB"
+      ],
+      "inRig": false
+    },
+    "Lil' Kim": {
+      "aliases": [
+        "Lil' Kim"
+      ],
+      "inRig": false
+    },
+    "Micro Chubby": {
+      "aliases": [
+        "Hi-Vis Micro Chubby"
+      ],
+      "inRig": false
+    },
+    "Hot Spot Para-Wulff": {
+      "aliases": [
+        "MFC Hot Spot Para-Wulff- Brindle"
+      ],
+      "inRig": false
+    }
   }
 }
