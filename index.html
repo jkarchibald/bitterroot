@@ -34,6 +34,7 @@ NOTE: SABRE visual style applied to a non-SABRE (fly-fishing) domain.
   --t3-custodian-blue: #2f6eba; --t3-link: #0d6efd; --t3-active-scenario: #ff9900;
   --t3-cyan: #17b8c4; /* 8-9 Very Good — cyan */
   --t3-hot: #1f5fd0;  /* 10 Hot — deep blue, top tier */
+  --t3-salmon: #ff7a5c; /* Spawn-watch Watch tier only — logic/08-spawn-migration.md */
   --t3-bg-primary: var(--t3-neutral-700); --t3-bg-secondary: var(--t3-neutral-600);
   --t3-bg-tertiary: var(--t3-neutral-500); --t3-bg-header: var(--t3-neutral-800);
   --t3-bg-card: var(--t3-neutral-600); --t3-bg-card-hover: var(--t3-neutral-500);
@@ -96,6 +97,29 @@ button, .btn { font-size: 12px; font-weight: 500; }
 .score-chip { text-align: center; }
 .score-num { font-size: 22px; line-height: 1; font-weight: 600; border-radius: var(--t3-input-radius); padding: 6px 12px 5px; min-width: 48px; color: var(--t3-neutral-900); display: inline-block; }
 .score-good { background: var(--t3-matcon-fmc); } .score-fair { background: var(--t3-matcon-pmc); } .score-poor { background: var(--t3-matcon-nmc); color: var(--t3-neutral-0); } .score-verygood { background: var(--t3-cyan); color: var(--t3-neutral-0); } .score-hot { background: var(--t3-hot); color: var(--t3-neutral-0); } .score-prime { background: var(--t3-hot); color: var(--t3-neutral-0); }
+/* --- Spawn watch (logic/08-spawn-migration.md §1) — tier/phase badge colors.
+   Reuses the site's existing score scale straight across per owner decision:
+   color tracks movement-significance, not a conservation/fishing-quality
+   judgment (see build-tracker Phase 8e). Quiet reuses the existing "out of
+   range" neutral; Watch is the one genuinely new color (--t3-salmon). */
+.spawn-section{ margin-top:10px; }
+.spawn-card{ background:var(--t3-bg-card); border:1px solid var(--t3-border-card); border-radius:8px; padding:14px 16px; margin-bottom:10px; }
+.spawn-card:last-child{ margin-bottom:0; }
+.spawn-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.spawn-name{ font-weight:600; color:var(--t3-text-primary); }
+.spawn-badge{ display:inline-block; padding:3px 10px; border-radius:6px; font-size:12px; font-weight:600; white-space:nowrap; }
+.spawn-tier-quiet{ background:var(--t3-matcon-oor); color:var(--t3-neutral-0); }
+.spawn-tier-watch{ background:var(--t3-salmon); color:var(--t3-neutral-900); }
+.spawn-tier-dropback{ background:var(--t3-matcon-fmc); color:var(--t3-neutral-900); }
+.spawn-tier-staging{ background:var(--t3-cyan); color:var(--t3-neutral-0); }
+.spawn-tier-spawning{ background:var(--t3-hot); color:var(--t3-neutral-0); }
+.spawn-line{ display:flex; align-items:center; justify-content:space-between; padding:7px 0; border-top:1px solid var(--t3-border-card); font-size:13px; }
+.spawn-line:first-of-type{ border-top:none; }
+.spawn-line .sl-label{ color:var(--t3-text-secondary); }
+.spawn-line .sl-val{ font-weight:600; color:var(--t3-text-primary); }
+.spawn-outlook-row{ display:flex; align-items:center; justify-content:space-between; padding:7px 0; border-top:1px solid var(--t3-border-card); font-size:13px; }
+.spawn-outlook-row .sl-label{ color:var(--t3-text-secondary); }
+.spawn-outlook-row .sl-val{ font-weight:600; color:var(--t3-text-primary); }
 .score-cap { font-size: 10px; color: var(--t3-text-secondary); margin-top: 3px; letter-spacing: 0.5px; }
 .score-stamp { display: block; font-size: 9.5px; color: var(--t3-text-secondary); margin-top: 4px; white-space: nowrap; letter-spacing: 0.2px; }
 .gauge-link { display: inline-block; margin-top: 5px; font-size: 11px; color: var(--t3-light-blue); text-decoration: none; }
@@ -248,6 +272,14 @@ table.cal { width: 100%; border-collapse: collapse; font-size: 12px; }
     </div>
     <div class="gauge-grid" id="gaugeGrid"></div>
       <div id="dataNote" class="hint" style="margin-top:10px;opacity:.85;font-size:13px;line-height:1.4;color:var(--t3-text-secondary)"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h2>Spawn watch</h2>
+      <span class="hint">Fall brown trout &middot; East Fork and Lolo Creek tributary systems &middot; logic/08-spawn-migration.md &sect;1</span>
+    </div>
+    <div class="spawn-section" id="spawnWatch"></div>
   </div>
 
   <div class="section bite-pair">
@@ -1674,6 +1706,205 @@ function stressChiclet(g){
   return '<div class="chiclet" title="'+s.reason+'"><span class="dot dot-'+dot+'"></span>'+base+sub+'</div>';
 }
 
+/* ===================== 08 — Spawn migration (fall brown trout) =====================
+   Design ref: logic/08-spawn-migration.md §1. No new fetching — reads the
+   already-aligned g._series (cyTemp/fcTemp) built by alignSeries(). Two fully
+   independent tributary systems; both West Fork gauges excluded (dam-
+   controlled tailwater, no seasonal signal — see logic/08 "What it is"). */
+
+const SPAWN_RANGE_LO_F = 43, SPAWN_RANGE_HI_F = 48; // [S1],[S2] logic/08 §3b
+const SPAWN_OUTLOOK_DAYS = 7;
+const SPAWN_BIAS_EARLY_F = 1, SPAWN_BIAS_LATE_F = 1; // asymmetric, logic/08 §3d
+
+const SPAWN_SYSTEMS = [
+  { name: "East Fork",  tribKey: "ef-connor",  mainstemKeys: ["darby","bell"] },
+  // IMPLEMENTATION NOTE: lolo-hwy93 (below Hwy 93, nearer the Bitterroot
+  // confluence) chosen as the mouth-proxy gauge over "lolo" (above Sleeman
+  // Creek, further upstream within Lolo Creek itself). This specific choice
+  // was NOT resolved in the design conversation — logic/08 §9 lists gauge
+  // roles as settled for East Fork only; flag this line if revisiting.
+  { name: "Lolo Creek", tribKey: "lolo-hwy93", mainstemKeys: ["msla"] },
+];
+
+function spawnGaugeByKey(key){ return GAUGES.find(g=>g._key===key); }
+
+// Trailing daily-mean history for a gauge's water temp, oldest→newest,
+// capped to `days` entries ending at today (g._today).
+function spawnTrailingTemps(g, days){
+  const s = g._series; if(!s || !s.cyTemp || g._today==null) return [];
+  const out=[];
+  for(let i=g._today; i>=0 && out.length<days; i--){
+    const v=s.cyTemp[i]; if(v!=null) out.unshift(v);
+  }
+  return out;
+}
+
+// Forward daily-mean forecast, tomorrow through `days` days.
+function spawnForwardTemps(g, days){
+  const s=g._series; if(!s || !s.fcTemp || g._today==null) return [];
+  const out=[];
+  for(let i=g._today+1; i<s.fcTemp.length && out.length<days; i++){
+    if(s.fcTemp[i]!=null) out.push(s.fcTemp[i]);
+  }
+  return out;
+}
+
+// DISPLAY-only trend arrow: today's 3-day average vs. the prior 3-day
+// average. Deliberately simpler than spawnPhaseTrend() below — per the
+// design conversation, the line-level arrow doesn't need the same rigor as
+// the real phase-determining logic underneath it (logic/08 §3b note).
+function spawnDisplayTrend(vals){
+  if(vals.length<2) return 'flat';
+  const n=Math.min(3, vals.length);
+  const recent=vals.slice(-n), avg=recent.reduce((a,b)=>a+b,0)/recent.length;
+  const prevN=vals.slice(-(n*2), -n);
+  if(!prevN.length) return 'flat';
+  const prevAvg=prevN.reduce((a,b)=>a+b,0)/prevN.length;
+  const delta=avg-prevAvg;
+  if(delta <= -0.3) return 'falling';
+  if(delta >=  0.3) return 'rising';
+  return 'flat';
+}
+
+// The real phase-determining trend-shape: a least-squares slope (°F/day)
+// over the trailing window (up to 5 days), not a fixed day-count — matches
+// the Ardennes-paper "variability, not day-count" reasoning in logic/08 §3b.
+// A small dead-band reads as a plateau (the "likely spawning" signal).
+function spawnPhaseTrend(vals){
+  if(vals.length<3) return {slope:0, shape:'unclear'};
+  const w=vals.slice(-5), n=w.length, xs=[...Array(n).keys()];
+  const mx=xs.reduce((a,b)=>a+b,0)/n, my=w.reduce((a,b)=>a+b,0)/n;
+  let num=0, den=0;
+  for(let i=0;i<n;i++){ num += (xs[i]-mx)*(w[i]-my); den += (xs[i]-mx)*(xs[i]-mx); }
+  const slope = den? num/den : 0;
+  if(Math.abs(slope) < 0.15) return {slope, shape:'plateau'};
+  return {slope, shape: slope<0 ? 'falling' : 'rising'};
+}
+
+// Trigger 1 — leaving the mainstem. Comparative, not absolute (logic/08 §3a).
+function spawnGradient(tribTemps, mainTemps){
+  if(!tribTemps.length || !mainTemps.length) return {present:false, widening:false, gap:null};
+  const tribNow=tribTemps[tribTemps.length-1], mainNow=mainTemps[mainTemps.length-1];
+  const gapNow = mainNow - tribNow;
+  const present = gapNow > 0.5; // trivial noise floor, not a cited threshold
+  let widening=false;
+  if(tribTemps.length>=3 && mainTemps.length>=3){
+    const tribPrev=tribTemps[tribTemps.length-3], mainPrev=mainTemps[mainTemps.length-3];
+    widening = (gapNow - (mainPrev - tribPrev)) > 0.3;
+  }
+  return {present, widening, gap: gapNow};
+}
+
+function spawnCap(s){ return s? s.charAt(0).toUpperCase()+s.slice(1) : s; }
+
+// Core per-system classifier — {tier, phase} per logic/08 §3c (simple
+// HSI-style rule, deliberately not weighted; see §3c for why).
+function spawnClassifySystem(sys){
+  const trib = spawnGaugeByKey(sys.tribKey);
+  const mains = sys.mainstemKeys.map(spawnGaugeByKey).filter(Boolean);
+  if(!trib || !mains.length) return null;
+
+  const tribHist = spawnTrailingTemps(trib, 10);
+  const mainHistArrays = mains.map(m=>spawnTrailingTemps(m,10));
+  const mainHist = tribHist.map((_,i)=>{
+    const vals = mainHistArrays.map(a=>a[i]).filter(v=>v!=null);
+    return vals.length? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+  }).filter(v=>v!=null);
+
+  if(!tribHist.length){
+    return { system: sys.name, tier:'quiet', phase:null, tribNow:null, mainNow:null,
+      tribTrend:'flat', mainTrend:'flat', outlook:'Outlook unavailable' };
+  }
+
+  const tribNow = tribHist[tribHist.length-1];
+  const grad = spawnGradient(tribHist, mainHist);
+  const {shape} = spawnPhaseTrend(tribHist);
+  const trulyInRange = tribNow<=SPAWN_RANGE_HI_F && tribNow>=SPAWN_RANGE_LO_F;
+  const belowRange = tribNow < SPAWN_RANGE_LO_F;
+
+  let tier='quiet', phase=null;
+  if(trulyInRange){
+    tier='active';
+    // Rising while in-range HOLDS the current read rather than reversing it
+    // (owner decision, design conversation) — default to staging as the
+    // entry phase when the shape itself is ambiguous (rising or unclear).
+    phase = (shape==='plateau') ? 'spawning' : 'staging';
+  } else if(belowRange){
+    tier='active'; phase='dropback';
+  } else if(grad.present){
+    tier='watch'; phase=null;
+  }
+
+  const tribTrend = spawnDisplayTrend(tribHist);
+  const mainTrend = spawnDisplayTrend(mainHist);
+  const outlook = spawnOutlook(sys, tier, phase, tribHist);
+
+  return { system: sys.name, tier, phase, tribNow,
+    mainNow: mainHist.length? mainHist[mainHist.length-1] : null,
+    tribTrend, mainTrend, gradient: grad, outlook };
+}
+
+// 7-day forward outlook (logic/08 §3d). Confirms/extends an already-real
+// historical trend only — never originates a transition from a forecast-only
+// blip (same principle as fetch-data.mjs's TERMINAL_GUARD). Asymmetric ±1°F
+// bias: early on the three "more active" transitions, late on the two
+// "winding down" ones. Staging→Spawning is intentionally NOT projected — a
+// plateau's onset can't be forecast the way a threshold crossing can.
+function spawnOutlook(sys, curTier, curPhase, tribHist){
+  const trib = spawnGaugeByKey(sys.tribKey);
+  if(!trib) return 'Outlook unavailable';
+  const fwd = spawnForwardTemps(trib, SPAWN_OUTLOOK_DAYS);
+  const {shape: histShape} = spawnPhaseTrend(tribHist);
+  const label = (curTier==='active') ? ('Active \u00b7 '+spawnCap(curPhase)) : spawnCap(curTier);
+  if(!fwd.length) return 'Remains '+label+' through 7 days';
+
+  const dayName = i => new Date(Date.now() + (i+1)*86400000).toLocaleDateString('en-US',{weekday:'short'});
+
+  if(curTier==='quiet' && histShape==='falling'){
+    for(let i=0;i<fwd.length;i++){
+      if(fwd[i] <= SPAWN_RANGE_HI_F + SPAWN_BIAS_EARLY_F + 4) return 'Entering Watch ~'+dayName(i);
+    }
+  } else if(curTier==='watch' && histShape==='falling'){
+    for(let i=0;i<fwd.length;i++){
+      if(fwd[i] <= SPAWN_RANGE_HI_F + SPAWN_BIAS_EARLY_F) return 'Staging possible ~'+dayName(i);
+    }
+  } else if(curTier==='active' && curPhase==='spawning' && histShape!=='rising'){
+    for(let i=0;i<fwd.length;i++){
+      if(fwd[i] < SPAWN_RANGE_LO_F - SPAWN_BIAS_LATE_F) return 'Dropback possible ~'+dayName(i);
+    }
+  } else if(curTier==='active' && curPhase==='dropback'){
+    for(let i=0;i<fwd.length;i++){
+      if(fwd[i] < SPAWN_RANGE_LO_F - 6 - SPAWN_BIAS_LATE_F) return 'Returning to Quiet ~'+dayName(i);
+    }
+  }
+  return 'Remains '+label+' through 7 days';
+}
+
+function spawnClassifyAll(){ return SPAWN_SYSTEMS.map(spawnClassifySystem).filter(Boolean); }
+
+function spawnTrendArrow(t){ return t==='falling' ? '&#8595;' : (t==='rising' ? '&#8593;' : '&#8212;'); }
+
+function renderSpawnWatch(){
+  const el = document.getElementById('spawnWatch');
+  if(!el) return;
+  const systems = spawnClassifyAll();
+  el.innerHTML = systems.map(s=>{
+    const tierClass = 'spawn-tier-' + (s.phase || s.tier);
+    const label = s.phase ? (spawnCap(s.tier)+' \u00b7 '+spawnCap(s.phase)) : spawnCap(s.tier);
+    return '<div class="spawn-card">'
+      + '<div class="spawn-top"><span class="spawn-name">'+s.system+' system</span>'
+      +   '<span class="spawn-badge '+tierClass+'">'+label+'</span></div>'
+      + '<div class="spawn-line"><span class="sl-label">Mainstem</span>'
+      +   '<span class="sl-val">'+(s.mainNow!=null? s.mainNow.toFixed(0)+'&deg;F '+spawnTrendArrow(s.mainTrend) : '&mdash;')+'</span></div>'
+      + '<div class="spawn-line"><span class="sl-label">Tributary</span>'
+      +   '<span class="sl-val">'+(s.tribNow!=null? s.tribNow.toFixed(0)+'&deg;F '+spawnTrendArrow(s.tribTrend) : '&mdash;')+'</span></div>'
+      + '<div class="spawn-outlook-row"><span class="sl-label">7-day outlook</span>'
+      +   '<span class="sl-val">'+s.outlook+'</span></div>'
+      + '</div>';
+  }).join('');
+}
+/* =================== end 08 — Spawn migration =================== */
+
 function renderCards(){
   const grid = document.getElementById('gaugeGrid');
   grid.innerHTML = GAUGES.map((g, idx) => {
@@ -2325,7 +2556,7 @@ function fmtUpdated(iso){
 
 function boot(usedReal, gen){
   GAUGES.forEach(g=>{ if(!g._series) generateSeries(g); });   // synthetic fallback for any gap
-  renderCards(); renderPlanner(); renderUniversal(); renderCalendar(); select(0);
+  renderCards(); renderPlanner(); renderUniversal(); renderCalendar(); renderSpawnWatch(); select(0);
   const lu=document.getElementById('lastUpdated');
   if(lu) lu.innerHTML = (usedReal && gen) ? fmtUpdated(gen) : 'last updated \u2014 (sample data)';
   const note=document.getElementById('dataNote');
