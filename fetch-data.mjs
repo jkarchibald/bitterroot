@@ -454,6 +454,26 @@ const LY_SHIFT_STEP = 2;   // fallback #3 directional step, degrees (capped, not
 
 // pass-1 product: measured freestone water temp averaged across reporting probes,
 // keyed by date. Built only from freestone gauges that actually measure temp.
+// Per-gauge (not pooled) date->temp lookup, spanning both thisYear and
+// forecast. Used for the tailwater confluence-anchor blend (tailwaterSetpoint)
+// so it can reference one specific gauge (East Fork nr Conner) rather than
+// measuredFreestoneAvgByDate's pooled average, which would wrongly blend in
+// unrelated gauges (Lolo Creek) that have nothing to do with where the West
+// Fork actually meets the Bitterroot.
+function singleGaugeTempByDate(gaugeList, key) {
+  const g = gaugeList.find((x) => x.id === key);
+  const out = {};
+  if (!g || !g.series || !g.series.watertemp) return out;
+  const wt = g.series.watertemp;
+  for (const row of (wt.thisYear || [])) {
+    if (row && row.date != null && row.mean != null) out[row.date] = row.mean;
+  }
+  for (const row of (wt.forecast || [])) {
+    if (row && row.date != null && row.mean != null) out[row.date] = row.mean;
+  }
+  return out;
+}
+
 function measuredFreestoneAvgByDate(gaugeList) {
   const acc = {};
   for (const g of gaugeList) {
@@ -474,13 +494,39 @@ function measuredFreestoneAvgByDate(gaugeList) {
 
 // dam release: stable, cold, seasonal nudge; hard-capped below stress so it can
 // never be estimated into the hoot-owl zone (matches observed "never goes hoot owl").
-function tailwaterSetpoint(ymd) {
+//
+// OWNER CORRECTION (2026-09-11): the original version returned a flat monthly
+// constant regardless of how far downstream the gauge site sits from the dam.
+// wf-conner (USGS "West Fork Bitterroot nr Conner") is well downstream of
+// Painted Rocks Dam, where it joins the East Fork to form the Bitterroot — by
+// that point, dam-release water has re-warmed some way toward ambient/
+// confluence temperature, not stayed at the raw release temp the whole way.
+// Model: blend the dam-release base toward the confluence anchor (East Fork
+// nr Conner, the nearest real gauge to where the West Fork actually meets the
+// Bitterroot — "it literally dumps into that river there"), weighted by
+// TAILWATER_POSITION_FRACTION — the gauge's rough fixed position along that
+// travel distance, NOT something that changes day to day. Owner estimate
+// (2026-09-11): "comes out of the dam at like 48 and then dumps into Conner,
+// probably 51 halfway up" — 0.5 blend against that day's East Fork nr Conner
+// reading (54.4°F) gives 51.2°F, matching that estimate closely. Hard
+// ceiling: never warmer than the confluence anchor itself — physically, the
+// water cannot exceed what it's about to merge into. [assumption — position
+// fraction is owner-estimated, not surveyed/measured; recalibrate if this
+// pipeline is ever reused for another drainage's tailwater gauge, since the
+// confluence-anchor gauge choice (ef-connor) is specific to this one.]
+const TAILWATER_POSITION_FRACTION = 0.5;
+function tailwaterSetpoint(ymd, mainstemAnchorTemp) {
   const mo = +String(ymd).slice(5, 7);
   let base;
   if (mo >= 6 && mo <= 9) base = 48;        // Jun-Sep cold releases
   else if (mo === 5 || mo === 10) base = 46; // shoulder
   else base = 44;                            // winter
-  return Math.min(base, STRESS_CAP_F - 1);
+  let mean = base;
+  if (mainstemAnchorTemp != null) {
+    mean = base + TAILWATER_POSITION_FRACTION * (mainstemAnchorTemp - base);
+    mean = Math.min(mean, mainstemAnchorTemp); // ceiling: never warmer than the confluence
+  }
+  return Math.min(mean, STRESS_CAP_F - 1);
 }
 
 // fallback #3: shift last-year temp by the SIGN of the year-over-year flow gap
@@ -507,7 +553,7 @@ function estimateWaterTempV2(ctx) {
   const type = ctx.gauge.type;
   const avg = ctx.freestoneAvg[ctx.date];
 
-  if (type === "tailwater") return { mean: tailwaterSetpoint(ctx.date), via: "tailwater-setpoint" };
+  if (type === "tailwater") return { mean: tailwaterSetpoint(ctx.date, ctx.mainstemAnchorTemp), via: "tailwater-setpoint" };
 
   if (type === "mainstem" || type === "freestone") {
     if (avg != null) return { mean: avg, via: "freestone-avg" };
@@ -544,9 +590,10 @@ function seasonalDefaultTemp(ymd) {
 // reads 5-9F too hot), we anchor on the gauge's today value and carry it forward
 // along the AIR-temp trend (preserving the water-minus-air offset we observed
 // today). Tailwater stays flat at its setpoint regardless.
-function buildEstimatedTempSeries(gauge, weatherDaily, freestoneAvg, anchorIdx) {
+function buildEstimatedTempSeries(gauge, weatherDaily, freestoneAvg, anchorIdx, mainstemAnchorByDate) {
   const wd = weatherDaily || [];
   const airOf = (d) => (d && d.hiF != null && d.loF != null) ? (d.hiF + d.loF) / 2 : null;
+  const anchorTempOn = (date) => (mainstemAnchorByDate && mainstemAnchorByDate[date] != null) ? mainstemAnchorByDate[date] : null;
 
   // resolve the HISTORY series first (this is what's been QA'd and approved)
   const histRows = wd.slice(0, anchorIdx + 1).map((d) => {
@@ -554,6 +601,7 @@ function buildEstimatedTempSeries(gauge, weatherDaily, freestoneAvg, anchorIdx) 
       gauge, date: d.date, freestoneAvg,
       airThisYr: airOf(d), airMeanToday: airOf(d),
       normalWaterT: gauge.normal && gauge.normal.watertemp,
+      mainstemAnchorTemp: anchorTempOn(d.date),
     });
     return { date: d.date, mean: r.mean, _via: r.via };
   });
@@ -575,7 +623,7 @@ function buildEstimatedTempSeries(gauge, weatherDaily, freestoneAvg, anchorIdx) 
   const forecast = wd.slice(anchorIdx + 1).map((d) => {
     let mean;
     if (isTail) {
-      mean = tailwaterSetpoint(d.date);                 // dam release: stays flat
+      mean = tailwaterSetpoint(d.date, anchorTempOn(d.date));           // dam release, blended toward confluence
     } else if (todayVal != null && todayAir != null && airOf(d) != null) {
       mean = todayVal + (airOf(d) - todayAir) * 0.5;    // ride air trend, damped 0.5x,
       mean = Math.max(33, mean);                        // anchored on today's real value
@@ -1010,6 +1058,10 @@ async function main() {
   // All estimated results stay flagged estimated:true and never emit mean:null (item 4).
   const freestoneAvg    = measuredFreestoneAvgByDate(gauges);
   const mainstemByDate  = mainstemMeasuredByDate(gauges);
+  // Confluence anchor for the tailwater blend (tailwaterSetpoint) — see the
+  // owner correction note on that function. East Fork nr Conner is the
+  // nearest real gauge to where the West Fork actually meets the Bitterroot.
+  const efConnorByDate  = singleGaugeTempByDate(gauges, "ef-connor");
   for (const G of gauges) {
     if (!G._needsTempEstimate) continue;
     const wd = G._wdGuarded || G.weather?.daily;
@@ -1020,7 +1072,7 @@ async function main() {
       if (grad && grad.thisYear.length) { series = grad; via = "mainstem-gradient"; }
     }
     if (!series) {
-      const est = buildEstimatedTempSeries(G, wd, freestoneAvg, G._anchorIdx);
+      const est = buildEstimatedTempSeries(G, wd, freestoneAvg, G._anchorIdx, efConnorByDate);
       series = { thisYear: est.thisYear, forecast: est.forecast };
       via = "freestone-estimator";
     }
