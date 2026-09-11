@@ -66,6 +66,13 @@ const ORVIS_5STEP = {
 // the CANONICAL name via this static map (owner-authored from the rig tables).
 // Unknown canonical or unresolved name -> null (honest absence, never guessed
 // as a default). This is the only place type is assigned.
+//
+// Entries below the divider (added 2026-09-11, alongside the alias-layer
+// expansion for the 50 previously-unmapped names) are Claude-authored best
+// guesses from general fly-fishing knowledge, NOT owner-verified against the
+// rig tables the way the original set above was. Flagged as `assumption`,
+// not `derived-in-repo` -- please sanity-check before treating these as
+// settled the way the original 17 are.
 const TYPE_BY_CANON = {
   "Parachute Adams": "dry",
   "Purple Haze": "dry",
@@ -84,7 +91,47 @@ const TYPE_BY_CANON = {
   "Double Bunny": "streamer",
   Kreelex: "streamer",
   "TJ Hooker": "streamer",
+  // ---- assumption, not owner-verified (see note above) ----
+  "Big Sky Salmon Fly": "dry",
+  "20 Incher": "nymph",
+  "Trina's Worm": "nymph",
+  "Sparkle Yummy": "streamer",
+  "Mini Bugger": "streamer",
+  // "Woolly Bugger" deliberately has NO entry -- owner correction 2026-09-11:
+  // buggers can be fished/tied as either nymph or streamer, no single fixed
+  // answer is honest here. Left out entirely so canon()->null falls through
+  // to `type: null`, matching this file's own "never guess a default" rule.
+  // (BRO instances aren't affected -- BRO gets type from the tab, not this map.)
+  "Zebra Midge": "nymph",
+  Perdigon: "nymph",
+  "Caddis Pupa": "nymph",
+  "Spanish Bullet": "nymph",
+  Duracell: "nymph",
+  "Flash Cripple": "dry",
+  "Chicago Overcoat": "streamer",
+  "Zirdle Bug": "streamer",
+  "Sili-Leg Stone": "nymph",
+  "Trina's Carnage": "dry",
+  "On Point Para Wulff": "dry",
+  "Film Critic": "dry",
+  "Henry's Fork Foam Stone": "dry",
+  "Jake's Depth Charge Jig Worm": "nymph",
+  "Power Worm": "nymph",
+  "Thin Mint Bugger": "streamer",
+  "Lil' Kim": "streamer",
+  "Micro Chubby": "dry",
+  "Hot Spot Para-Wulff": "dry",
 };
+
+// NOTE for later (owner correction 2026-09-11, not yet built): "hopper-dropper"
+// is NOT a 5th value for `type` -- it's a two-fly RIG composed from the types
+// above. The "hopper" (top/indicator fly) can be either a dry (Chubby
+// Chernobyl, large foam pattern) OR a terrestrial (beetle, ant) -- both
+// already canonicalize to `type: "dry"` here, so no schema change needed for
+// that half. The "dropper" (trailed fly) is a nymph. When the Best
+// Techniques prose-extraction step (tipFlies) gets built, it should tag each
+// extracted fly with a RIG ROLE (top/dropper) separately from its `type`,
+// not invent a new type value.
 
 // ---- source registry (structured tier) --------------------------------------
 // reporter is NOT hardcoded here anymore -- it is parsed from the page
@@ -460,6 +507,20 @@ function parseBROOutlook(html) {
   return m ? stripTags(m[1]).trim() || null : null;
 }
 
+// Real markup: <p>...<strong>Best Techniques:</strong> body text...</p>
+// Added 2026-09-11 -- this is BRO's genuine rig/technique recommendation
+// (dry-dropper combos, specific fly names by role) and belongs in the same
+// `technique` slot Orvis' own "Techniques & Tips" alert__body fills. It was
+// previously missing entirely; `technique` was a repurposed placeholder
+// holding the 7 Day Outlook text instead (now split out to its own field).
+// Flagged by owner review: this prose is the shop's actual "what to use"
+// call, distinct from and more authoritative than the "Featured Flies"
+// tabbed carousel, which is closer to a shop-the-catalog upsell.
+function parseBROTechnique(html) {
+  const m = /<strong>\s*Best Techniques:?\s*<\/strong>\s*([\s\S]*?)<\/p>/i.exec(html);
+  return m ? stripTags(m[1]).trim() || null : null;
+}
+
 // Real markup: <h4>Water Condition</h4><p>Clear and Dropping</p>
 function parseBROWaterCondition(html) {
   const m = /<h4>\s*Water Condition\s*<\/h4>\s*<p>\s*([^<]+?)\s*<\/p>/i.exec(html);
@@ -544,12 +605,13 @@ function buildRecordBRO(src, html, canon, onUnmapped) {
     shopWaterTempF: parseBROWaterTemp(html), // SOFT cross-check only
     hatches: [], // no equivalent structured hatch list found on BRO's template
     bestTime: null,
-    technique: parseBROOutlook(html), // repurposed slot: BRO's "7 Day Outlook" prose
+    technique: parseBROTechnique(html), // BRO's real rig/technique recommendation (was a placeholder; see 8-4 note above)
+    outlook: parseBROOutlook(html), // BRO-only field: "7 Day Outlook" weather/timing prose (previously squatting in `technique`)
     waterCondition: parseBROWaterCondition(html), // BRO-only field, not on Orvis records
     flies,
-    flySource: "shop-recommendations", // lower confidence than Orvis' ranked gear-row table
+    flySource: "shop-recommendations", // Featured Flies carousel -- shop catalog picks, lower confidence than `technique`'s named rig recs or Orvis' ranked gear-row table
     tip: parseBROTip(html),
-    tipFlies: [],
+    tipFlies: [], // prose-tier extraction (pulling named flies out of `tip`/`technique` text) is a later chat -- same as Orvis; needs alias-layer work first (see unmapped-names backlog)
     drainage: src.drainage,
     active: src.active,
   };
@@ -744,6 +806,7 @@ export {
   parseBROWaterTemp,
   parseBROTip,
   parseBROOutlook,
+  parseBROTechnique,
   parseBROWaterCondition,
   parseBROFlies,
   ORVIS_5STEP,
