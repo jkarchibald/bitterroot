@@ -441,65 +441,81 @@ function parseBROWaterTemp(html) {
   return m ? Number(m[1]) : null;
 }
 
-// "Tip of the Week:" ... up to the next real section label ("**Label:**") or
-// a markdown heading. NOTE: bounding on "next bold text" alone is wrong here
-// -- BRO's prose itself contains inline bold (city names, temp ranges, e.g.
-// "**Stevensville, Montana**") that isn't a section boundary. Real section
-// labels take the specific "**Label:**" shape (colon inside the bold run,
-// right before the closing **); inline emphasis doesn't. Bound on that
-// specific shape instead. Caught by testing against real fetched content
-// (2026-09-11) -- an earlier version of this parser truncated mid-sentence
-// on the first inline bold it hit.
+// 8-4 fix: parseBROTip/parseBROOutlook/parseBROWaterCondition below were
+// rewritten 2026-09-11 against RAW HTML captured via debug-bro-dump.yml.
+// The prior versions bounded on markdown syntax ("**Label:**", "##") that
+// only existed in web_fetch's rendered markdown, not the real Shopify page
+// -- exact same failure class the file's own 8-3 header describes for the
+// original Orvis break. Confirmed working against all 4 live BRO pages.
+
+// Real markup: <p><strong>Tip of the Week:</strong> body text...</p>
 function parseBROTip(html) {
-  const m = /Tip of the Week:?\*{0,2}\s*([\s\S]{0,600}?)(?=\*\*[A-Za-z0-9][^*]{0,40}:\*\*|\n\s*\n\s*#|$)/i.exec(html);
+  const m = /<strong>\s*Tip of the Week:?\s*<\/strong>\s*([\s\S]*?)<\/p>/i.exec(html);
   return m ? stripTags(m[1]).trim() || null : null;
 }
 
-// "7 Day Outlook:" ... same bounding fix as parseBROTip.
+// Real markup: <p>...<strong>7 Day Outlook:</strong> body text...</p>
 function parseBROOutlook(html) {
-  const m = /7 Day Outlook:?\*{0,2}\s*([\s\S]{0,600}?)(?=\*\*[A-Za-z0-9][^*]{0,40}:\*\*|\n\s*\n\s*#|$)/i.exec(html);
+  const m = /<strong>\s*7 Day Outlook:?\s*<\/strong>\s*([\s\S]*?)<\/p>/i.exec(html);
   return m ? stripTags(m[1]).trim() || null : null;
 }
 
+// Real markup: <h4>Water Condition</h4><p>Clear and Dropping</p>
 function parseBROWaterCondition(html) {
-  const m = /Water Condition[\s\S]{0,60}?\n+\s*([A-Za-z][A-Za-z ]{2,40})/i.exec(html);
+  const m = /<h4>\s*Water Condition\s*<\/h4>\s*<p>\s*([^<]+?)\s*<\/p>/i.exec(html);
   return m ? stripTags(m[1]).trim() || null : null;
 }
 
 // Fly names from the "[River] {Dries,Nymph,Streamer(s)} Recommendations"
-// product-card sections. type comes from the section heading itself (more
-// reliable here than Orvis' canonical-name inference, since BRO groups by
-// category explicitly) rather than TYPE_BY_CANON. NOTE: these are BRO's
-// curated shop category listings for that river, not necessarily a literal
-// ranked "what's hot today" pick list the way Orvis' gear-row table claims to
-// be -- lower-confidence provenance, flagged via `flySource` on the record.
+// tabbed product carousel ("Featured Flies" section). type comes from the
+// tab label itself (more reliable here than Orvis' canonical-name inference,
+// since BRO groups by category explicitly) rather than TYPE_BY_CANON. NOTE:
+// these are BRO's curated shop category listings for that river, not
+// necessarily a literal ranked "what's hot today" pick list the way Orvis'
+// gear-row table claims to be -- lower-confidence provenance, flagged via
+// `flySource` on the record.
 //
-// BUG FOUND BY TESTING AGAINST REAL CAPTURED CONTENT (2026-09-11): each
-// category name appears TWICE on the page -- once in a plain nav-style list
-// near "Featured Flies" ("Bitterroot River Dries Recommendations" as bare
-// text, no products following), and again as the real heading directly
-// before that category's actual product cards. An earlier version matched
-// either occurrence indiscriminately and pulled flies into the wrong
-// category. Fix: anchor on the markdown "## " heading prefix specifically,
-// which in the captured content marks the real section, not the nav mention.
-// Confirmed working against real fetched Bitterroot page content. Still
-// unverified against raw HTML (see file-level caution above) -- if the real
-// DOM doesn't preserve an equivalent heading-vs-plain-text distinction after
-// full HTML parsing, this needs re-checking via the recommended debug-dump.
+// 8-4 rewrite (2026-09-11), confirmed against real HTML from debug-bro-dump.yml
+// and cross-checked against live screenshots of all 3 tabs on all 4 rivers:
+// the page is a radio-input tab widget (<input id="tab-...ID">). Anchoring on
+// the "## Label" heading text (leftover from a markdown-rendered draft) was
+// wrong twice over: (1) raw HTML has no "##" at all, and (2) even matched on
+// a real HTML heading, that heading sits INSIDE the NEXT tab's pane, not its
+// own -- so a heading-anchored block silently grabs the wrong category's
+// products (confirmed: earlier draft labeled real nymph patterns "dry").
+// Fix: map each tab's id -> category from the nav <label for="tab-ID">, then
+// pull products from that id's own <input id="tab-ID">...next <input> slice.
+// This is DOM-position-correct regardless of where decorative headings land.
 function parseBROFlies(html, canon, onUnmapped) {
   const flies = [];
-  const catRe = /##[^\n]{0,30}?(Dries|Nymph|Streamers?)\s+Recommendations([\s\S]{0,4000}?)(?=##[^\n]{0,30}?(?:Dries|Nymph|Streamers?)\s+Recommendations|##\s*About This Water|$)/gi;
   const typeMap = { dries: "dry", nymph: "nymph", streamer: "streamer", streamers: "streamer" };
-  let cm;
+
+  const idToType = {};
+  const labelRe = /<label for="tab-([^"]+)"[^>]*>\s*[^<]*?(Dries|Nymph|Streamers?)\s+Recommendations\s*<\/label>/gi;
+  let lm;
+  while ((lm = labelRe.exec(html))) {
+    idToType[lm[1]] = typeMap[lm[2].toLowerCase()] ?? null;
+  }
+
+  const inputRe = /<input\s+class="#tabs-pane-input"[^>]*id="tab-([^"]+)"[^>]*>/g;
+  const inputs = [];
+  let im;
+  while ((im = inputRe.exec(html))) inputs.push({ id: im[1], idx: im.index + im[0].length });
+
   let rank = 0;
-  while ((cm = catRe.exec(html))) {
-    const type = typeMap[cm[1].toLowerCase()] || null;
-    const block = cm[2];
-    const nameRe = /\/products\/[^)\]\s"]+[)\]]?\s*\n*!?\[([^\]]+)\]/g;
+  for (let i = 0; i < inputs.length; i++) {
+    const type = idToType[inputs[i].id] ?? null;
+    if (type === null) continue; // not a Dries/Nymph/Streamers pane -- skip
+    const start = inputs[i].idx;
+    const end = i + 1 < inputs.length ? inputs[i + 1].idx : html.length;
+    const block = html.slice(start, end);
+    const nameRe = /<a href="\/products\/[^"]+" class="stretched-link">([^<]+)<\/a>/g;
     let nm;
+    const seenInBlock = new Set(); // dedup (carousel tiles + stretched-link repeat the name)
     while ((nm = nameRe.exec(block))) {
       const nameRaw = decodeEntities(nm[1]).trim();
-      if (!nameRaw) continue;
+      if (!nameRaw || seenInBlock.has(nameRaw)) continue;
+      seenInBlock.add(nameRaw);
       rank += 1;
       const nameCanonical = canon(nameRaw);
       if (nameCanonical === null) onUnmapped(nameRaw);
