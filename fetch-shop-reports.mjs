@@ -121,6 +121,8 @@ const TYPE_BY_CANON = {
   "Lil' Kim": "streamer",
   "Micro Chubby": "dry",
   "Hot Spot Para-Wulff": "dry",
+  Frenchie: "nymph",
+  Blowtorch: "nymph",
 };
 
 // NOTE for later (owner correction 2026-09-11, not yet built): "hopper-dropper"
@@ -597,10 +599,114 @@ function parseBROFlies(html, canon, onUnmapped) {
 }
 
 // ---- assemble one record (BRO) -----------------------------------------------
-function buildRecordBRO(src, html, canon, onUnmapped) {
+// Pulls the actual dry-dropper rig (top fly + trailed nymph + depth) out of
+// BRO's `technique` prose. 8-5 addition (2026-09-15), no longer deferred --
+// this was flagged three times as "a later chat" and the owner correctly
+// called that out. Built and verified against real technique text from all
+// 4 rivers (captured via debug-bro-dump.yml), not invented from one example.
+//
+// How it works: BRO's Best Techniques paragraph reliably follows a
+// top-fly-list + connector-phrase + dropper-fly-list + depth-phrase shape
+// ("Throwing a X, Y, or Z ... and a A, B, or C N feet below"), though the
+// exact connector wording varies by river ("and a", "and trail a ... like
+// a", "tie a dropper on like"). We: (1) find the depth phrase (the anchor,
+// most consistent part -- "N (to M)? (inches|feet) (below|underneath)"),
+// (2) find whichever known connector phrase sits closest before it, (3)
+// scan the text before the connector for known aliases (-> role "top") and
+// the text between the connector and the depth phrase (-> role "dropper"),
+// using the SAME normalized-substring approach as canon(), so a raw match
+// like "Black Spanish Bullet" correctly finds "Spanish Bullet" inside it.
+// A river whose prose doesn't fit this shape (no depth phrase found) simply
+// returns [] -- no forced/wrong extraction, matches this file's "never
+// guess" pattern everywhere else.
+//
+// Real gap, not silently papered over: a genuine typo on BRO's own site
+// ("Durcacell" for "Duracell", confirmed 2026-09-15) won't match and is
+// silently dropped rather than fuzzy-matched -- exact-match is the same
+// contract canon() already uses everywhere else in this file, and fuzzy
+// matching here risks false positives worse than an occasional missed typo.
+const RIG_DEPTH_RE =
+  /(\d+)(?:\s*(?:to|-)\s*(\d+))?\s*(inches?|feet|ft)\.?\s+(?:below|underneath)/i;
+const RIG_CONNECTORS = [
+  /tie\s+a\s+dropper\s+on\s+like/i,
+  /and\s+trail\s+a[^,]*?(?:like\s+a\s+)?/i,
+  /and\s+a\s+/i,
+];
+
+function extractRigFlies(text, canon, aliasIndex) {
+  if (!text || !aliasIndex || !aliasIndex.length) return [];
+  const depthM = RIG_DEPTH_RE.exec(text);
+  if (!depthM) return [];
+  const depthStart = depthM.index;
+
+  let connMatch = null,
+    connEnd = -1;
+  for (const re of RIG_CONNECTORS) {
+    const m = re.exec(text.slice(0, depthStart));
+    if (m) {
+      const end = m.index + m[0].length;
+      if (end > connEnd) {
+        connMatch = m;
+        connEnd = end;
+      }
+    }
+  }
+  if (!connMatch) return [];
+
+  const topClause = text.slice(0, connMatch.index);
+  const dropperClause = text.slice(connEnd, depthStart);
+
+  const num1 = +depthM[1],
+    num2 = depthM[2] ? +depthM[2] : null;
+  const unit = depthM[3].toLowerCase().startsWith("f") ? "feet" : "inches";
+  const avgNum = num2 ? (num1 + num2) / 2 : num1;
+  const depthInches = Math.round(unit === "feet" ? avgNum * 12 : avgNum);
+
+  const scan = (clause) => {
+    const norm = normKeyLocal(clause);
+    const seenCanon = new Set();
+    const out = [];
+    for (const { normAlias, alias, canonical } of aliasIndex) {
+      if (!normAlias || seenCanon.has(canonical)) continue;
+      if ((" " + norm + " ").includes(" " + normAlias + " ")) {
+        out.push({ nameRaw: alias, nameCanonical: canonical });
+        seenCanon.add(canonical);
+      }
+    }
+    return out;
+  };
+
+  const tops = scan(topClause).map((f) => ({
+    ...f,
+    type: TYPE_BY_CANON[f.nameCanonical] ?? null,
+    role: "top",
+    depthInches: null,
+  }));
+  const droppers = scan(dropperClause).map((f) => ({
+    ...f,
+    type: TYPE_BY_CANON[f.nameCanonical] ?? null,
+    role: "dropper",
+    depthInches,
+  }));
+  return [...tops, ...droppers];
+}
+
+// normKey() clone (matches fly-aliases.mjs's own definition) -- kept local
+// so this file doesn't need a fly-aliases.mjs import path assumption.
+function normKeyLocal(s) {
+  return String(s)
+    .toLowerCase()
+    .replace(/['\u2019`.]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function buildRecordBRO(src, html, canon, onUnmapped, aliasIndex) {
   const reportDate = parseBRODate(html);
   const flies = parseBROFlies(html, canon, onUnmapped);
   const id = `${src.source.toLowerCase()}-${src.idSlug}-${reportDate}`;
+  const technique = parseBROTechnique(html);
 
   return {
     id,
@@ -615,13 +721,13 @@ function buildRecordBRO(src, html, canon, onUnmapped) {
     shopWaterTempF: parseBROWaterTemp(html), // SOFT cross-check only
     hatches: [], // no equivalent structured hatch list found on BRO's template
     bestTime: null,
-    technique: parseBROTechnique(html), // BRO's real rig/technique recommendation (was a placeholder; see 8-4 note above)
+    technique, // BRO's real rig/technique recommendation (was a placeholder; see 8-4 note above)
     outlook: parseBROOutlook(html), // BRO-only field: "7 Day Outlook" weather/timing prose (previously squatting in `technique`)
     waterCondition: parseBROWaterCondition(html), // BRO-only field, not on Orvis records
     flies,
     flySource: "shop-recommendations", // Featured Flies carousel -- shop catalog picks, lower confidence than `technique`'s named rig recs or Orvis' ranked gear-row table
     tip: parseBROTip(html),
-    tipFlies: [], // prose-tier extraction (pulling named flies out of `tip`/`technique` text) is a later chat -- same as Orvis; needs alias-layer work first (see unmapped-names backlog)
+    tipFlies: extractRigFlies(technique, canon, aliasIndex), // 8-5: real dry-dropper rig extraction, see note above
     drainage: src.drainage,
     active: src.active,
   };
@@ -688,7 +794,17 @@ function loadStore() {
 
 function main() {
   return (async () => {
-    const { canon } = loadAliases();
+    const { canon, json: aliasJson } = loadAliases();
+    // Flat, sorted (longest-normalized-key-first) alias list for extractRigFlies'
+    // free-text scan -- a different access pattern than canon()'s exact-match
+    // lookup, so built once here rather than duplicating fly-aliases.mjs's index.
+    const aliasIndex = [];
+    for (const [canonical, rec] of Object.entries(aliasJson.canonical)) {
+      for (const alias of rec.aliases) {
+        aliasIndex.push({ alias, normAlias: normKeyLocal(alias), canonical });
+      }
+    }
+    aliasIndex.sort((a, b) => b.normAlias.length - a.normAlias.length);
     const store = loadStore();
     const existingIds = new Set(store.reports.map((r) => r.id));
     const unmappedSeen = new Set(store._unmappedNames.map((u) => u.nameRaw));
@@ -727,7 +843,7 @@ function main() {
       let rec;
       try {
         rec = src.source === "BRO"
-          ? buildRecordBRO(src, html, canon, onUnmapped)
+          ? buildRecordBRO(src, html, canon, onUnmapped, aliasIndex)
           : buildRecord(src, html, canon, onUnmapped);
       } catch (err) {
         console.warn(`[warn] parse failed for ${src.key}: ${err.message}`);
@@ -857,6 +973,8 @@ export {
   parseBRODate,
   parseBROWaterTemp,
   parseBROTip,
+  normKeyLocal,
+  extractRigFlies,
   parseBROOutlook,
   parseBROTechnique,
   parseBROWaterCondition,
