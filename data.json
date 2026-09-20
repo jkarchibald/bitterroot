@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-20T19:35:04.410Z",
+  "generatedAt": "2026-09-20T22:33:00.789Z",
   "today": "2026-09-20",
   "timezone": "America/Denver",
   "constants": {
@@ -11,12 +11,12 @@
     "historyDays": 10,
     "forecastDays": 10,
     "thisYear": {
-      "start": "2026-09-10T19:32:37.336Z",
-      "end": "2026-09-20T19:32:37.336Z"
+      "start": "2026-09-10T22:32:40.131Z",
+      "end": "2026-09-20T22:32:40.131Z"
     },
     "lastYear": {
-      "start": "2025-09-10T19:32:37.336Z",
-      "end": "2025-09-30T19:32:37.336Z"
+      "start": "2025-09-10T22:32:40.131Z",
+      "end": "2025-09-30T22:32:40.131Z"
     }
   },
   "gauges": [
@@ -38,17 +38,17 @@
           "unit": "ft",
           "sensorCode": "Stage.working@76HB 09500",
           "latest": {
-            "value": 4.22,
-            "ts": "2026-09-20T12:15",
-            "tsUtc": "2026-09-20T11:15:00.000Z"
+            "value": 4.21,
+            "ts": "2026-09-20T15:15",
+            "tsUtc": "2026-09-20T14:15:00.000Z"
           },
           "thisYear": [
             {
               "date": "2026-09-10",
               "min": 4.2,
-              "max": 4.21,
+              "max": 4.2,
               "mean": 4.2,
-              "n": 17
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -108,10 +108,10 @@
             },
             {
               "date": "2026-09-20",
-              "min": 4.22,
+              "min": 4.21,
               "max": 4.24,
               "mean": 4.23,
-              "n": 46
+              "n": 58
             }
           ],
           "lastYear": [
@@ -120,7 +120,7 @@
               "min": 4.01,
               "max": 4.01,
               "mean": 4.01,
-              "n": 17
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -260,13 +260,13 @@
               "min": 4.02,
               "max": 4.13,
               "mean": 4.08,
-              "n": 79
+              "n": 91
             }
           ],
           "forecast": [
             {
               "date": "2026-09-21",
-              "mean": 4.23,
+              "mean": 4.22,
               "forecast": true
             },
             {
@@ -276,37 +276,37 @@
             },
             {
               "date": "2026-09-23",
-              "mean": 4.2,
-              "forecast": true
-            },
-            {
-              "date": "2026-09-24",
               "mean": 4.19,
               "forecast": true
             },
             {
-              "date": "2026-09-25",
+              "date": "2026-09-24",
               "mean": 4.18,
               "forecast": true
             },
             {
+              "date": "2026-09-25",
+              "mean": 4.17,
+              "forecast": true
+            },
+            {
               "date": "2026-09-26",
-              "mean": 4.17,
-              "forecast": true
-            },
-            {
-              "date": "2026-09-27",
-              "mean": 4.17,
-              "forecast": true
-            },
-            {
-              "date": "2026-09-28",
               "mean": 4.16,
               "forecast": true
             },
             {
-              "date": "2026-09-29",
+              "date": "2026-09-27",
+              "mean": 4.16,
+              "forecast": true
+            },
+            {
+              "date": "2026-09-28",
               "mean": 4.15,
+              "forecast": true
+            },
+            {
+              "date": "2026-09-29",
+              "mean": 4.14,
               "forecast": true
             }
           ]
@@ -315,17 +315,17 @@
           "unit": "cfs",
           "sensorCode": "Discharge.discharge@76HB 09500",
           "latest": {
-            "value": 55.54,
-            "ts": "2026-09-20T12:15",
-            "tsUtc": "2026-09-20T11:15:00.000Z"
+            "value": 54.3,
+            "ts": "2026-09-20T15:15",
+            "tsUtc": "2026-09-20T14:15:00.000Z"
           },
           "thisYear": [
             {
               "date": "2026-09-10",
               "min": 53.09,
-              "max": 54.3,
-              "mean": 53.45,
-              "n": 17
+              "max": 53.09,
+              "mean": 53.09,
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -385,10 +385,10 @@
             },
             {
               "date": "2026-09-20",
-              "min": 55.54,
+              "min": 54.3,
               "max": 58.09,
-              "mean": 57.17,
-              "n": 46
+              "mean": 56.82,
+              "n": 58
             }
           ],
           "lastYear": [
@@ -397,7 +397,7 @@
               "min": 31.56,
               "max": 31.56,
               "mean": 31.56,
-              "n": 17
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -536,54 +536,54 @@
               "date": "2025-09-30",
               "min": 32.25,
               "max": 42.03,
-              "mean": 36.87,
-              "n": 79
+              "mean": 37.49,
+              "n": 91
             }
           ],
           "forecast": [
             {
               "date": "2026-09-21",
-              "mean": 56.86,
+              "mean": 55.59,
               "forecast": true
             },
             {
               "date": "2026-09-22",
-              "mean": 54.88,
+              "mean": 53.66,
               "forecast": true
             },
             {
               "date": "2026-09-23",
-              "mean": 52.69,
+              "mean": 51.51,
               "forecast": true
             },
             {
               "date": "2026-09-24",
-              "mean": 51.81,
+              "mean": 50.65,
               "forecast": true
             },
             {
               "date": "2026-09-25",
-              "mean": 50.49,
+              "mean": 49.36,
               "forecast": true
             },
             {
               "date": "2026-09-26",
-              "mean": 49.61,
+              "mean": 48.51,
               "forecast": true
             },
             {
               "date": "2026-09-27",
-              "mean": 49.39,
+              "mean": 48.29,
               "forecast": true
             },
             {
               "date": "2026-09-28",
-              "mean": 48.52,
+              "mean": 47.43,
               "forecast": true
             },
             {
               "date": "2026-09-29",
-              "mean": 47.42,
+              "mean": 46.36,
               "forecast": true
             }
           ],
@@ -593,17 +593,17 @@
           "unit": "°F",
           "sensorCode": "Water Temp.water temp@76HB 09500",
           "latest": {
-            "value": 52.83,
-            "ts": "2026-09-20T12:15",
-            "tsUtc": "2026-09-20T11:15:00.000Z"
+            "value": 57.94,
+            "ts": "2026-09-20T15:15",
+            "tsUtc": "2026-09-20T14:15:00.000Z"
           },
           "thisYear": [
             {
               "date": "2026-09-10",
               "min": 57.49,
-              "max": 59.38,
-              "mean": 58.6,
-              "n": 17
+              "max": 58.08,
+              "mean": 57.79,
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -664,18 +664,18 @@
             {
               "date": "2026-09-20",
               "min": 50.22,
-              "max": 54.28,
-              "mean": 51.76,
-              "n": 46
+              "max": 57.94,
+              "mean": 52.61,
+              "n": 58
             }
           ],
           "lastYear": [
             {
               "date": "2025-09-10",
               "min": 60.96,
-              "max": 62.28,
-              "mean": 61.67,
-              "n": 17
+              "max": 61.39,
+              "mean": 61.17,
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -814,72 +814,72 @@
               "date": "2025-09-30",
               "min": 51.85,
               "max": 56.91,
-              "mean": 53.93,
-              "n": 79
+              "mean": 54.16,
+              "n": 91
             }
           ],
           "forecast": [
             {
               "date": "2026-09-21",
-              "mean": 55.9,
-              "min": 51.46,
-              "max": 60.29,
+              "mean": 56.58,
+              "min": 52.13,
+              "max": 61.71,
               "forecast": true
             },
             {
               "date": "2026-09-22",
-              "mean": 55.68,
-              "min": 51.24,
-              "max": 60.07,
+              "mean": 57.8,
+              "min": 53.35,
+              "max": 62.93,
               "forecast": true
             },
             {
               "date": "2026-09-23",
-              "mean": 55.11,
-              "min": 50.67,
-              "max": 59.5,
+              "mean": 55.85,
+              "min": 51.4,
+              "max": 60.98,
               "forecast": true
             },
             {
               "date": "2026-09-24",
-              "mean": 56.87,
-              "min": 52.43,
-              "max": 61.26,
+              "mean": 57.53,
+              "min": 53.08,
+              "max": 62.66,
               "forecast": true
             },
             {
               "date": "2026-09-25",
-              "mean": 49.63,
-              "min": 46.36,
-              "max": 53.14,
+              "mean": 50.64,
+              "min": 47.96,
+              "max": 53.73,
               "forecast": true
             },
             {
               "date": "2026-09-26",
-              "mean": 46.11,
-              "min": 44.44,
-              "max": 47.9,
+              "mean": 47.29,
+              "min": 45.62,
+              "max": 49.21,
               "forecast": true
             },
             {
               "date": "2026-09-27",
-              "mean": 48.01,
-              "min": 45.47,
-              "max": 50.73,
+              "mean": 49.1,
+              "min": 47.21,
+              "max": 51.29,
               "forecast": true
             },
             {
               "date": "2026-09-28",
-              "mean": 49.6,
-              "min": 46.34,
-              "max": 53.1,
+              "mean": 50.61,
+              "min": 47.94,
+              "max": 53.69,
               "forecast": true
             },
             {
               "date": "2026-09-29",
-              "mean": 46.48,
-              "min": 44.64,
-              "max": 48.45,
+              "mean": 47.64,
+              "min": 45.97,
+              "max": 49.56,
               "forecast": true
             }
           ]
@@ -2653,346 +2653,346 @@
           },
           {
             "t": "2026-09-20T12:00",
-            "tempF": 60.7,
+            "tempF": 60.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 905.7
+            "pressureHpa": 905.5
           },
           {
             "t": "2026-09-20T13:00",
-            "tempF": 64.9,
+            "tempF": 64.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 906.5
+            "pressureHpa": 905.9
           },
           {
             "t": "2026-09-20T14:00",
-            "tempF": 68.5,
+            "tempF": 67.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 906.5
+            "pressureHpa": 905.9
           },
           {
             "t": "2026-09-20T15:00",
-            "tempF": 71.2,
+            "tempF": 71.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 906.8
+            "pressureHpa": 906.4
           },
           {
             "t": "2026-09-20T16:00",
-            "tempF": 72.8,
+            "tempF": 72.6,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 906.3
           },
           {
             "t": "2026-09-20T17:00",
-            "tempF": 73.5,
+            "tempF": 73.3,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 906.2
           },
           {
             "t": "2026-09-20T18:00",
-            "tempF": 73,
+            "tempF": 72.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 906.2
+            "pressureHpa": 906.1
           },
           {
             "t": "2026-09-20T19:00",
-            "tempF": 69.5,
+            "tempF": 69.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 905.4
+            "pressureHpa": 904.8
           },
           {
             "t": "2026-09-20T20:00",
-            "tempF": 64.6,
+            "tempF": 64.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 904.4
+            "pressureHpa": 904.5
           },
           {
             "t": "2026-09-20T21:00",
             "tempF": 62.7,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 903.9
+            "pressureHpa": 904
           },
           {
             "t": "2026-09-20T22:00",
-            "tempF": 61.3,
+            "tempF": 60.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 903.4
+            "pressureHpa": 903.5
           },
           {
             "t": "2026-09-20T23:00",
-            "tempF": 60.4,
+            "tempF": 60.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 903.2
+            "pressureHpa": 903
           },
           {
             "t": "2026-09-21T00:00",
-            "tempF": 59,
+            "tempF": 58.9,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 902.5
           },
           {
             "t": "2026-09-21T01:00",
-            "tempF": 57.7,
+            "tempF": 58.4,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 902.2
           },
           {
             "t": "2026-09-21T02:00",
-            "tempF": 56.8,
+            "tempF": 57.4,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 901.7
+            "pressureHpa": 901.9
           },
           {
             "t": "2026-09-21T03:00",
+            "tempF": 56.3,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 901.8
+          },
+          {
+            "t": "2026-09-21T04:00",
             "tempF": 55.4,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 901.6
           },
           {
-            "t": "2026-09-21T04:00",
-            "tempF": 54.7,
+            "t": "2026-09-21T05:00",
+            "tempF": 54.8,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 901.6
           },
           {
-            "t": "2026-09-21T05:00",
-            "tempF": 54.3,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 901.5
-          },
-          {
             "t": "2026-09-21T06:00",
-            "tempF": 54.1,
+            "tempF": 54,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 901.6
           },
           {
             "t": "2026-09-21T07:00",
-            "tempF": 53.3,
+            "tempF": 53.4,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 901.5
+            "pressureHpa": 901.6
           },
           {
             "t": "2026-09-21T08:00",
-            "tempF": 52.8,
+            "tempF": 52.7,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 901.3
+            "pressureHpa": 901.6
           },
           {
             "t": "2026-09-21T09:00",
             "tempF": 56,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 902
+            "pressureHpa": 901.8
           },
           {
             "t": "2026-09-21T10:00",
-            "tempF": 61.6,
+            "tempF": 62.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 903
+            "pressureHpa": 903.2
           },
           {
             "t": "2026-09-21T11:00",
-            "tempF": 66.6,
+            "tempF": 66.7,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 904
+            "pressureHpa": 903.8
           },
           {
             "t": "2026-09-21T12:00",
-            "tempF": 70.1,
+            "tempF": 70.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 904.4
+            "pressureHpa": 904.1
           },
           {
             "t": "2026-09-21T13:00",
             "tempF": 73.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 904.4
+            "pressureHpa": 904
           },
           {
             "t": "2026-09-21T14:00",
-            "tempF": 76.1,
+            "tempF": 76,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 904.5
+            "pressureHpa": 904.1
           },
           {
             "t": "2026-09-21T15:00",
             "tempF": 78.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 904.4
+            "pressureHpa": 903.8
           },
           {
             "t": "2026-09-21T16:00",
             "tempF": 79.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 904
+            "pressureHpa": 903.3
           },
           {
             "t": "2026-09-21T17:00",
             "tempF": 79.5,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 903.4
+            "pressureHpa": 902.7
           },
           {
             "t": "2026-09-21T18:00",
-            "tempF": 78.9,
+            "tempF": 78.8,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 902.9
+            "pressureHpa": 902.4
           },
           {
             "t": "2026-09-21T19:00",
-            "tempF": 75,
+            "tempF": 74.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 902.1
+            "pressureHpa": 902
           },
           {
             "t": "2026-09-21T20:00",
-            "tempF": 70.4,
+            "tempF": 70.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 901.3
+            "pressureHpa": 900.9
           },
           {
             "t": "2026-09-21T21:00",
-            "tempF": 68.8,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 901.1
-          },
-          {
-            "t": "2026-09-21T22:00",
-            "tempF": 67.2,
+            "tempF": 68.7,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 900.6
           },
           {
-            "t": "2026-09-21T23:00",
-            "tempF": 65.9,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 900.4
-          },
-          {
-            "t": "2026-09-22T00:00",
-            "tempF": 64.9,
+            "t": "2026-09-21T22:00",
+            "tempF": 67.1,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 900.1
           },
           {
-            "t": "2026-09-22T01:00",
-            "tempF": 63.9,
+            "t": "2026-09-21T23:00",
+            "tempF": 66.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 899.7
+            "pressureHpa": 899.9
+          },
+          {
+            "t": "2026-09-22T00:00",
+            "tempF": 64.8,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 899.5
+          },
+          {
+            "t": "2026-09-22T01:00",
+            "tempF": 63.7,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 899
           },
           {
             "t": "2026-09-22T02:00",
-            "tempF": 62.6,
+            "tempF": 62.9,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 899.3
-          },
-          {
-            "t": "2026-09-22T03:00",
-            "tempF": 61.5,
-            "precipIn": 0,
-            "cloudPct": 99,
+            "cloudPct": 81,
             "pressureHpa": 898.8
           },
           {
-            "t": "2026-09-22T04:00",
-            "tempF": 58.9,
+            "t": "2026-09-22T03:00",
+            "tempF": 61.6,
             "precipIn": 0,
-            "cloudPct": 73,
-            "pressureHpa": 898.2
+            "cloudPct": 100,
+            "pressureHpa": 898.4
+          },
+          {
+            "t": "2026-09-22T04:00",
+            "tempF": 61.3,
+            "precipIn": 0,
+            "cloudPct": 85,
+            "pressureHpa": 898.4
           },
           {
             "t": "2026-09-22T05:00",
-            "tempF": 56.5,
+            "tempF": 60,
             "precipIn": 0,
-            "cloudPct": 57,
-            "pressureHpa": 897.8
-          },
-          {
-            "t": "2026-09-22T06:00",
-            "tempF": 54.1,
-            "precipIn": 0,
-            "cloudPct": 78,
-            "pressureHpa": 897.6
-          },
-          {
-            "t": "2026-09-22T07:00",
-            "tempF": 52.5,
-            "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 897.8
-          },
-          {
-            "t": "2026-09-22T08:00",
-            "tempF": 53.2,
-            "precipIn": 0,
-            "cloudPct": 98,
-            "pressureHpa": 898
-          },
-          {
-            "t": "2026-09-22T09:00",
-            "tempF": 58.8,
-            "precipIn": 0,
-            "cloudPct": 50,
+            "cloudPct": 92,
             "pressureHpa": 898.1
           },
           {
-            "t": "2026-09-22T10:00",
-            "tempF": 63.3,
+            "t": "2026-09-22T06:00",
+            "tempF": 58.8,
             "precipIn": 0,
-            "cloudPct": 95,
-            "pressureHpa": 897.8
+            "cloudPct": 100,
+            "pressureHpa": 898.1
+          },
+          {
+            "t": "2026-09-22T07:00",
+            "tempF": 57.7,
+            "precipIn": 0,
+            "cloudPct": 100,
+            "pressureHpa": 898.4
+          },
+          {
+            "t": "2026-09-22T08:00",
+            "tempF": 57.7,
+            "precipIn": 0,
+            "cloudPct": 100,
+            "pressureHpa": 898.5
+          },
+          {
+            "t": "2026-09-22T09:00",
+            "tempF": 59.6,
+            "precipIn": 0,
+            "cloudPct": 100,
+            "pressureHpa": 899.4
+          },
+          {
+            "t": "2026-09-22T10:00",
+            "tempF": 64.3,
+            "precipIn": 0,
+            "cloudPct": 99,
+            "pressureHpa": 900
           },
           {
             "t": "2026-09-22T11:00",
-            "tempF": 66.9,
+            "tempF": 68.1,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 897.6
+            "cloudPct": 97,
+            "pressureHpa": 899.8
           },
           {
             "t": "2026-09-22T12:00",
-            "tempF": 72,
+            "tempF": 72.4,
             "precipIn": 0,
             "cloudPct": 100,
-            "pressureHpa": 897.5
+            "pressureHpa": 898.9
           },
           {
             "t": "2026-09-22T13:00",
@@ -4331,7 +4331,7 @@
           },
           {
             "date": "2026-09-20",
-            "hiF": 73.5,
+            "hiF": 73.3,
             "loF": 44.2,
             "precipIn": 0,
             "sunrise": "2026-09-20T07:20",
@@ -4340,7 +4340,7 @@
           {
             "date": "2026-09-21",
             "hiF": 79.5,
-            "loF": 52.8,
+            "loF": 52.7,
             "precipIn": 0,
             "sunrise": "2026-09-21T07:22",
             "sunset": "2026-09-21T19:35"
@@ -4348,7 +4348,7 @@
           {
             "date": "2026-09-22",
             "hiF": 79,
-            "loF": 52.5,
+            "loF": 57.7,
             "precipIn": 0,
             "sunrise": "2026-09-22T07:23",
             "sunset": "2026-09-22T19:33"
@@ -4564,9 +4564,9 @@
           "unit": "ft",
           "sensorCode": "Stage.working@76HB 09600",
           "latest": {
-            "value": 1.65,
-            "ts": "2026-09-20T13:00",
-            "tsUtc": "2026-09-20T12:00:00.000Z"
+            "value": 1.64,
+            "ts": "2026-09-20T16:00",
+            "tsUtc": "2026-09-20T15:00:00.000Z"
           },
           "thisYear": [
             {
@@ -4574,7 +4574,7 @@
               "min": 1.61,
               "max": 1.62,
               "mean": 1.62,
-              "n": 17
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -4636,8 +4636,8 @@
               "date": "2026-09-20",
               "min": 1.64,
               "max": 1.66,
-              "mean": 1.66,
-              "n": 49
+              "mean": 1.65,
+              "n": 61
             }
           ],
           "lastYear": [
@@ -4646,7 +4646,7 @@
               "min": 1.13,
               "max": 1.13,
               "mean": 1.13,
-              "n": 17
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -4784,35 +4784,35 @@
             {
               "date": "2025-09-30",
               "min": 1.17,
-              "max": 1.33,
-              "mean": 1.27,
-              "n": 79
+              "max": 1.35,
+              "mean": 1.28,
+              "n": 91
             }
           ],
           "forecast": [
             {
               "date": "2026-09-21",
-              "mean": 1.77,
+              "mean": 1.75,
               "forecast": true
             },
             {
               "date": "2026-09-22",
-              "mean": 1.76,
+              "mean": 1.74,
               "forecast": true
             },
             {
               "date": "2026-09-23",
-              "mean": 1.73,
+              "mean": 1.72,
               "forecast": true
             },
             {
               "date": "2026-09-24",
-              "mean": 1.69,
+              "mean": 1.67,
               "forecast": true
             },
             {
               "date": "2026-09-25",
-              "mean": 1.65,
+              "mean": 1.64,
               "forecast": true
             },
             {
@@ -4841,17 +4841,17 @@
           "unit": "cfs",
           "sensorCode": "Discharge.discharge@76HB 09600",
           "latest": {
-            "value": 28.52,
-            "ts": "2026-09-20T13:00",
-            "tsUtc": "2026-09-20T12:00:00.000Z"
+            "value": 27.64,
+            "ts": "2026-09-20T16:00",
+            "tsUtc": "2026-09-20T15:00:00.000Z"
           },
           "thisYear": [
             {
               "date": "2026-09-10",
               "min": 25.08,
               "max": 25.91,
-              "mean": 25.82,
-              "n": 17
+              "mean": 25.58,
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -4913,8 +4913,8 @@
               "date": "2026-09-20",
               "min": 27.64,
               "max": 29.43,
-              "mean": 29.06,
-              "n": 49
+              "mean": 28.81,
+              "n": 61
             }
           ],
           "lastYear": [
@@ -4923,7 +4923,7 @@
               "min": 1.18,
               "max": 1.19,
               "mean": 1.18,
-              "n": 17
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -5061,55 +5061,55 @@
             {
               "date": "2025-09-30",
               "min": 1.71,
-              "max": 5.27,
-              "mean": 3.65,
-              "n": 79
+              "max": 5.92,
+              "mean": 3.9,
+              "n": 91
             }
           ],
           "forecast": [
             {
               "date": "2026-09-21",
-              "mean": 39.49,
+              "mean": 38.27,
               "forecast": true
             },
             {
               "date": "2026-09-22",
-              "mean": 38.39,
+              "mean": 37.21,
               "forecast": true
             },
             {
               "date": "2026-09-23",
-              "mean": 36.2,
+              "mean": 35.08,
               "forecast": true
             },
             {
               "date": "2026-09-24",
-              "mean": 31.81,
+              "mean": 30.83,
               "forecast": true
             },
             {
               "date": "2026-09-25",
-              "mean": 28.52,
+              "mean": 27.64,
               "forecast": true
             },
             {
               "date": "2026-09-26",
-              "mean": 17.55,
+              "mean": 17.01,
               "forecast": true
             },
             {
               "date": "2026-09-27",
-              "mean": 16.45,
+              "mean": 15.95,
               "forecast": true
             },
             {
               "date": "2026-09-28",
-              "mean": 13.16,
+              "mean": 12.76,
               "forecast": true
             },
             {
               "date": "2026-09-29",
-              "mean": 8.78,
+              "mean": 8.5,
               "forecast": true
             }
           ],
@@ -5119,17 +5119,17 @@
           "unit": "°F",
           "sensorCode": "Water Temp.water temp@76HB 09600",
           "latest": {
-            "value": 55.15,
-            "ts": "2026-09-20T13:00",
-            "tsUtc": "2026-09-20T12:00:00.000Z"
+            "value": 58.06,
+            "ts": "2026-09-20T16:00",
+            "tsUtc": "2026-09-20T15:00:00.000Z"
           },
           "thisYear": [
             {
               "date": "2026-09-10",
               "min": 60.24,
-              "max": 61.92,
-              "mean": 61.17,
-              "n": 17
+              "max": 60.71,
+              "mean": 60.48,
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -5190,18 +5190,18 @@
             {
               "date": "2026-09-20",
               "min": 53.17,
-              "max": 57.15,
-              "mean": 54.78,
-              "n": 49
+              "max": 58.06,
+              "mean": 55.16,
+              "n": 61
             }
           ],
           "lastYear": [
             {
               "date": "2025-09-10",
               "min": 64.9,
-              "max": 65.98,
-              "mean": 65.43,
-              "n": 17
+              "max": 65.17,
+              "mean": 65.04,
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -5340,72 +5340,72 @@
               "date": "2025-09-30",
               "min": 56.07,
               "max": 59.45,
-              "mean": 57.63,
-              "n": 79
+              "mean": 57.69,
+              "n": 91
             }
           ],
           "forecast": [
             {
               "date": "2026-09-21",
-              "mean": 58.66,
-              "min": 55.26,
-              "max": 61.87,
+              "mean": 59.11,
+              "min": 55.71,
+              "max": 62.32,
               "forecast": true
             },
             {
               "date": "2026-09-22",
-              "mean": 58.8,
-              "min": 55.4,
-              "max": 62.01,
+              "mean": 60.09,
+              "min": 56.69,
+              "max": 63.3,
               "forecast": true
             },
             {
               "date": "2026-09-23",
-              "mean": 57.93,
-              "min": 54.53,
-              "max": 61.14,
+              "mean": 58.27,
+              "min": 54.87,
+              "max": 61.48,
               "forecast": true
             },
             {
               "date": "2026-09-24",
-              "mean": 60.19,
-              "min": 56.79,
-              "max": 63.4,
+              "mean": 60.46,
+              "min": 57.06,
+              "max": 63.67,
               "forecast": true
             },
             {
               "date": "2026-09-25",
-              "mean": 52.44,
-              "min": 50.43,
-              "max": 54.65,
+              "mean": 52.95,
+              "min": 51.39,
+              "max": 54.69,
               "forecast": true
             },
             {
               "date": "2026-09-26",
-              "mean": 49.52,
-              "min": 48.17,
-              "max": 51.01,
+              "mean": 50.12,
+              "min": 48.79,
+              "max": 51.61,
               "forecast": true
             },
             {
               "date": "2026-09-27",
-              "mean": 50.76,
-              "min": 49.41,
-              "max": 52.25,
+              "mean": 51.32,
+              "min": 49.99,
+              "max": 52.81,
               "forecast": true
             },
             {
               "date": "2026-09-28",
-              "mean": 52.64,
-              "min": 50.51,
-              "max": 54.98,
+              "mean": 53.14,
+              "min": 51.45,
+              "max": 55.02,
               "forecast": true
             },
             {
               "date": "2026-09-29",
-              "mean": 49.66,
-              "min": 48.31,
-              "max": 51.15,
+              "mean": 50.26,
+              "min": 48.93,
+              "max": 51.75,
               "forecast": true
             }
           ]
@@ -7179,346 +7179,346 @@
           },
           {
             "t": "2026-09-20T12:00",
-            "tempF": 61.4,
+            "tempF": 61.1,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 910.3
+          },
+          {
+            "t": "2026-09-20T13:00",
+            "tempF": 64.8,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 910.7
+          },
+          {
+            "t": "2026-09-20T14:00",
+            "tempF": 68,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 910.5
           },
           {
-            "t": "2026-09-20T13:00",
-            "tempF": 65.3,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 911.1
-          },
-          {
-            "t": "2026-09-20T14:00",
-            "tempF": 68.9,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 911.1
-          },
-          {
             "t": "2026-09-20T15:00",
-            "tempF": 71.7,
+            "tempF": 71.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 911.4
+            "pressureHpa": 911
           },
           {
             "t": "2026-09-20T16:00",
-            "tempF": 73.3,
+            "tempF": 73.4,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 911
           },
           {
             "t": "2026-09-20T17:00",
-            "tempF": 74.2,
+            "tempF": 74,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 910.9
+            "pressureHpa": 910.8
           },
           {
             "t": "2026-09-20T18:00",
             "tempF": 73.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 910.8
+            "pressureHpa": 910.7
           },
           {
             "t": "2026-09-20T19:00",
             "tempF": 70.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 910
+            "pressureHpa": 909.4
           },
           {
             "t": "2026-09-20T20:00",
-            "tempF": 65,
+            "tempF": 65.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 909
+            "pressureHpa": 909.2
           },
           {
             "t": "2026-09-20T21:00",
-            "tempF": 63.7,
+            "tempF": 63.5,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 908.7
           },
           {
             "t": "2026-09-20T22:00",
-            "tempF": 62.1,
+            "tempF": 62,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 908.1
+            "pressureHpa": 908.3
           },
           {
             "t": "2026-09-20T23:00",
-            "tempF": 60.6,
+            "tempF": 60.8,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 907.8
           },
           {
             "t": "2026-09-21T00:00",
-            "tempF": 58.4,
+            "tempF": 58.2,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 907
           },
           {
             "t": "2026-09-21T01:00",
-            "tempF": 57.5,
+            "tempF": 57.8,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 906.8
+            "pressureHpa": 906.7
           },
           {
             "t": "2026-09-21T02:00",
-            "tempF": 56.3,
+            "tempF": 56.4,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 906.2
+            "pressureHpa": 906.4
           },
           {
             "t": "2026-09-21T03:00",
-            "tempF": 55.3,
+            "tempF": 56.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 906.3
+            "pressureHpa": 906.4
           },
           {
             "t": "2026-09-21T04:00",
-            "tempF": 54.6,
+            "tempF": 54.8,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 906.2
+            "pressureHpa": 906.1
           },
           {
             "t": "2026-09-21T05:00",
-            "tempF": 54.4,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 906.2
-          },
-          {
-            "t": "2026-09-21T06:00",
-            "tempF": 53.8,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 906.2
-          },
-          {
-            "t": "2026-09-21T07:00",
-            "tempF": 52.4,
+            "tempF": 53.9,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 906
           },
           {
-            "t": "2026-09-21T08:00",
-            "tempF": 51.2,
+            "t": "2026-09-21T06:00",
+            "tempF": 53.4,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 905.8
+            "pressureHpa": 906.1
+          },
+          {
+            "t": "2026-09-21T07:00",
+            "tempF": 52.7,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 906.1
+          },
+          {
+            "t": "2026-09-21T08:00",
+            "tempF": 51.8,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 906.2
           },
           {
             "t": "2026-09-21T09:00",
             "tempF": 55.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 906.6
+            "pressureHpa": 906.5
           },
           {
             "t": "2026-09-21T10:00",
-            "tempF": 61.8,
+            "tempF": 62.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 907.6
+            "pressureHpa": 907.8
           },
           {
             "t": "2026-09-21T11:00",
-            "tempF": 67.6,
+            "tempF": 67.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 908.7
+            "pressureHpa": 908.6
           },
           {
             "t": "2026-09-21T12:00",
             "tempF": 71.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 909.1
+            "pressureHpa": 908.8
           },
           {
             "t": "2026-09-21T13:00",
             "tempF": 74.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 909.1
+            "pressureHpa": 908.7
           },
           {
             "t": "2026-09-21T14:00",
             "tempF": 76.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 909.1
+            "pressureHpa": 908.7
           },
           {
             "t": "2026-09-21T15:00",
-            "tempF": 78.8,
+            "tempF": 78.7,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 908.9
+            "pressureHpa": 908.4
           },
           {
             "t": "2026-09-21T16:00",
             "tempF": 79.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 908.5
-          },
-          {
-            "t": "2026-09-21T17:00",
-            "tempF": 80.1,
-            "precipIn": 0,
-            "cloudPct": 0,
             "pressureHpa": 907.9
           },
           {
-            "t": "2026-09-21T18:00",
-            "tempF": 79.5,
+            "t": "2026-09-21T17:00",
+            "tempF": 80,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 907.4
+            "pressureHpa": 907.3
+          },
+          {
+            "t": "2026-09-21T18:00",
+            "tempF": 79.4,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 907
           },
           {
             "t": "2026-09-21T19:00",
-            "tempF": 75.5,
+            "tempF": 75.4,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 906.6
+            "pressureHpa": 906.5
           },
           {
             "t": "2026-09-21T20:00",
-            "tempF": 71.1,
+            "tempF": 70.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 905.9
+            "pressureHpa": 905.5
           },
           {
             "t": "2026-09-21T21:00",
-            "tempF": 69.6,
+            "tempF": 69.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 905.8
+            "pressureHpa": 905.2
           },
           {
             "t": "2026-09-21T22:00",
-            "tempF": 67.9,
+            "tempF": 67.8,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 905.3
+            "pressureHpa": 904.7
           },
           {
             "t": "2026-09-21T23:00",
-            "tempF": 65.6,
+            "tempF": 65.5,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 904.9
+            "pressureHpa": 904.2
           },
           {
             "t": "2026-09-22T00:00",
-            "tempF": 64.3,
+            "tempF": 64.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 904.5
+            "pressureHpa": 904
           },
           {
             "t": "2026-09-22T01:00",
             "tempF": 62.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 904.1
+            "pressureHpa": 903.5
           },
           {
             "t": "2026-09-22T02:00",
             "tempF": 61.4,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 903.6
-          },
-          {
-            "t": "2026-09-22T03:00",
-            "tempF": 60.1,
-            "precipIn": 0,
-            "cloudPct": 100,
+            "cloudPct": 73,
             "pressureHpa": 903.1
           },
           {
-            "t": "2026-09-22T04:00",
-            "tempF": 57.8,
-            "precipIn": 0,
-            "cloudPct": 70,
-            "pressureHpa": 902.6
-          },
-          {
-            "t": "2026-09-22T05:00",
-            "tempF": 55.5,
-            "precipIn": 0,
-            "cloudPct": 54,
-            "pressureHpa": 902.1
-          },
-          {
-            "t": "2026-09-22T06:00",
-            "tempF": 53.7,
-            "precipIn": 0,
-            "cloudPct": 62,
-            "pressureHpa": 902.2
-          },
-          {
-            "t": "2026-09-22T07:00",
-            "tempF": 52.4,
-            "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 902.4
-          },
-          {
-            "t": "2026-09-22T08:00",
-            "tempF": 53.1,
-            "precipIn": 0,
-            "cloudPct": 96,
-            "pressureHpa": 902.6
-          },
-          {
-            "t": "2026-09-22T09:00",
-            "tempF": 59,
-            "precipIn": 0,
-            "cloudPct": 50,
-            "pressureHpa": 902.9
-          },
-          {
-            "t": "2026-09-22T10:00",
-            "tempF": 64.8,
-            "precipIn": 0,
-            "cloudPct": 82,
-            "pressureHpa": 902.9
-          },
-          {
-            "t": "2026-09-22T11:00",
-            "tempF": 68.9,
+            "t": "2026-09-22T03:00",
+            "tempF": 59.9,
             "precipIn": 0,
             "cloudPct": 100,
             "pressureHpa": 902.7
           },
           {
-            "t": "2026-09-22T12:00",
-            "tempF": 73.6,
+            "t": "2026-09-22T04:00",
+            "tempF": 59.5,
+            "precipIn": 0,
+            "cloudPct": 79,
+            "pressureHpa": 902.6
+          },
+          {
+            "t": "2026-09-22T05:00",
+            "tempF": 58.8,
+            "precipIn": 0,
+            "cloudPct": 73,
+            "pressureHpa": 902.5
+          },
+          {
+            "t": "2026-09-22T06:00",
+            "tempF": 58,
             "precipIn": 0,
             "cloudPct": 100,
             "pressureHpa": 902.6
+          },
+          {
+            "t": "2026-09-22T07:00",
+            "tempF": 55.9,
+            "precipIn": 0,
+            "cloudPct": 100,
+            "pressureHpa": 902.6
+          },
+          {
+            "t": "2026-09-22T08:00",
+            "tempF": 56.2,
+            "precipIn": 0,
+            "cloudPct": 100,
+            "pressureHpa": 902.9
+          },
+          {
+            "t": "2026-09-22T09:00",
+            "tempF": 59,
+            "precipIn": 0,
+            "cloudPct": 100,
+            "pressureHpa": 903.8
+          },
+          {
+            "t": "2026-09-22T10:00",
+            "tempF": 64.5,
+            "precipIn": 0,
+            "cloudPct": 96,
+            "pressureHpa": 904.7
+          },
+          {
+            "t": "2026-09-22T11:00",
+            "tempF": 69.2,
+            "precipIn": 0,
+            "cloudPct": 100,
+            "pressureHpa": 904.6
+          },
+          {
+            "t": "2026-09-22T12:00",
+            "tempF": 73.7,
+            "precipIn": 0,
+            "cloudPct": 100,
+            "pressureHpa": 903.8
           },
           {
             "t": "2026-09-22T13:00",
@@ -8857,7 +8857,7 @@
           },
           {
             "date": "2026-09-20",
-            "hiF": 74.2,
+            "hiF": 74,
             "loF": 43.7,
             "precipIn": 0,
             "sunrise": "2026-09-20T07:20",
@@ -8865,8 +8865,8 @@
           },
           {
             "date": "2026-09-21",
-            "hiF": 80.1,
-            "loF": 51.2,
+            "hiF": 80,
+            "loF": 51.8,
             "precipIn": 0,
             "sunrise": "2026-09-21T07:22",
             "sunset": "2026-09-21T19:35"
@@ -8874,7 +8874,7 @@
           {
             "date": "2026-09-22",
             "hiF": 79.4,
-            "loF": 52.4,
+            "loF": 55.9,
             "precipIn": 0,
             "sunrise": "2026-09-22T07:23",
             "sunset": "2026-09-22T19:33"
@@ -9067,8 +9067,8 @@
       },
       "normal": {
         "flow": 3.27,
-        "stage": 1.27,
-        "watertemp": 57.63
+        "stage": 1.28,
+        "watertemp": 57.69
       },
       "drainageMi2": null
     },
@@ -9091,16 +9091,16 @@
           "sensorCode": "Stage.working@76H 1200",
           "latest": {
             "value": 2.12,
-            "ts": "2026-09-20T12:15",
-            "tsUtc": "2026-09-20T11:15:00.000Z"
+            "ts": "2026-09-20T15:15",
+            "tsUtc": "2026-09-20T14:15:00.000Z"
           },
           "thisYear": [
             {
               "date": "2026-09-10",
               "min": 2.07,
-              "max": 2.09,
-              "mean": 2.08,
-              "n": 17
+              "max": 2.08,
+              "mean": 2.07,
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -9163,7 +9163,7 @@
               "min": 2.11,
               "max": 2.15,
               "mean": 2.13,
-              "n": 46
+              "n": 58
             }
           ],
           "lastYear": [
@@ -9171,8 +9171,8 @@
               "date": "2025-09-10",
               "min": 1.9,
               "max": 1.91,
-              "mean": 1.91,
-              "n": 17
+              "mean": 1.9,
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -9311,8 +9311,8 @@
               "date": "2025-09-30",
               "min": 1.91,
               "max": 2.04,
-              "mean": 1.98,
-              "n": 79
+              "mean": 1.99,
+              "n": 91
             }
           ],
           "forecast": [
@@ -9368,16 +9368,16 @@
           "sensorCode": "Discharge.discharge@76H 1200",
           "latest": {
             "value": 46.52,
-            "ts": "2026-09-20T12:15",
-            "tsUtc": "2026-09-20T11:15:00.000Z"
+            "ts": "2026-09-20T15:15",
+            "tsUtc": "2026-09-20T14:15:00.000Z"
           },
           "thisYear": [
             {
               "date": "2026-09-10",
               "min": 40.35,
-              "max": 42.74,
-              "mean": 41.39,
-              "n": 17
+              "max": 41.53,
+              "mean": 40.82,
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -9439,17 +9439,17 @@
               "date": "2026-09-20",
               "min": 45.23,
               "max": 50.56,
-              "mean": 47.68,
-              "n": 46
+              "mean": 47.44,
+              "n": 58
             }
           ],
           "lastYear": [
             {
               "date": "2025-09-10",
               "min": 27.22,
-              "max": 28.11,
-              "mean": 27.9,
-              "n": 17
+              "max": 28.1,
+              "mean": 27.4,
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -9588,8 +9588,8 @@
               "date": "2025-09-30",
               "min": 27.69,
               "max": 41.2,
-              "mean": 34.75,
-              "n": 79
+              "mean": 35.24,
+              "n": 91
             }
           ],
           "forecast": [
@@ -9648,9 +9648,9 @@
           "thisYear": [
             {
               "date": "2026-09-10",
-              "mean": 59.2,
-              "min": 56.2,
-              "max": 62.2,
+              "mean": 58.3,
+              "min": 55.3,
+              "max": 61.3,
               "n": 0
             },
             {
@@ -9718,9 +9718,9 @@
             },
             {
               "date": "2026-09-20",
-              "mean": 52.4,
-              "min": 49.4,
-              "max": 55.4,
+              "mean": 53.17,
+              "min": 50.17,
+              "max": 56.17,
               "n": 0
             }
           ],
@@ -9728,73 +9728,73 @@
           "forecast": [
             {
               "date": "2026-09-21",
-              "mean": 56.1,
-              "min": 53.1,
-              "max": 59.1,
+              "mean": 56.72,
+              "min": 53.72,
+              "max": 59.72,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-22",
-              "mean": 55.83,
-              "min": 52.83,
-              "max": 58.83,
+              "mean": 57.12,
+              "min": 54.12,
+              "max": 60.12,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-23",
-              "mean": 55.45,
-              "min": 52.45,
-              "max": 58.45,
+              "mean": 56.22,
+              "min": 53.22,
+              "max": 59.22,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-24",
-              "mean": 57.23,
-              "min": 54.23,
-              "max": 60.23,
+              "mean": 58,
+              "min": 55,
+              "max": 61,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-25",
-              "mean": 52.1,
-              "min": 49.1,
-              "max": 55.1,
+              "mean": 52.87,
+              "min": 49.87,
+              "max": 55.87,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-26",
-              "mean": 50.2,
-              "min": 47.2,
-              "max": 53.2,
+              "mean": 50.97,
+              "min": 47.97,
+              "max": 53.97,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-27",
-              "mean": 53.28,
-              "min": 50.28,
-              "max": 56.28,
+              "mean": 54.05,
+              "min": 51.05,
+              "max": 57.05,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-28",
-              "mean": 49.4,
-              "min": 46.4,
-              "max": 52.4,
+              "mean": 50.17,
+              "min": 47.17,
+              "max": 53.17,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-29",
-              "mean": 47.46,
-              "min": 44.46,
-              "max": 50.46,
+              "mean": 48.23,
+              "min": 45.23,
+              "max": 51.23,
               "n": 0,
               "forecast": true
             }
@@ -11569,38 +11569,38 @@
           },
           {
             "t": "2026-09-20T12:00",
-            "tempF": 61.2,
+            "tempF": 61.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 861.1
+            "pressureHpa": 861.2
           },
           {
             "t": "2026-09-20T13:00",
-            "tempF": 63.8,
+            "tempF": 64.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 861.7
+            "pressureHpa": 861.6
           },
           {
             "t": "2026-09-20T14:00",
-            "tempF": 66.1,
+            "tempF": 66.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 861.9
+            "pressureHpa": 861.8
           },
           {
             "t": "2026-09-20T15:00",
-            "tempF": 68,
+            "tempF": 67.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 862.2
+            "pressureHpa": 861.5
           },
           {
             "t": "2026-09-20T16:00",
             "tempF": 69.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 861.8
+            "pressureHpa": 861.6
           },
           {
             "t": "2026-09-20T17:00",
@@ -11614,301 +11614,301 @@
             "tempF": 68.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 861.3
+            "pressureHpa": 861.4
           },
           {
             "t": "2026-09-20T19:00",
             "tempF": 65.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 860.2
+            "pressureHpa": 859.9
           },
           {
             "t": "2026-09-20T20:00",
-            "tempF": 59.1,
+            "tempF": 59.7,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 858.5
+            "pressureHpa": 858.9
           },
           {
             "t": "2026-09-20T21:00",
-            "tempF": 56.4,
+            "tempF": 57.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 857.8
+            "pressureHpa": 858.2
           },
           {
             "t": "2026-09-20T22:00",
-            "tempF": 55.5,
+            "tempF": 55.8,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 857.2
+            "pressureHpa": 857.5
           },
           {
             "t": "2026-09-20T23:00",
-            "tempF": 54.7,
+            "tempF": 54.9,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 857.1
           },
           {
             "t": "2026-09-21T00:00",
-            "tempF": 53.5,
+            "tempF": 54.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 856.5
+            "pressureHpa": 856.7
           },
           {
             "t": "2026-09-21T01:00",
-            "tempF": 52.6,
+            "tempF": 52.9,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 856.2
+          },
+          {
+            "t": "2026-09-21T02:00",
+            "tempF": 52.5,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 856.2
+          },
+          {
+            "t": "2026-09-21T03:00",
+            "tempF": 51.8,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 856.1
           },
           {
-            "t": "2026-09-21T02:00",
-            "tempF": 52.3,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 856
-          },
-          {
-            "t": "2026-09-21T03:00",
-            "tempF": 51.4,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 856
-          },
-          {
             "t": "2026-09-21T04:00",
-            "tempF": 50.5,
+            "tempF": 51.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 855.7
+            "pressureHpa": 855.8
           },
           {
             "t": "2026-09-21T05:00",
-            "tempF": 50.5,
+            "tempF": 51.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 855.7
+            "pressureHpa": 855.9
           },
           {
             "t": "2026-09-21T06:00",
-            "tempF": 50.8,
+            "tempF": 51,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 855.9
           },
           {
             "t": "2026-09-21T07:00",
-            "tempF": 51.4,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 856.1
-          },
-          {
-            "t": "2026-09-21T08:00",
             "tempF": 49.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 855.7
+            "pressureHpa": 855.6
+          },
+          {
+            "t": "2026-09-21T08:00",
+            "tempF": 50.3,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 856
           },
           {
             "t": "2026-09-21T09:00",
-            "tempF": 54.6,
+            "tempF": 54.8,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 857
+            "pressureHpa": 857.1
           },
           {
             "t": "2026-09-21T10:00",
             "tempF": 61,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 858.9
+            "pressureHpa": 859
           },
           {
             "t": "2026-09-21T11:00",
-            "tempF": 65.2,
+            "tempF": 65.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 860.2
+            "pressureHpa": 860
           },
           {
             "t": "2026-09-21T12:00",
-            "tempF": 68.3,
+            "tempF": 68.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 860.8
+            "pressureHpa": 860.5
           },
           {
             "t": "2026-09-21T13:00",
-            "tempF": 71.1,
+            "tempF": 70.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 860.8
+            "pressureHpa": 860.5
           },
           {
             "t": "2026-09-21T14:00",
-            "tempF": 73.4,
+            "tempF": 73.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 860.7
+            "pressureHpa": 860.3
           },
           {
             "t": "2026-09-21T15:00",
-            "tempF": 75.2,
+            "tempF": 75,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 860.2
+            "pressureHpa": 859.7
           },
           {
             "t": "2026-09-21T16:00",
-            "tempF": 76.2,
+            "tempF": 75.8,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 859.5
+            "pressureHpa": 858.9
           },
           {
             "t": "2026-09-21T17:00",
-            "tempF": 76.4,
+            "tempF": 75.8,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 858.7
+            "pressureHpa": 858.1
           },
           {
             "t": "2026-09-21T18:00",
-            "tempF": 75.1,
+            "tempF": 74.7,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 857.9
+            "pressureHpa": 857.6
           },
           {
             "t": "2026-09-21T19:00",
-            "tempF": 71.1,
+            "tempF": 70.8,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 856.9
           },
           {
             "t": "2026-09-21T20:00",
-            "tempF": 64.6,
+            "tempF": 64.4,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 855.4
+            "pressureHpa": 855.1
           },
           {
             "t": "2026-09-21T21:00",
-            "tempF": 61.3,
+            "tempF": 61.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 854.7
+            "pressureHpa": 854.3
           },
           {
             "t": "2026-09-21T22:00",
-            "tempF": 60.2,
+            "tempF": 60.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 854.4
-          },
-          {
-            "t": "2026-09-21T23:00",
-            "tempF": 59.4,
-            "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 854.2
-          },
-          {
-            "t": "2026-09-22T00:00",
-            "tempF": 58,
-            "precipIn": 0,
-            "cloudPct": 81,
             "pressureHpa": 853.8
           },
           {
-            "t": "2026-09-22T01:00",
-            "tempF": 57.6,
+            "t": "2026-09-21T23:00",
+            "tempF": 59.1,
             "precipIn": 0,
             "cloudPct": 100,
-            "pressureHpa": 853.6
+            "pressureHpa": 853.7
           },
           {
-            "t": "2026-09-22T02:00",
-            "tempF": 57.5,
+            "t": "2026-09-22T00:00",
+            "tempF": 58.3,
             "precipIn": 0,
             "cloudPct": 100,
             "pressureHpa": 853.5
           },
           {
-            "t": "2026-09-22T03:00",
-            "tempF": 55.1,
+            "t": "2026-09-22T01:00",
+            "tempF": 57.4,
             "precipIn": 0,
-            "cloudPct": 96,
-            "pressureHpa": 852.5
+            "cloudPct": 44,
+            "pressureHpa": 853.2
           },
           {
-            "t": "2026-09-22T04:00",
-            "tempF": 54.3,
-            "precipIn": 0,
-            "cloudPct": 62,
-            "pressureHpa": 852.3
-          },
-          {
-            "t": "2026-09-22T05:00",
-            "tempF": 52.2,
-            "precipIn": 0,
-            "cloudPct": 37,
-            "pressureHpa": 851.9
-          },
-          {
-            "t": "2026-09-22T06:00",
-            "tempF": 51.6,
-            "precipIn": 0,
-            "cloudPct": 81,
-            "pressureHpa": 852
-          },
-          {
-            "t": "2026-09-22T07:00",
-            "tempF": 50.8,
-            "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 852.3
-          },
-          {
-            "t": "2026-09-22T08:00",
-            "tempF": 52.1,
+            "t": "2026-09-22T02:00",
+            "tempF": 57.3,
             "precipIn": 0,
             "cloudPct": 100,
             "pressureHpa": 852.9
           },
           {
-            "t": "2026-09-22T09:00",
-            "tempF": 56.9,
+            "t": "2026-09-22T03:00",
+            "tempF": 55.3,
+            "precipIn": 0,
+            "cloudPct": 7,
+            "pressureHpa": 852.2
+          },
+          {
+            "t": "2026-09-22T04:00",
+            "tempF": 55.2,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 852.3
+          },
+          {
+            "t": "2026-09-22T05:00",
+            "tempF": 53.7,
+            "precipIn": 0,
+            "cloudPct": 4,
+            "pressureHpa": 852
+          },
+          {
+            "t": "2026-09-22T06:00",
+            "tempF": 52.9,
+            "precipIn": 0,
+            "cloudPct": 9,
+            "pressureHpa": 852.1
+          },
+          {
+            "t": "2026-09-22T07:00",
+            "tempF": 53.2,
+            "precipIn": 0,
+            "cloudPct": 99,
+            "pressureHpa": 852.7
+          },
+          {
+            "t": "2026-09-22T08:00",
+            "tempF": 55,
             "precipIn": 0,
             "cloudPct": 100,
-            "pressureHpa": 853.1
+            "pressureHpa": 853.5
+          },
+          {
+            "t": "2026-09-22T09:00",
+            "tempF": 57.5,
+            "precipIn": 0,
+            "cloudPct": 100,
+            "pressureHpa": 854.6
           },
           {
             "t": "2026-09-22T10:00",
-            "tempF": 62.5,
+            "tempF": 63.6,
             "precipIn": 0,
             "cloudPct": 100,
-            "pressureHpa": 853.3
+            "pressureHpa": 855.8
           },
           {
             "t": "2026-09-22T11:00",
-            "tempF": 66.7,
+            "tempF": 67.2,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 853.2
+            "cloudPct": 96,
+            "pressureHpa": 855.6
           },
           {
             "t": "2026-09-22T12:00",
             "tempF": 71.3,
             "precipIn": 0,
             "cloudPct": 100,
-            "pressureHpa": 853.4
+            "pressureHpa": 854.7
           },
           {
             "t": "2026-09-22T13:00",
@@ -13255,7 +13255,7 @@
           },
           {
             "date": "2026-09-21",
-            "hiF": 76.4,
+            "hiF": 75.8,
             "loF": 49.9,
             "precipIn": 0,
             "sunrise": "2026-09-21T07:23",
@@ -13264,7 +13264,7 @@
           {
             "date": "2026-09-22",
             "hiF": 74.4,
-            "loF": 50.8,
+            "loF": 52.9,
             "precipIn": 0.004,
             "sunrise": "2026-09-22T07:24",
             "sunset": "2026-09-22T19:34"
@@ -13480,9 +13480,9 @@
           "unit": "ft",
           "sensorCode": "Stage.working@76HE 09000",
           "latest": {
-            "value": 3.13,
-            "ts": "2026-09-20T11:00",
-            "tsUtc": "2026-09-20T10:00:00.000Z"
+            "value": 3.09,
+            "ts": "2026-09-20T15:00",
+            "tsUtc": "2026-09-20T14:00:00.000Z"
           },
           "thisYear": [
             {
@@ -13490,7 +13490,7 @@
               "min": 2.83,
               "max": 2.84,
               "mean": 2.84,
-              "n": 17
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -13550,10 +13550,10 @@
             },
             {
               "date": "2026-09-20",
-              "min": 3.13,
+              "min": 3.09,
               "max": 3.31,
-              "mean": 3.21,
-              "n": 41
+              "mean": 3.18,
+              "n": 57
             }
           ],
           "lastYear": [
@@ -13562,7 +13562,7 @@
               "min": 2.6,
               "max": 2.61,
               "mean": 2.6,
-              "n": 17
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -13702,53 +13702,53 @@
               "min": 2.58,
               "max": 2.65,
               "mean": 2.62,
-              "n": 79
+              "n": 91
             }
           ],
           "forecast": [
             {
               "date": "2026-09-21",
-              "mean": 3.33,
+              "mean": 3.29,
               "forecast": true
             },
             {
               "date": "2026-09-22",
-              "mean": 3.22,
+              "mean": 3.18,
               "forecast": true
             },
             {
               "date": "2026-09-23",
-              "mean": 3.06,
+              "mean": 3.03,
               "forecast": true
             },
             {
               "date": "2026-09-24",
-              "mean": 3,
-              "forecast": true
-            },
-            {
-              "date": "2026-09-25",
               "mean": 2.97,
               "forecast": true
             },
             {
-              "date": "2026-09-26",
-              "mean": 2.95,
-              "forecast": true
-            },
-            {
-              "date": "2026-09-27",
+              "date": "2026-09-25",
               "mean": 2.94,
               "forecast": true
             },
             {
-              "date": "2026-09-28",
+              "date": "2026-09-26",
               "mean": 2.93,
               "forecast": true
             },
             {
-              "date": "2026-09-29",
+              "date": "2026-09-27",
               "mean": 2.91,
+              "forecast": true
+            },
+            {
+              "date": "2026-09-28",
+              "mean": 2.9,
+              "forecast": true
+            },
+            {
+              "date": "2026-09-29",
+              "mean": 2.89,
               "forecast": true
             }
           ]
@@ -13757,17 +13757,17 @@
           "unit": "cfs",
           "sensorCode": "Discharge.discharge@76HE 09000",
           "latest": {
-            "value": 154.19,
-            "ts": "2026-09-20T11:00",
-            "tsUtc": "2026-09-20T10:00:00.000Z"
+            "value": 146.46,
+            "ts": "2026-09-20T14:00",
+            "tsUtc": "2026-09-20T13:00:00.000Z"
           },
           "thisYear": [
             {
               "date": "2026-09-10",
               "min": 89.99,
               "max": 91.71,
-              "mean": 91.4,
-              "n": 17
+              "mean": 91.02,
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -13827,10 +13827,10 @@
             },
             {
               "date": "2026-09-20",
-              "min": 154.19,
+              "min": 146.46,
               "max": 207.89,
-              "mean": 177.46,
-              "n": 41
+              "mean": 171.31,
+              "n": 53
             }
           ],
           "lastYear": [
@@ -13838,8 +13838,8 @@
               "date": "2025-09-10",
               "min": 51.57,
               "max": 52.66,
-              "mean": 52.08,
-              "n": 17
+              "mean": 52.01,
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -13978,54 +13978,54 @@
               "date": "2025-09-30",
               "min": 49.45,
               "max": 59.27,
-              "mean": 54.16,
-              "n": 79
+              "mean": 54.73,
+              "n": 91
             }
           ],
           "forecast": [
             {
               "date": "2026-09-21",
-              "mean": 214.56,
+              "mean": 203.81,
               "forecast": true
             },
             {
               "date": "2026-09-22",
-              "mean": 181.4,
+              "mean": 172.31,
               "forecast": true
             },
             {
               "date": "2026-09-23",
-              "mean": 141.15,
+              "mean": 134.08,
               "forecast": true
             },
             {
               "date": "2026-09-24",
-              "mean": 125.28,
+              "mean": 119,
               "forecast": true
             },
             {
               "date": "2026-09-25",
-              "mean": 119.61,
+              "mean": 113.61,
               "forecast": true
             },
             {
               "date": "2026-09-26",
-              "mean": 115.93,
+              "mean": 110.11,
               "forecast": true
             },
             {
               "date": "2026-09-27",
-              "mean": 113.09,
+              "mean": 107.42,
               "forecast": true
             },
             {
               "date": "2026-09-28",
-              "mean": 110.26,
+              "mean": 104.73,
               "forecast": true
             },
             {
               "date": "2026-09-29",
-              "mean": 107.42,
+              "mean": 102.04,
               "forecast": true
             }
           ],
@@ -14035,17 +14035,17 @@
           "unit": "°F",
           "sensorCode": "Water Temp.water temp@76HE 09000",
           "latest": {
-            "value": 50.85,
-            "ts": "2026-09-20T11:00",
-            "tsUtc": "2026-09-20T10:00:00.000Z"
+            "value": 57.81,
+            "ts": "2026-09-20T15:00",
+            "tsUtc": "2026-09-20T14:00:00.000Z"
           },
           "thisYear": [
             {
               "date": "2026-09-10",
               "min": 56.3,
-              "max": 59.61,
-              "mean": 57.84,
-              "n": 17
+              "max": 56.98,
+              "mean": 56.64,
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -14106,18 +14106,18 @@
             {
               "date": "2026-09-20",
               "min": 49.91,
-              "max": 51.91,
-              "mean": 50.66,
-              "n": 41
+              "max": 57.81,
+              "mean": 51.75,
+              "n": 57
             }
           ],
           "lastYear": [
             {
               "date": "2025-09-10",
               "min": 58.53,
-              "max": 60.96,
-              "mean": 59.66,
-              "n": 17
+              "max": 59.09,
+              "mean": 58.8,
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -14256,72 +14256,72 @@
               "date": "2025-09-30",
               "min": 53.65,
               "max": 57.42,
-              "mean": 55.74,
-              "n": 79
+              "mean": 55.77,
+              "n": 91
             }
           ],
           "forecast": [
             {
               "date": "2026-09-21",
-              "mean": 53.28,
-              "min": 47.86,
-              "max": 58.66,
+              "mean": 53.86,
+              "min": 48.46,
+              "max": 59.78,
               "forecast": true
             },
             {
               "date": "2026-09-22",
-              "mean": 53.88,
-              "min": 48.46,
-              "max": 59.26,
+              "mean": 55.14,
+              "min": 49.74,
+              "max": 61.06,
               "forecast": true
             },
             {
               "date": "2026-09-23",
-              "mean": 53.63,
-              "min": 48.21,
-              "max": 59.01,
+              "mean": 54.26,
+              "min": 48.86,
+              "max": 60.18,
               "forecast": true
             },
             {
               "date": "2026-09-24",
-              "mean": 54.77,
-              "min": 49.35,
-              "max": 60.15,
+              "mean": 55.26,
+              "min": 49.86,
+              "max": 61.18,
               "forecast": true
             },
             {
               "date": "2026-09-25",
-              "mean": 50.97,
-              "min": 46.38,
-              "max": 55.52,
+              "mean": 51.95,
+              "min": 48.09,
+              "max": 56.18,
               "forecast": true
             },
             {
               "date": "2026-09-26",
-              "mean": 48.6,
-              "min": 46.57,
-              "max": 50.62,
+              "mean": 49.89,
+              "min": 47.86,
+              "max": 52.11,
               "forecast": true
             },
             {
               "date": "2026-09-27",
-              "mean": 51.44,
-              "min": 46.34,
-              "max": 56.5,
+              "mean": 52.36,
+              "min": 47.95,
+              "max": 57.19,
               "forecast": true
             },
             {
               "date": "2026-09-28",
-              "mean": 48.95,
-              "min": 46.6,
-              "max": 51.29,
+              "mean": 50.2,
+              "min": 48.17,
+              "max": 52.42,
               "forecast": true
             },
             {
               "date": "2026-09-29",
-              "mean": 46.95,
-              "min": 44.92,
-              "max": 48.97,
+              "mean": 48.45,
+              "min": 46.42,
+              "max": 50.67,
               "forecast": true
             }
           ]
@@ -16095,122 +16095,122 @@
           },
           {
             "t": "2026-09-20T12:00",
-            "tempF": 60.6,
+            "tempF": 60.9,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 877.7
           },
           {
             "t": "2026-09-20T13:00",
-            "tempF": 62.9,
+            "tempF": 62.8,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 878.2
+            "pressureHpa": 877.9
           },
           {
             "t": "2026-09-20T14:00",
-            "tempF": 64.7,
+            "tempF": 64.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 878.1
+            "pressureHpa": 877.9
           },
           {
             "t": "2026-09-20T15:00",
             "tempF": 66,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 878.3
+            "pressureHpa": 877.6
           },
           {
             "t": "2026-09-20T16:00",
-            "tempF": 66.9,
+            "tempF": 67,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 878
+            "pressureHpa": 877.7
           },
           {
             "t": "2026-09-20T17:00",
-            "tempF": 67.1,
+            "tempF": 67.5,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 877.8
           },
           {
             "t": "2026-09-20T18:00",
-            "tempF": 66.2,
+            "tempF": 66.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 877.5
+            "pressureHpa": 877.6
           },
           {
             "t": "2026-09-20T19:00",
             "tempF": 64.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 876.7
+            "pressureHpa": 876.4
           },
           {
             "t": "2026-09-20T20:00",
-            "tempF": 61,
+            "tempF": 61.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 875.7
+            "pressureHpa": 876.1
           },
           {
             "t": "2026-09-20T21:00",
-            "tempF": 59.5,
+            "tempF": 59.8,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 875.4
+            "pressureHpa": 875.6
           },
           {
             "t": "2026-09-20T22:00",
-            "tempF": 58.6,
+            "tempF": 58.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 874.7
+            "pressureHpa": 875.1
           },
           {
             "t": "2026-09-20T23:00",
-            "tempF": 57.8,
+            "tempF": 58.2,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 874.7
           },
           {
             "t": "2026-09-21T00:00",
-            "tempF": 57.1,
+            "tempF": 57.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 874.2
+            "pressureHpa": 874.3
           },
           {
             "t": "2026-09-21T01:00",
-            "tempF": 55.8,
+            "tempF": 56,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 873.7
+            "pressureHpa": 873.8
           },
           {
             "t": "2026-09-21T02:00",
-            "tempF": 54.2,
+            "tempF": 54.4,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 873.2
+            "pressureHpa": 873.4
           },
           {
             "t": "2026-09-21T03:00",
-            "tempF": 53.3,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 873.2
-          },
-          {
-            "t": "2026-09-21T04:00",
-            "tempF": 52.8,
+            "tempF": 53.4,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 873.1
+          },
+          {
+            "t": "2026-09-21T04:00",
+            "tempF": 52.9,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 872.9
           },
           {
             "t": "2026-09-21T05:00",
@@ -16221,220 +16221,220 @@
           },
           {
             "t": "2026-09-21T06:00",
-            "tempF": 52.1,
+            "tempF": 52.2,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 873
           },
           {
             "t": "2026-09-21T07:00",
-            "tempF": 52,
+            "tempF": 51.8,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 873
           },
           {
             "t": "2026-09-21T08:00",
-            "tempF": 51.9,
+            "tempF": 51.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 872.9
+            "pressureHpa": 873.1
           },
           {
             "t": "2026-09-21T09:00",
-            "tempF": 55.4,
+            "tempF": 55.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 873.9
+            "pressureHpa": 873.8
           },
           {
             "t": "2026-09-21T10:00",
             "tempF": 60.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 875.3
+            "pressureHpa": 875.4
           },
           {
             "t": "2026-09-21T11:00",
             "tempF": 64.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 876.3
+            "pressureHpa": 876.2
           },
           {
             "t": "2026-09-21T12:00",
-            "tempF": 67.8,
+            "tempF": 67.4,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 876.9
+            "pressureHpa": 876.4
           },
           {
             "t": "2026-09-21T13:00",
-            "tempF": 69.7,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 876.8
-          },
-          {
-            "t": "2026-09-21T14:00",
-            "tempF": 71.5,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 876.7
-          },
-          {
-            "t": "2026-09-21T15:00",
-            "tempF": 73.3,
+            "tempF": 69.5,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 876.3
           },
           {
-            "t": "2026-09-21T16:00",
-            "tempF": 74.7,
+            "t": "2026-09-21T14:00",
+            "tempF": 71.3,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 876.3
+          },
+          {
+            "t": "2026-09-21T15:00",
+            "tempF": 73,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 875.8
           },
           {
-            "t": "2026-09-21T17:00",
-            "tempF": 75,
+            "t": "2026-09-21T16:00",
+            "tempF": 74.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 875
+            "pressureHpa": 875.1
           },
           {
-            "t": "2026-09-21T18:00",
-            "tempF": 74.6,
+            "t": "2026-09-21T17:00",
+            "tempF": 74.7,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 874.5
           },
           {
-            "t": "2026-09-21T19:00",
-            "tempF": 71.1,
+            "t": "2026-09-21T18:00",
+            "tempF": 74.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 873.6
+            "pressureHpa": 874.1
+          },
+          {
+            "t": "2026-09-21T19:00",
+            "tempF": 70.7,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 873.5
           },
           {
             "t": "2026-09-21T20:00",
-            "tempF": 67.4,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 872.8
-          },
-          {
-            "t": "2026-09-21T21:00",
-            "tempF": 65.6,
+            "tempF": 67,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 872.5
+          },
+          {
+            "t": "2026-09-21T21:00",
+            "tempF": 65.3,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 872
           },
           {
             "t": "2026-09-21T22:00",
             "tempF": 64.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 872
+            "pressureHpa": 871.5
           },
           {
             "t": "2026-09-21T23:00",
-            "tempF": 62.7,
+            "tempF": 62.8,
             "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 871.8
+            "cloudPct": 25,
+            "pressureHpa": 871.3
           },
           {
             "t": "2026-09-22T00:00",
-            "tempF": 61.4,
+            "tempF": 62,
             "precipIn": 0,
-            "cloudPct": 47,
-            "pressureHpa": 871.4
+            "cloudPct": 100,
+            "pressureHpa": 871.1
           },
           {
             "t": "2026-09-22T01:00",
-            "tempF": 58.8,
+            "tempF": 59.4,
             "precipIn": 0,
-            "cloudPct": 86,
-            "pressureHpa": 870.6
+            "cloudPct": 70,
+            "pressureHpa": 870.3
           },
           {
             "t": "2026-09-22T02:00",
-            "tempF": 57.5,
+            "tempF": 57.4,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 870
+            "cloudPct": 30,
+            "pressureHpa": 869.6
           },
           {
             "t": "2026-09-22T03:00",
-            "tempF": 56.8,
+            "tempF": 56.5,
             "precipIn": 0,
-            "cloudPct": 83,
-            "pressureHpa": 869.7
-          },
-          {
-            "t": "2026-09-22T04:00",
-            "tempF": 56.3,
-            "precipIn": 0,
-            "cloudPct": 84,
-            "pressureHpa": 869.4
-          },
-          {
-            "t": "2026-09-22T05:00",
-            "tempF": 54.8,
-            "precipIn": 0,
-            "cloudPct": 56,
+            "cloudPct": 17,
             "pressureHpa": 869.2
           },
           {
-            "t": "2026-09-22T06:00",
-            "tempF": 53,
+            "t": "2026-09-22T04:00",
+            "tempF": 56.4,
             "precipIn": 0,
-            "cloudPct": 48,
-            "pressureHpa": 869.1
+            "cloudPct": 3,
+            "pressureHpa": 869.2
           },
           {
-            "t": "2026-09-22T07:00",
-            "tempF": 52.5,
+            "t": "2026-09-22T05:00",
+            "tempF": 57,
             "precipIn": 0,
-            "cloudPct": 100,
+            "cloudPct": 13,
             "pressureHpa": 869.4
           },
           {
-            "t": "2026-09-22T08:00",
-            "tempF": 53,
+            "t": "2026-09-22T06:00",
+            "tempF": 57,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 869.7
+            "cloudPct": 32,
+            "pressureHpa": 869.6
           },
           {
-            "t": "2026-09-22T09:00",
-            "tempF": 58,
+            "t": "2026-09-22T07:00",
+            "tempF": 56.9,
             "precipIn": 0,
-            "cloudPct": 100,
+            "cloudPct": 67,
             "pressureHpa": 870
           },
           {
-            "t": "2026-09-22T10:00",
-            "tempF": 64.7,
+            "t": "2026-09-22T08:00",
+            "tempF": 57.7,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 870.4
+            "cloudPct": 98,
+            "pressureHpa": 870.6
+          },
+          {
+            "t": "2026-09-22T09:00",
+            "tempF": 58.7,
+            "precipIn": 0,
+            "cloudPct": 98,
+            "pressureHpa": 871.2
+          },
+          {
+            "t": "2026-09-22T10:00",
+            "tempF": 63.9,
+            "precipIn": 0,
+            "cloudPct": 96,
+            "pressureHpa": 872.2
           },
           {
             "t": "2026-09-22T11:00",
-            "tempF": 70.6,
+            "tempF": 69.3,
             "precipIn": 0,
             "cloudPct": 100,
-            "pressureHpa": 870.8
+            "pressureHpa": 872.5
           },
           {
             "t": "2026-09-22T12:00",
-            "tempF": 74.1,
+            "tempF": 73.2,
             "precipIn": 0,
             "cloudPct": 100,
-            "pressureHpa": 870.4
+            "pressureHpa": 871.6
           },
           {
             "t": "2026-09-22T13:00",
@@ -17773,7 +17773,7 @@
           },
           {
             "date": "2026-09-20",
-            "hiF": 67.1,
+            "hiF": 67.5,
             "loF": 46.3,
             "precipIn": 0,
             "sunrise": "2026-09-20T07:21",
@@ -17781,8 +17781,8 @@
           },
           {
             "date": "2026-09-21",
-            "hiF": 75,
-            "loF": 51.9,
+            "hiF": 74.7,
+            "loF": 51.6,
             "precipIn": 0,
             "sunrise": "2026-09-21T07:22",
             "sunset": "2026-09-21T19:35"
@@ -17790,7 +17790,7 @@
           {
             "date": "2026-09-22",
             "hiF": 77.5,
-            "loF": 52.5,
+            "loF": 56.4,
             "precipIn": 0,
             "sunrise": "2026-09-22T07:23",
             "sunset": "2026-09-22T19:33"
@@ -17982,7 +17982,7 @@
         ]
       },
       "normal": {
-        "flow": 54.16,
+        "flow": 54.35,
         "stage": 2.62,
         "watertemp": 55.53
       },
@@ -18006,8 +18006,8 @@
           "unit": "cfs",
           "latest": {
             "value": 259,
-            "ts": "2026-09-20T12:15",
-            "tsUtc": "2026-09-20T18:15:00.000Z"
+            "ts": "2026-09-20T15:15",
+            "tsUtc": "2026-09-20T21:15:00.000Z"
           },
           "thisYear": [
             {
@@ -18015,7 +18015,7 @@
               "min": 327,
               "max": 327,
               "mean": 327,
-              "n": 17
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -18084,8 +18084,8 @@
               "date": "2026-09-20",
               "min": 259,
               "max": 263,
-              "mean": 260.92,
-              "n": 50
+              "mean": 260.61,
+              "n": 62
             }
           ],
           "lastYear": [
@@ -18093,8 +18093,8 @@
               "date": "2025-09-10",
               "min": 269,
               "max": 278,
-              "mean": 274.65,
-              "n": 17
+              "mean": 275.4,
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -18233,8 +18233,8 @@
               "date": "2025-09-30",
               "min": 51.4,
               "max": 52.9,
-              "mean": 51.46,
-              "n": 79
+              "mean": 51.45,
+              "n": 91
             }
           ],
           "forecast": [
@@ -18290,8 +18290,8 @@
           "unit": "ft",
           "latest": {
             "value": 1.91,
-            "ts": "2026-09-20T12:15",
-            "tsUtc": "2026-09-20T18:15:00.000Z"
+            "ts": "2026-09-20T15:15",
+            "tsUtc": "2026-09-20T21:15:00.000Z"
           },
           "thisYear": [
             {
@@ -18299,7 +18299,7 @@
               "min": 2.06,
               "max": 2.06,
               "mean": 2.06,
-              "n": 17
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -18369,7 +18369,7 @@
               "min": 1.91,
               "max": 1.92,
               "mean": 1.91,
-              "n": 50
+              "n": 62
             }
           ],
           "lastYear": [
@@ -18378,7 +18378,7 @@
               "min": 1.93,
               "max": 1.95,
               "mean": 1.94,
-              "n": 17
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -18518,7 +18518,7 @@
               "min": 1.11,
               "max": 1.12,
               "mean": 1.11,
-              "n": 79
+              "n": 91
             }
           ],
           "forecast": [
@@ -18576,9 +18576,9 @@
           "thisYear": [
             {
               "date": "2026-09-10",
-              "mean": 52.92,
-              "min": 49.92,
-              "max": 55.92,
+              "mean": 52.32,
+              "min": 49.32,
+              "max": 55.32,
               "n": 0
             },
             {
@@ -18646,9 +18646,9 @@
             },
             {
               "date": "2026-09-20",
-              "mean": 49.33,
-              "min": 46.33,
-              "max": 52.33,
+              "mean": 49.88,
+              "min": 46.88,
+              "max": 52.88,
               "n": 0
             }
           ],
@@ -18656,73 +18656,73 @@
           "forecast": [
             {
               "date": "2026-09-21",
-              "mean": 50.64,
-              "min": 47.64,
-              "max": 53.64,
+              "mean": 50.93,
+              "min": 47.93,
+              "max": 53.93,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-22",
-              "mean": 50.94,
-              "min": 47.94,
-              "max": 53.94,
+              "mean": 51.57,
+              "min": 48.57,
+              "max": 54.57,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-23",
-              "mean": 50.82,
-              "min": 47.82,
-              "max": 53.82,
+              "mean": 51.13,
+              "min": 48.13,
+              "max": 54.13,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-24",
-              "mean": 51.39,
-              "min": 48.39,
-              "max": 54.39,
+              "mean": 51.63,
+              "min": 48.63,
+              "max": 54.63,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-25",
-              "mean": 49.49,
-              "min": 46.49,
-              "max": 52.49,
+              "mean": 49.98,
+              "min": 46.98,
+              "max": 52.98,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-26",
-              "mean": 48.3,
-              "min": 45.3,
-              "max": 51.3,
+              "mean": 48.95,
+              "min": 45.95,
+              "max": 51.95,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-27",
-              "mean": 49.72,
-              "min": 46.72,
-              "max": 52.72,
+              "mean": 50.18,
+              "min": 47.18,
+              "max": 53.18,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-28",
-              "mean": 48.48,
-              "min": 45.48,
-              "max": 51.48,
+              "mean": 49.1,
+              "min": 46.1,
+              "max": 52.1,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-29",
-              "mean": 46.95,
-              "min": 43.95,
-              "max": 49.95,
+              "mean": 48.23,
+              "min": 45.23,
+              "max": 51.23,
               "n": 0,
               "forecast": true
             }
@@ -20497,38 +20497,38 @@
           },
           {
             "t": "2026-09-20T12:00",
-            "tempF": 60.4,
+            "tempF": 61.4,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 862.4
+            "pressureHpa": 862.5
           },
           {
             "t": "2026-09-20T13:00",
-            "tempF": 63.1,
+            "tempF": 63.7,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 863
           },
           {
             "t": "2026-09-20T14:00",
-            "tempF": 65.1,
+            "tempF": 65.5,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 863.1
           },
           {
             "t": "2026-09-20T15:00",
-            "tempF": 66.6,
+            "tempF": 66.4,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 863.3
+            "pressureHpa": 862.6
           },
           {
             "t": "2026-09-20T16:00",
             "tempF": 67.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 863
+            "pressureHpa": 862.6
           },
           {
             "t": "2026-09-20T17:00",
@@ -20539,87 +20539,87 @@
           },
           {
             "t": "2026-09-20T18:00",
-            "tempF": 67,
+            "tempF": 67.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 862.5
+            "pressureHpa": 862.6
           },
           {
             "t": "2026-09-20T19:00",
-            "tempF": 62.9,
+            "tempF": 63.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 861.1
+            "pressureHpa": 860.8
           },
           {
             "t": "2026-09-20T20:00",
-            "tempF": 58.7,
+            "tempF": 58.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 859.9
+            "pressureHpa": 860.3
           },
           {
             "t": "2026-09-20T21:00",
-            "tempF": 57,
+            "tempF": 57.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 859.4
+            "pressureHpa": 859.6
           },
           {
             "t": "2026-09-20T22:00",
-            "tempF": 55,
+            "tempF": 55.7,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 858.5
+            "pressureHpa": 859
           },
           {
             "t": "2026-09-20T23:00",
-            "tempF": 54.4,
+            "tempF": 53.7,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 858.6
+            "pressureHpa": 858.3
           },
           {
             "t": "2026-09-21T00:00",
-            "tempF": 53.4,
+            "tempF": 53.8,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 857.9
+            "pressureHpa": 858.1
           },
           {
             "t": "2026-09-21T01:00",
-            "tempF": 52.5,
+            "tempF": 52.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 857.6
+            "pressureHpa": 857.7
           },
           {
             "t": "2026-09-21T02:00",
-            "tempF": 51.4,
+            "tempF": 51.7,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 857.2
+            "pressureHpa": 857.4
           },
           {
             "t": "2026-09-21T03:00",
-            "tempF": 52,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 857.5
-          },
-          {
-            "t": "2026-09-21T04:00",
             "tempF": 51.6,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 857.4
           },
           {
-            "t": "2026-09-21T05:00",
-            "tempF": 51.7,
+            "t": "2026-09-21T04:00",
+            "tempF": 51.9,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 857.5
+          },
+          {
+            "t": "2026-09-21T05:00",
+            "tempF": 52.2,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 857.6
           },
           {
             "t": "2026-09-21T06:00",
@@ -20637,206 +20637,206 @@
           },
           {
             "t": "2026-09-21T08:00",
-            "tempF": 50.7,
+            "tempF": 50.1,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 857.3
           },
           {
             "t": "2026-09-21T09:00",
-            "tempF": 53,
+            "tempF": 52.5,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 858.1
+            "pressureHpa": 857.9
           },
           {
             "t": "2026-09-21T10:00",
-            "tempF": 59.7,
+            "tempF": 59.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 859.9
+            "pressureHpa": 860.1
           },
           {
             "t": "2026-09-21T11:00",
-            "tempF": 64.4,
+            "tempF": 64.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 861.4
+            "pressureHpa": 861.2
           },
           {
             "t": "2026-09-21T12:00",
-            "tempF": 67.7,
+            "tempF": 67.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 862.1
+            "pressureHpa": 861.6
           },
           {
             "t": "2026-09-21T13:00",
-            "tempF": 70,
+            "tempF": 69.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 862
+            "pressureHpa": 861.6
           },
           {
             "t": "2026-09-21T14:00",
-            "tempF": 72.3,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 861.9
-          },
-          {
-            "t": "2026-09-21T15:00",
-            "tempF": 73.9,
+            "tempF": 71.9,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 861.4
           },
           {
-            "t": "2026-09-21T16:00",
-            "tempF": 75,
+            "t": "2026-09-21T15:00",
+            "tempF": 73.5,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 860.7
+            "pressureHpa": 860.9
+          },
+          {
+            "t": "2026-09-21T16:00",
+            "tempF": 74.7,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 860.1
           },
           {
             "t": "2026-09-21T17:00",
-            "tempF": 75,
+            "tempF": 74.8,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 859.9
+            "pressureHpa": 859.3
           },
           {
             "t": "2026-09-21T18:00",
-            "tempF": 73.6,
+            "tempF": 73.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 859
+            "pressureHpa": 858.8
           },
           {
             "t": "2026-09-21T19:00",
-            "tempF": 69.7,
+            "tempF": 69.6,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 858.1
           },
           {
             "t": "2026-09-21T20:00",
-            "tempF": 64.4,
+            "tempF": 64.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 856.9
+            "pressureHpa": 856.6
           },
           {
             "t": "2026-09-21T21:00",
-            "tempF": 62.3,
+            "tempF": 62.4,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 856.5
+            "pressureHpa": 856.2
           },
           {
             "t": "2026-09-21T22:00",
-            "tempF": 60.3,
+            "tempF": 60.4,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 855.9
+            "pressureHpa": 855.5
           },
           {
             "t": "2026-09-21T23:00",
-            "tempF": 58.8,
+            "tempF": 58.6,
             "precipIn": 0,
-            "cloudPct": 47,
-            "pressureHpa": 855.6
+            "cloudPct": 100,
+            "pressureHpa": 855
           },
           {
             "t": "2026-09-22T00:00",
-            "tempF": 57.8,
-            "precipIn": 0,
-            "cloudPct": 84,
-            "pressureHpa": 855.3
-          },
-          {
-            "t": "2026-09-22T01:00",
-            "tempF": 56.8,
-            "precipIn": 0,
-            "cloudPct": 22,
-            "pressureHpa": 854.9
-          },
-          {
-            "t": "2026-09-22T02:00",
-            "tempF": 57.1,
+            "tempF": 57.5,
             "precipIn": 0,
             "cloudPct": 100,
             "pressureHpa": 854.8
           },
           {
-            "t": "2026-09-22T03:00",
-            "tempF": 57.4,
+            "t": "2026-09-22T01:00",
+            "tempF": 56.6,
             "precipIn": 0,
-            "cloudPct": 98,
-            "pressureHpa": 854.6
+            "cloudPct": 7,
+            "pressureHpa": 854.4
+          },
+          {
+            "t": "2026-09-22T02:00",
+            "tempF": 56.5,
+            "precipIn": 0,
+            "cloudPct": 100,
+            "pressureHpa": 854.1
+          },
+          {
+            "t": "2026-09-22T03:00",
+            "tempF": 56.8,
+            "precipIn": 0,
+            "cloudPct": 26,
+            "pressureHpa": 854.1
           },
           {
             "t": "2026-09-22T04:00",
-            "tempF": 54.8,
+            "tempF": 55.6,
             "precipIn": 0,
-            "cloudPct": 75,
+            "cloudPct": 0,
             "pressureHpa": 853.9
           },
           {
             "t": "2026-09-22T05:00",
-            "tempF": 53.8,
+            "tempF": 55.8,
             "precipIn": 0,
-            "cloudPct": 54,
-            "pressureHpa": 853.8
+            "cloudPct": 5,
+            "pressureHpa": 854
           },
           {
             "t": "2026-09-22T06:00",
-            "tempF": 52.5,
+            "tempF": 55,
             "precipIn": 0,
-            "cloudPct": 82,
-            "pressureHpa": 853.8
+            "cloudPct": 6,
+            "pressureHpa": 854.1
           },
           {
             "t": "2026-09-22T07:00",
-            "tempF": 51.4,
+            "tempF": 55.4,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 853.9
+            "cloudPct": 87,
+            "pressureHpa": 854.7
           },
           {
             "t": "2026-09-22T08:00",
-            "tempF": 52.1,
+            "tempF": 54.9,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 854.4
+            "cloudPct": 99,
+            "pressureHpa": 854.9
           },
           {
             "t": "2026-09-22T09:00",
-            "tempF": 57,
+            "tempF": 57.2,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 854.6
+            "cloudPct": 84,
+            "pressureHpa": 855.9
           },
           {
             "t": "2026-09-22T10:00",
-            "tempF": 62.8,
+            "tempF": 62.9,
             "precipIn": 0,
             "cloudPct": 100,
-            "pressureHpa": 854.8
+            "pressureHpa": 857.1
           },
           {
             "t": "2026-09-22T11:00",
-            "tempF": 67.3,
+            "tempF": 67,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 854.8
+            "cloudPct": 90,
+            "pressureHpa": 857
           },
           {
             "t": "2026-09-22T12:00",
-            "tempF": 71,
+            "tempF": 70.7,
             "precipIn": 0,
             "cloudPct": 100,
-            "pressureHpa": 854.7
+            "pressureHpa": 856
           },
           {
             "t": "2026-09-22T13:00",
@@ -22183,8 +22183,8 @@
           },
           {
             "date": "2026-09-21",
-            "hiF": 75,
-            "loF": 50.7,
+            "hiF": 74.8,
+            "loF": 50.1,
             "precipIn": 0,
             "sunrise": "2026-09-21T07:23",
             "sunset": "2026-09-21T19:36"
@@ -22192,7 +22192,7 @@
           {
             "date": "2026-09-22",
             "hiF": 74.5,
-            "loF": 51.4,
+            "loF": 54.9,
             "precipIn": 0,
             "sunrise": "2026-09-22T07:24",
             "sunset": "2026-09-22T19:34"
@@ -22384,7 +22384,7 @@
         ]
       },
       "normal": {
-        "flow": 245.54500000000002,
+        "flow": 245.39,
         "stage": 1.8599999999999999,
         "watertemp": 51.28
       },
@@ -22407,17 +22407,17 @@
         "flow": {
           "unit": "cfs",
           "latest": {
-            "value": 587,
-            "ts": "2026-09-20T13:15",
-            "tsUtc": "2026-09-20T19:15:00.000Z"
+            "value": 570,
+            "ts": "2026-09-20T16:15",
+            "tsUtc": "2026-09-20T22:15:00.000Z"
           },
           "thisYear": [
             {
               "date": "2026-09-10",
               "min": 505,
-              "max": 510,
-              "mean": 507.65,
-              "n": 17
+              "max": 505,
+              "mean": 505,
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -22484,19 +22484,19 @@
             },
             {
               "date": "2026-09-20",
-              "min": 587,
+              "min": 570,
               "max": 693,
-              "mean": 637.54,
-              "n": 54
+              "mean": 626.83,
+              "n": 66
             }
           ],
           "lastYear": [
             {
               "date": "2025-09-10",
-              "min": 357,
+              "min": 362,
               "max": 366,
-              "mean": 358.71,
-              "n": 17
+              "mean": 362.8,
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -22634,55 +22634,55 @@
             {
               "date": "2025-09-30",
               "min": 130,
-              "max": 161,
-              "mean": 149.22,
-              "n": 79
+              "max": 164,
+              "mean": 151,
+              "n": 91
             }
           ],
           "forecast": [
             {
               "date": "2026-09-21",
-              "mean": 587,
+              "mean": 570,
               "forecast": true
             },
             {
               "date": "2026-09-22",
-              "mean": 431.21,
+              "mean": 418.72,
               "forecast": true
             },
             {
               "date": "2026-09-23",
-              "mean": 317.15,
+              "mean": 307.96,
               "forecast": true
             },
             {
               "date": "2026-09-24",
-              "mean": 253.16,
+              "mean": 245.83,
               "forecast": true
             },
             {
               "date": "2026-09-25",
-              "mean": 233.69,
+              "mean": 226.92,
               "forecast": true
             },
             {
               "date": "2026-09-26",
-              "mean": 222.56,
+              "mean": 216.11,
               "forecast": true
             },
             {
               "date": "2026-09-27",
-              "mean": 214.21,
+              "mean": 208.01,
               "forecast": true
             },
             {
               "date": "2026-09-28",
-              "mean": 205.87,
+              "mean": 199.91,
               "forecast": true
             },
             {
               "date": "2026-09-29",
-              "mean": 203.09,
+              "mean": 197.2,
               "forecast": true
             }
           ],
@@ -22691,17 +22691,17 @@
         "stage": {
           "unit": "ft",
           "latest": {
-            "value": 2.5,
-            "ts": "2026-09-20T13:15",
-            "tsUtc": "2026-09-20T19:15:00.000Z"
+            "value": 2.47,
+            "ts": "2026-09-20T16:15",
+            "tsUtc": "2026-09-20T22:15:00.000Z"
           },
           "thisYear": [
             {
               "date": "2026-09-10",
               "min": 2.35,
-              "max": 2.36,
-              "mean": 2.36,
-              "n": 17
+              "max": 2.35,
+              "mean": 2.35,
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -22768,19 +22768,19 @@
             },
             {
               "date": "2026-09-20",
-              "min": 2.5,
+              "min": 2.47,
               "max": 2.68,
-              "mean": 2.59,
-              "n": 54
+              "mean": 2.57,
+              "n": 66
             }
           ],
           "lastYear": [
             {
               "date": "2025-09-10",
-              "min": 1.99,
+              "min": 2,
               "max": 2.01,
-              "mean": 1.99,
-              "n": 17
+              "mean": 2,
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -22918,55 +22918,55 @@
             {
               "date": "2025-09-30",
               "min": 1.32,
-              "max": 1.44,
-              "mean": 1.39,
-              "n": 79
+              "max": 1.45,
+              "mean": 1.4,
+              "n": 91
             }
           ],
           "forecast": [
             {
               "date": "2026-09-21",
-              "mean": 2.5,
+              "mean": 2.47,
               "forecast": true
             },
             {
               "date": "2026-09-22",
-              "mean": 2.21,
+              "mean": 2.18,
               "forecast": true
             },
             {
               "date": "2026-09-23",
-              "mean": 1.95,
+              "mean": 1.93,
               "forecast": true
             },
             {
               "date": "2026-09-24",
-              "mean": 1.79,
+              "mean": 1.77,
               "forecast": true
             },
             {
               "date": "2026-09-25",
-              "mean": 1.74,
+              "mean": 1.72,
               "forecast": true
             },
             {
               "date": "2026-09-26",
-              "mean": 1.71,
+              "mean": 1.69,
               "forecast": true
             },
             {
               "date": "2026-09-27",
-              "mean": 1.68,
+              "mean": 1.67,
               "forecast": true
             },
             {
               "date": "2026-09-28",
-              "mean": 1.66,
+              "mean": 1.64,
               "forecast": true
             },
             {
               "date": "2026-09-29",
-              "mean": 1.65,
+              "mean": 1.63,
               "forecast": true
             }
           ]
@@ -22974,17 +22974,17 @@
         "watertemp": {
           "unit": "°F",
           "latest": {
-            "value": 56.66,
-            "ts": "2026-09-20T13:15",
-            "tsUtc": "2026-09-20T19:15:00.000Z"
+            "value": 59.9,
+            "ts": "2026-09-20T16:15",
+            "tsUtc": "2026-09-20T22:15:00.000Z"
           },
           "thisYear": [
             {
               "date": "2026-09-10",
               "min": 59.72,
-              "max": 62.24,
-              "mean": 60.96,
-              "n": 17
+              "max": 60.26,
+              "mean": 60.04,
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -23052,74 +23052,74 @@
             {
               "date": "2026-09-20",
               "min": 52.52,
-              "max": 56.66,
-              "mean": 53.65,
-              "n": 54
+              "max": 59.9,
+              "mean": 54.56,
+              "n": 66
             }
           ],
           "lastYear": [],
           "forecast": [
             {
               "date": "2026-09-21",
-              "mean": 56.42,
-              "min": 52,
-              "max": 61.06,
+              "mean": 56.98,
+              "min": 52.56,
+              "max": 61.82,
               "forecast": true
             },
             {
               "date": "2026-09-22",
-              "mean": 56.68,
-              "min": 52.26,
-              "max": 61.32,
+              "mean": 57.63,
+              "min": 53.21,
+              "max": 62.47,
               "forecast": true
             },
             {
               "date": "2026-09-23",
-              "mean": 56.42,
-              "min": 52,
-              "max": 61.06,
+              "mean": 56.99,
+              "min": 52.57,
+              "max": 61.83,
               "forecast": true
             },
             {
               "date": "2026-09-24",
-              "mean": 57.7,
-              "min": 53.28,
-              "max": 62.34,
+              "mean": 58.12,
+              "min": 53.7,
+              "max": 62.96,
               "forecast": true
             },
             {
               "date": "2026-09-25",
-              "mean": 53.98,
-              "min": 50.88,
-              "max": 57.11,
+              "mean": 54.84,
+              "min": 52.52,
+              "max": 57.28,
               "forecast": true
             },
             {
               "date": "2026-09-26",
-              "mean": 51.54,
-              "min": 49.81,
-              "max": 53.29,
+              "mean": 52.68,
+              "min": 50.65,
+              "max": 54.81,
               "forecast": true
             },
             {
               "date": "2026-09-27",
-              "mean": 54.08,
-              "min": 50.8,
-              "max": 57.39,
+              "mean": 54.93,
+              "min": 52.42,
+              "max": 57.57,
               "forecast": true
             },
             {
               "date": "2026-09-28",
-              "mean": 52.56,
-              "min": 50.83,
-              "max": 54.31,
+              "mean": 53.58,
+              "min": 51.85,
+              "max": 55.4,
               "forecast": true
             },
             {
               "date": "2026-09-29",
-              "mean": 50.67,
-              "min": 48.2,
-              "max": 53.17,
+              "mean": 51.91,
+              "min": 48.34,
+              "max": 55.66,
               "forecast": true
             }
           ]
@@ -24893,150 +24893,150 @@
           },
           {
             "t": "2026-09-20T12:00",
-            "tempF": 61.3,
+            "tempF": 61.4,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 886.1
+            "pressureHpa": 886
           },
           {
             "t": "2026-09-20T13:00",
             "tempF": 64,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 886.6
+            "pressureHpa": 886.4
           },
           {
             "t": "2026-09-20T14:00",
-            "tempF": 65.9,
+            "tempF": 66.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 886.6
+            "pressureHpa": 886.4
           },
           {
             "t": "2026-09-20T15:00",
-            "tempF": 67.7,
+            "tempF": 67.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 886.9
+            "pressureHpa": 886.2
           },
           {
             "t": "2026-09-20T16:00",
             "tempF": 68.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 886.5
+            "pressureHpa": 886.2
           },
           {
             "t": "2026-09-20T17:00",
-            "tempF": 68.7,
+            "tempF": 68.8,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 886.3
           },
           {
             "t": "2026-09-20T18:00",
-            "tempF": 67.9,
+            "tempF": 68.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 886.1
+            "pressureHpa": 886.2
           },
           {
             "t": "2026-09-20T19:00",
-            "tempF": 65.5,
+            "tempF": 65.8,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 885.2
+            "pressureHpa": 885
           },
           {
             "t": "2026-09-20T20:00",
-            "tempF": 61.9,
+            "tempF": 62.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 884.2
+            "pressureHpa": 884.6
           },
           {
             "t": "2026-09-20T21:00",
-            "tempF": 60.4,
+            "tempF": 60.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 883.9
+            "pressureHpa": 884.1
           },
           {
             "t": "2026-09-20T22:00",
-            "tempF": 59,
+            "tempF": 59.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 883.1
+            "pressureHpa": 883.4
           },
           {
             "t": "2026-09-20T23:00",
-            "tempF": 58,
+            "tempF": 58.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 883
+            "pressureHpa": 882.9
           },
           {
             "t": "2026-09-21T00:00",
-            "tempF": 57.3,
+            "tempF": 57.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 882.5
+            "pressureHpa": 882.6
           },
           {
             "t": "2026-09-21T01:00",
-            "tempF": 56.4,
+            "tempF": 56.8,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 882.2
           },
           {
             "t": "2026-09-21T02:00",
-            "tempF": 55.6,
+            "tempF": 55.7,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 881.8
+            "pressureHpa": 881.9
           },
           {
             "t": "2026-09-21T03:00",
-            "tempF": 54.6,
+            "tempF": 54.7,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 881.7
           },
           {
             "t": "2026-09-21T04:00",
-            "tempF": 53,
+            "tempF": 53.3,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 881.3
           },
           {
             "t": "2026-09-21T05:00",
-            "tempF": 53,
+            "tempF": 53.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 881.4
+            "pressureHpa": 881.5
           },
           {
             "t": "2026-09-21T06:00",
-            "tempF": 53.4,
+            "tempF": 53.5,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 881.6
           },
           {
             "t": "2026-09-21T07:00",
-            "tempF": 53.4,
+            "tempF": 53.3,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 881.7
           },
           {
             "t": "2026-09-21T08:00",
-            "tempF": 53.4,
+            "tempF": 53.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 881.6
+            "pressureHpa": 881.7
           },
           {
             "t": "2026-09-21T09:00",
@@ -25047,192 +25047,192 @@
           },
           {
             "t": "2026-09-21T10:00",
-            "tempF": 61.2,
+            "tempF": 61.1,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 883.5
           },
           {
             "t": "2026-09-21T11:00",
-            "tempF": 65.2,
+            "tempF": 65.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 884.5
+            "pressureHpa": 884.4
           },
           {
             "t": "2026-09-21T12:00",
-            "tempF": 68.4,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 885
-          },
-          {
-            "t": "2026-09-21T13:00",
-            "tempF": 70.7,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 885.1
-          },
-          {
-            "t": "2026-09-21T14:00",
-            "tempF": 72.7,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 885.1
-          },
-          {
-            "t": "2026-09-21T15:00",
-            "tempF": 74.5,
+            "tempF": 68.2,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 884.7
           },
           {
-            "t": "2026-09-21T16:00",
-            "tempF": 75.7,
+            "t": "2026-09-21T13:00",
+            "tempF": 70.4,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 884.6
+          },
+          {
+            "t": "2026-09-21T14:00",
+            "tempF": 72.5,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 884.6
+          },
+          {
+            "t": "2026-09-21T15:00",
+            "tempF": 74.3,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 884.1
           },
           {
-            "t": "2026-09-21T17:00",
-            "tempF": 76,
+            "t": "2026-09-21T16:00",
+            "tempF": 75.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 883.4
+            "pressureHpa": 883.5
           },
           {
-            "t": "2026-09-21T18:00",
-            "tempF": 75.7,
+            "t": "2026-09-21T17:00",
+            "tempF": 75.8,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 882.8
           },
           {
+            "t": "2026-09-21T18:00",
+            "tempF": 75.3,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 882.5
+          },
+          {
             "t": "2026-09-21T19:00",
-            "tempF": 71.9,
+            "tempF": 71.7,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 881.9
           },
           {
             "t": "2026-09-21T20:00",
-            "tempF": 67.8,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 881.1
-          },
-          {
-            "t": "2026-09-21T21:00",
-            "tempF": 66,
+            "tempF": 67.6,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 880.8
           },
           {
-            "t": "2026-09-21T22:00",
-            "tempF": 63.9,
+            "t": "2026-09-21T21:00",
+            "tempF": 65.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 880.2
+            "pressureHpa": 880.3
+          },
+          {
+            "t": "2026-09-21T22:00",
+            "tempF": 64.1,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 879.7
           },
           {
             "t": "2026-09-21T23:00",
-            "tempF": 63.5,
+            "tempF": 63.3,
             "precipIn": 0,
-            "cloudPct": 24,
-            "pressureHpa": 880.2
+            "cloudPct": 9,
+            "pressureHpa": 879.6
           },
           {
             "t": "2026-09-22T00:00",
-            "tempF": 62.2,
+            "tempF": 62.3,
             "precipIn": 0,
-            "cloudPct": 30,
-            "pressureHpa": 879.8
+            "cloudPct": 96,
+            "pressureHpa": 879.4
           },
           {
             "t": "2026-09-22T01:00",
-            "tempF": 61.3,
+            "tempF": 61.4,
             "precipIn": 0,
-            "cloudPct": 94,
-            "pressureHpa": 879.4
+            "cloudPct": 85,
+            "pressureHpa": 879
           },
           {
             "t": "2026-09-22T02:00",
             "tempF": 60.4,
             "precipIn": 0,
-            "cloudPct": 32,
-            "pressureHpa": 879
+            "cloudPct": 0,
+            "pressureHpa": 878.5
           },
           {
             "t": "2026-09-22T03:00",
-            "tempF": 59.2,
+            "tempF": 59,
             "precipIn": 0,
-            "cloudPct": 95,
-            "pressureHpa": 878.6
+            "cloudPct": 17,
+            "pressureHpa": 878.1
           },
           {
             "t": "2026-09-22T04:00",
-            "tempF": 57.4,
+            "tempF": 57.9,
             "precipIn": 0,
-            "cloudPct": 81,
-            "pressureHpa": 878
+            "cloudPct": 11,
+            "pressureHpa": 877.8
           },
           {
             "t": "2026-09-22T05:00",
-            "tempF": 54.7,
+            "tempF": 56.5,
             "precipIn": 0,
-            "cloudPct": 57,
+            "cloudPct": 98,
             "pressureHpa": 877.5
           },
           {
             "t": "2026-09-22T06:00",
-            "tempF": 53.3,
+            "tempF": 56.8,
             "precipIn": 0,
-            "cloudPct": 49,
-            "pressureHpa": 877.5
+            "cloudPct": 82,
+            "pressureHpa": 877.8
           },
           {
             "t": "2026-09-22T07:00",
-            "tempF": 52.9,
+            "tempF": 56.2,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 877.9
+            "cloudPct": 77,
+            "pressureHpa": 878.1
           },
           {
             "t": "2026-09-22T08:00",
-            "tempF": 54.2,
+            "tempF": 55.6,
             "precipIn": 0,
-            "cloudPct": 100,
+            "cloudPct": 40,
             "pressureHpa": 878.3
           },
           {
             "t": "2026-09-22T09:00",
-            "tempF": 58.3,
+            "tempF": 58.2,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 878.3
+            "cloudPct": 92,
+            "pressureHpa": 879.4
           },
           {
             "t": "2026-09-22T10:00",
-            "tempF": 63.3,
+            "tempF": 63.7,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 878.1
+            "cloudPct": 90,
+            "pressureHpa": 880.3
           },
           {
             "t": "2026-09-22T11:00",
-            "tempF": 67.7,
+            "tempF": 68.1,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 878.2
+            "cloudPct": 90,
+            "pressureHpa": 880.3
           },
           {
             "t": "2026-09-22T12:00",
-            "tempF": 72.2,
+            "tempF": 71.9,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 878.1
+            "cloudPct": 99,
+            "pressureHpa": 879.3
           },
           {
             "t": "2026-09-22T13:00",
@@ -26571,7 +26571,7 @@
           },
           {
             "date": "2026-09-20",
-            "hiF": 68.7,
+            "hiF": 68.8,
             "loF": 44.3,
             "precipIn": 0,
             "sunrise": "2026-09-20T07:21",
@@ -26579,8 +26579,8 @@
           },
           {
             "date": "2026-09-21",
-            "hiF": 76,
-            "loF": 53,
+            "hiF": 75.8,
+            "loF": 53.1,
             "precipIn": 0,
             "sunrise": "2026-09-21T07:22",
             "sunset": "2026-09-21T19:35"
@@ -26588,7 +26588,7 @@
           {
             "date": "2026-09-22",
             "hiF": 77.6,
-            "loF": 52.9,
+            "loF": 55.6,
             "precipIn": 0.004,
             "sunrise": "2026-09-22T07:23",
             "sunset": "2026-09-22T19:33"
@@ -26650,11 +26650,138 @@
             "sunset": "2026-09-29T19:20"
           }
         ],
-        "lastYearDaily": null
+        "lastYearDaily": [
+          {
+            "date": "2025-09-10",
+            "hiF": 75.9,
+            "loF": 49.5,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-11",
+            "hiF": 73,
+            "loF": 48.8,
+            "precipIn": 0.075
+          },
+          {
+            "date": "2025-09-12",
+            "hiF": 71.6,
+            "loF": 45.7,
+            "precipIn": 0.004
+          },
+          {
+            "date": "2025-09-13",
+            "hiF": 73.4,
+            "loF": 44.8,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-14",
+            "hiF": 74.9,
+            "loF": 46.3,
+            "precipIn": 0.157
+          },
+          {
+            "date": "2025-09-15",
+            "hiF": 64.3,
+            "loF": 48.7,
+            "precipIn": 0.134
+          },
+          {
+            "date": "2025-09-16",
+            "hiF": 70.5,
+            "loF": 43.8,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-17",
+            "hiF": 77,
+            "loF": 42.8,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-18",
+            "hiF": 79.2,
+            "loF": 46.5,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-19",
+            "hiF": 79.8,
+            "loF": 49,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-20",
+            "hiF": 82.6,
+            "loF": 48,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-21",
+            "hiF": 77.4,
+            "loF": 47.5,
+            "precipIn": 0.169
+          },
+          {
+            "date": "2025-09-22",
+            "hiF": 64.1,
+            "loF": 47.4,
+            "precipIn": 0.004
+          },
+          {
+            "date": "2025-09-23",
+            "hiF": 75.5,
+            "loF": 38.5,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-24",
+            "hiF": 82.2,
+            "loF": 43.2,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-25",
+            "hiF": 83.4,
+            "loF": 43.8,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-26",
+            "hiF": 68.2,
+            "loF": 44.7,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-27",
+            "hiF": 79.9,
+            "loF": 38.6,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-28",
+            "hiF": 83.2,
+            "loF": 43.3,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-29",
+            "hiF": 79,
+            "loF": 47.7,
+            "precipIn": 0.079
+          },
+          {
+            "date": "2025-09-30",
+            "hiF": 70.9,
+            "loF": 52.8,
+            "precipIn": 0.181
+          }
+        ]
       },
       "normal": {
-        "flow": 360.935,
-        "stage": 1.995,
+        "flow": 362.98,
+        "stage": 2,
         "watertemp": 56.91
       },
       "drainageMi2": 1050
@@ -26676,17 +26803,17 @@
         "flow": {
           "unit": "cfs",
           "latest": {
-            "value": 738,
-            "ts": "2026-09-20T12:30",
-            "tsUtc": "2026-09-20T18:30:00.000Z"
+            "value": 732,
+            "ts": "2026-09-20T15:30",
+            "tsUtc": "2026-09-20T21:30:00.000Z"
           },
           "thisYear": [
             {
               "date": "2026-09-10",
               "min": 578,
-              "max": 589,
-              "mean": 583,
-              "n": 17
+              "max": 584,
+              "mean": 579.2,
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -26755,8 +26882,8 @@
               "date": "2026-09-20",
               "min": 645,
               "max": 756,
-              "mean": 699.39,
-              "n": 51
+              "mean": 706.75,
+              "n": 63
             }
           ],
           "lastYear": [
@@ -26764,8 +26891,8 @@
               "date": "2025-09-10",
               "min": 201,
               "max": 205,
-              "mean": 202.25,
-              "n": 16
+              "mean": 204.2,
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -26904,54 +27031,54 @@
               "date": "2025-09-30",
               "min": 179,
               "max": 224,
-              "mean": 205.72,
-              "n": 79
+              "mean": 207.69,
+              "n": 91
             }
           ],
           "forecast": [
             {
               "date": "2026-09-21",
-              "mean": 545.9,
+              "mean": 541.46,
               "forecast": true
             },
             {
               "date": "2026-09-22",
-              "mean": 353.81,
+              "mean": 350.93,
               "forecast": true
             },
             {
               "date": "2026-09-23",
-              "mean": 243.11,
+              "mean": 241.13,
               "forecast": true
             },
             {
               "date": "2026-09-24",
-              "mean": 176.9,
+              "mean": 175.46,
               "forecast": true
             },
             {
               "date": "2026-09-25",
-              "mean": 148.69,
+              "mean": 147.48,
               "forecast": true
             },
             {
               "date": "2026-09-26",
-              "mean": 135.66,
+              "mean": 134.56,
               "forecast": true
             },
             {
               "date": "2026-09-27",
-              "mean": 129.15,
+              "mean": 128.1,
               "forecast": true
             },
             {
               "date": "2026-09-28",
-              "mean": 122.64,
+              "mean": 121.64,
               "forecast": true
             },
             {
               "date": "2026-09-29",
-              "mean": 118.3,
+              "mean": 117.34,
               "forecast": true
             }
           ],
@@ -26960,17 +27087,17 @@
         "stage": {
           "unit": "ft",
           "latest": {
-            "value": 5.16,
-            "ts": "2026-09-20T12:30",
-            "tsUtc": "2026-09-20T18:30:00.000Z"
+            "value": 5.15,
+            "ts": "2026-09-20T15:30",
+            "tsUtc": "2026-09-20T21:30:00.000Z"
           },
           "thisYear": [
             {
               "date": "2026-09-10",
               "min": 4.88,
-              "max": 4.9,
-              "mean": 4.89,
-              "n": 17
+              "max": 4.89,
+              "mean": 4.88,
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -27039,8 +27166,8 @@
               "date": "2026-09-20",
               "min": 5,
               "max": 5.19,
-              "mean": 5.09,
-              "n": 51
+              "mean": 5.11,
+              "n": 63
             }
           ],
           "lastYear": [
@@ -27048,8 +27175,8 @@
               "date": "2025-09-10",
               "min": 4.21,
               "max": 4.22,
-              "mean": 4.21,
-              "n": 16
+              "mean": 4.22,
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -27188,54 +27315,54 @@
               "date": "2025-09-30",
               "min": 4.15,
               "max": 4.27,
-              "mean": 4.22,
-              "n": 79
+              "mean": 4.23,
+              "n": 91
             }
           ],
           "forecast": [
             {
               "date": "2026-09-21",
-              "mean": 4.82,
+              "mean": 4.81,
               "forecast": true
             },
             {
               "date": "2026-09-22",
-              "mean": 4.42,
+              "mean": 4.41,
               "forecast": true
             },
             {
               "date": "2026-09-23",
-              "mean": 4.14,
+              "mean": 4.12,
               "forecast": true
             },
             {
               "date": "2026-09-24",
-              "mean": 3.93,
+              "mean": 3.92,
               "forecast": true
             },
             {
               "date": "2026-09-25",
-              "mean": 3.84,
+              "mean": 3.82,
               "forecast": true
             },
             {
               "date": "2026-09-26",
-              "mean": 3.79,
+              "mean": 3.77,
               "forecast": true
             },
             {
               "date": "2026-09-27",
-              "mean": 3.76,
+              "mean": 3.75,
               "forecast": true
             },
             {
               "date": "2026-09-28",
-              "mean": 3.74,
+              "mean": 3.72,
               "forecast": true
             },
             {
               "date": "2026-09-29",
-              "mean": 3.72,
+              "mean": 3.7,
               "forecast": true
             }
           ]
@@ -27248,8 +27375,8 @@
             {
               "date": "2026-09-10",
               "min": 61.57,
-              "mean": 62.42,
-              "max": 63.35,
+              "mean": 61.78,
+              "max": 61.93,
               "n": 0
             },
             {
@@ -27318,8 +27445,8 @@
             {
               "date": "2026-09-20",
               "min": 54.93,
-              "mean": 56.07,
-              "max": 58.42,
+              "mean": 56.52,
+              "max": 59.99,
               "n": 0
             }
           ],
@@ -27327,73 +27454,73 @@
           "forecast": [
             {
               "date": "2026-09-21",
-              "min": 55.93,
-              "mean": 59.54,
-              "max": 63.63,
+              "min": 56.17,
+              "mean": 59.75,
+              "max": 63.89,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-22",
-              "min": 56.03,
-              "mean": 59.64,
-              "max": 63.73,
+              "min": 56.9,
+              "mean": 60.49,
+              "max": 64.63,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-23",
-              "min": 55.51,
-              "mean": 59.12,
-              "max": 63.21,
+              "min": 55.79,
+              "mean": 59.37,
+              "max": 63.51,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-24",
-              "min": 57.16,
-              "mean": 60.77,
-              "max": 64.86,
+              "min": 57.34,
+              "mean": 60.93,
+              "max": 65.07,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-25",
-              "min": 53.03,
-              "mean": 55.43,
-              "max": 58.07,
+              "min": 53.86,
+              "mean": 55.88,
+              "max": 58.18,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-26",
-              "min": 50.61,
-              "mean": 52.91,
-              "max": 55.6,
+              "min": 51.1,
+              "mean": 53.52,
+              "max": 56.35,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-27",
-              "min": 51.65,
-              "mean": 54.71,
-              "max": 58.15,
+              "min": 52.51,
+              "mean": 55.17,
+              "max": 58.24,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-28",
-              "min": 53.19,
-              "mean": 54.83,
-              "max": 56.69,
+              "min": 53.71,
+              "mean": 55.36,
+              "max": 57.24,
               "n": 0,
               "forecast": true
             },
             {
               "date": "2026-09-29",
-              "min": 49.89,
-              "mean": 52.56,
-              "max": 55.6,
+              "min": 50.04,
+              "mean": 53.22,
+              "max": 56.83,
               "n": 0,
               "forecast": true
             }
@@ -29168,49 +29295,49 @@
           },
           {
             "t": "2026-09-20T12:00",
-            "tempF": 60.7,
+            "tempF": 61.2,
             "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 905.7
+            "cloudPct": 1,
+            "pressureHpa": 905.6
           },
           {
             "t": "2026-09-20T13:00",
-            "tempF": 64.3,
+            "tempF": 64.4,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 906.3
+            "pressureHpa": 906
           },
           {
             "t": "2026-09-20T14:00",
             "tempF": 67.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 906.3
+            "pressureHpa": 906
           },
           {
             "t": "2026-09-20T15:00",
-            "tempF": 69.7,
+            "tempF": 69.5,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 906.6
+            "pressureHpa": 906
           },
           {
             "t": "2026-09-20T16:00",
-            "tempF": 71.5,
+            "tempF": 71.4,
             "precipIn": 0,
             "cloudPct": 1,
-            "pressureHpa": 906.3
+            "pressureHpa": 906.1
           },
           {
             "t": "2026-09-20T17:00",
             "tempF": 72.4,
             "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 906.2
+            "cloudPct": 1,
+            "pressureHpa": 906.3
           },
           {
             "t": "2026-09-20T18:00",
-            "tempF": 72.3,
+            "tempF": 72.4,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 906.2
@@ -29220,294 +29347,294 @@
             "tempF": 69.5,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 905.5
+            "pressureHpa": 905
           },
           {
             "t": "2026-09-20T20:00",
             "tempF": 65.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 904.5
+            "pressureHpa": 904.7
           },
           {
             "t": "2026-09-20T21:00",
-            "tempF": 62.1,
+            "tempF": 62.5,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 903.8
+            "pressureHpa": 904
           },
           {
             "t": "2026-09-20T22:00",
-            "tempF": 60.4,
+            "tempF": 60.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 903.1
+            "pressureHpa": 903.4
           },
           {
             "t": "2026-09-20T23:00",
-            "tempF": 57.7,
+            "tempF": 57.9,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 902.5
           },
           {
             "t": "2026-09-21T00:00",
-            "tempF": 55.6,
+            "tempF": 56.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 901.7
+            "pressureHpa": 901.9
           },
           {
             "t": "2026-09-21T01:00",
-            "tempF": 54.5,
+            "tempF": 54.7,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 901.4
           },
           {
             "t": "2026-09-21T02:00",
-            "tempF": 53,
+            "tempF": 53.5,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 900.8
+            "pressureHpa": 901.1
           },
           {
             "t": "2026-09-21T03:00",
-            "tempF": 51.6,
+            "tempF": 51.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 900.8
+            "pressureHpa": 900.9
           },
           {
             "t": "2026-09-21T04:00",
-            "tempF": 50.7,
+            "tempF": 51,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 900.6
           },
           {
             "t": "2026-09-21T05:00",
-            "tempF": 49.9,
+            "tempF": 50,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 900.4
+            "pressureHpa": 900.5
           },
           {
             "t": "2026-09-21T06:00",
-            "tempF": 48.9,
+            "tempF": 49.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 900.4
+            "pressureHpa": 900.5
           },
           {
             "t": "2026-09-21T07:00",
-            "tempF": 48.3,
+            "tempF": 48.6,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 900.4
           },
           {
             "t": "2026-09-21T08:00",
-            "tempF": 48.1,
+            "tempF": 48.4,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 900.3
+            "pressureHpa": 900.6
           },
           {
             "t": "2026-09-21T09:00",
-            "tempF": 52.5,
+            "tempF": 52.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 901.2
+            "pressureHpa": 901.1
           },
           {
             "t": "2026-09-21T10:00",
-            "tempF": 58.1,
+            "tempF": 58.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 902.2
+            "pressureHpa": 902.4
           },
           {
             "t": "2026-09-21T11:00",
-            "tempF": 63.9,
+            "tempF": 64.1,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 903.4
           },
           {
             "t": "2026-09-21T12:00",
-            "tempF": 68.1,
+            "tempF": 68.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 904.1
+            "pressureHpa": 903.7
           },
           {
             "t": "2026-09-21T13:00",
-            "tempF": 71.7,
+            "tempF": 71.8,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 903.8
+          },
+          {
+            "t": "2026-09-21T14:00",
+            "tempF": 75.4,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 904.2
           },
           {
-            "t": "2026-09-21T14:00",
-            "tempF": 75.5,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 904.5
-          },
-          {
             "t": "2026-09-21T15:00",
-            "tempF": 78.3,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 904.5
-          },
-          {
-            "t": "2026-09-21T16:00",
-            "tempF": 79.5,
+            "tempF": 78.2,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 904
           },
           {
-            "t": "2026-09-21T17:00",
-            "tempF": 79.5,
+            "t": "2026-09-21T16:00",
+            "tempF": 79.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 903.3
+            "pressureHpa": 903.4
           },
           {
-            "t": "2026-09-21T18:00",
-            "tempF": 78.8,
+            "t": "2026-09-21T17:00",
+            "tempF": 79.3,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 902.8
           },
           {
-            "t": "2026-09-21T19:00",
-            "tempF": 75,
+            "t": "2026-09-21T18:00",
+            "tempF": 78.7,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 902
+            "pressureHpa": 902.4
+          },
+          {
+            "t": "2026-09-21T19:00",
+            "tempF": 74.9,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 901.9
           },
           {
             "t": "2026-09-21T20:00",
-            "tempF": 70.2,
+            "tempF": 70.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 901.1
+            "pressureHpa": 900.8
           },
           {
             "t": "2026-09-21T21:00",
-            "tempF": 66.8,
+            "tempF": 67.7,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 900.5
+            "pressureHpa": 900.2
           },
           {
             "t": "2026-09-21T22:00",
-            "tempF": 63.6,
+            "tempF": 64.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 899.7
+            "pressureHpa": 899.4
           },
           {
             "t": "2026-09-21T23:00",
-            "tempF": 61.1,
+            "tempF": 62,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 899.3
+            "pressureHpa": 898.9
           },
           {
             "t": "2026-09-22T00:00",
-            "tempF": 58.5,
+            "tempF": 58.6,
             "precipIn": 0,
-            "cloudPct": 6,
-            "pressureHpa": 898.7
+            "cloudPct": 0,
+            "pressureHpa": 898.2
           },
           {
             "t": "2026-09-22T01:00",
-            "tempF": 57.7,
+            "tempF": 57.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 898.3
+            "pressureHpa": 897.7
           },
           {
             "t": "2026-09-22T02:00",
-            "tempF": 55.9,
+            "tempF": 56.1,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 897.8
+            "cloudPct": 88,
+            "pressureHpa": 897.2
           },
           {
             "t": "2026-09-22T03:00",
-            "tempF": 54.8,
+            "tempF": 54.9,
             "precipIn": 0,
-            "cloudPct": 86,
-            "pressureHpa": 897.3
+            "cloudPct": 64,
+            "pressureHpa": 897
           },
           {
             "t": "2026-09-22T04:00",
-            "tempF": 53.9,
+            "tempF": 53.7,
             "precipIn": 0,
-            "cloudPct": 74,
-            "pressureHpa": 897
+            "cloudPct": 83,
+            "pressureHpa": 896.6
           },
           {
             "t": "2026-09-22T05:00",
-            "tempF": 52.8,
+            "tempF": 52.6,
             "precipIn": 0,
-            "cloudPct": 79,
-            "pressureHpa": 896.7
+            "cloudPct": 70,
+            "pressureHpa": 896.4
           },
           {
             "t": "2026-09-22T06:00",
-            "tempF": 52,
+            "tempF": 51.7,
             "precipIn": 0,
             "cloudPct": 100,
-            "pressureHpa": 897
+            "pressureHpa": 896.6
           },
           {
             "t": "2026-09-22T07:00",
-            "tempF": 51.7,
+            "tempF": 51.4,
             "precipIn": 0,
-            "cloudPct": 56,
-            "pressureHpa": 897.4
+            "cloudPct": 92,
+            "pressureHpa": 896.9
           },
           {
             "t": "2026-09-22T08:00",
-            "tempF": 52.6,
+            "tempF": 50.7,
             "precipIn": 0,
-            "cloudPct": 40,
-            "pressureHpa": 897.6
+            "cloudPct": 100,
+            "pressureHpa": 896.9
           },
           {
             "t": "2026-09-22T09:00",
-            "tempF": 57.3,
+            "tempF": 54.7,
             "precipIn": 0,
-            "cloudPct": 56,
-            "pressureHpa": 897.8
+            "cloudPct": 71,
+            "pressureHpa": 898.2
           },
           {
             "t": "2026-09-22T10:00",
-            "tempF": 61.6,
+            "tempF": 61.2,
             "precipIn": 0,
             "cloudPct": 100,
-            "pressureHpa": 897.4
+            "pressureHpa": 899.2
           },
           {
             "t": "2026-09-22T11:00",
-            "tempF": 66.1,
+            "tempF": 66.5,
             "precipIn": 0,
             "cloudPct": 100,
-            "pressureHpa": 897.4
+            "pressureHpa": 899.4
           },
           {
             "t": "2026-09-22T12:00",
-            "tempF": 70.2,
+            "tempF": 70.7,
             "precipIn": 0,
             "cloudPct": 100,
-            "pressureHpa": 897.3
+            "pressureHpa": 898.6
           },
           {
             "t": "2026-09-22T13:00",
@@ -30854,8 +30981,8 @@
           },
           {
             "date": "2026-09-21",
-            "hiF": 79.5,
-            "loF": 48.1,
+            "hiF": 79.3,
+            "loF": 48.4,
             "precipIn": 0,
             "sunrise": "2026-09-21T07:22",
             "sunset": "2026-09-21T19:35"
@@ -30863,7 +30990,7 @@
           {
             "date": "2026-09-22",
             "hiF": 79.6,
-            "loF": 51.7,
+            "loF": 50.7,
             "precipIn": 0,
             "sunrise": "2026-09-22T07:23",
             "sunset": "2026-09-22T19:33"
@@ -30925,7 +31052,134 @@
             "sunset": "2026-09-29T19:19"
           }
         ],
-        "lastYearDaily": null
+        "lastYearDaily": [
+          {
+            "date": "2025-09-10",
+            "hiF": 77.6,
+            "loF": 54.5,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-11",
+            "hiF": 73.5,
+            "loF": 52.6,
+            "precipIn": 0.043
+          },
+          {
+            "date": "2025-09-12",
+            "hiF": 72.3,
+            "loF": 49.6,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-13",
+            "hiF": 72.5,
+            "loF": 49.6,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-14",
+            "hiF": 76.5,
+            "loF": 52.4,
+            "precipIn": 0.287
+          },
+          {
+            "date": "2025-09-15",
+            "hiF": 65,
+            "loF": 52.3,
+            "precipIn": 0.193
+          },
+          {
+            "date": "2025-09-16",
+            "hiF": 70.3,
+            "loF": 49.5,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-17",
+            "hiF": 75,
+            "loF": 48.5,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-18",
+            "hiF": 77,
+            "loF": 51.6,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-19",
+            "hiF": 77.6,
+            "loF": 55.4,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-20",
+            "hiF": 82.4,
+            "loF": 52.4,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-21",
+            "hiF": 74.8,
+            "loF": 53.3,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-22",
+            "hiF": 63.8,
+            "loF": 48.9,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-23",
+            "hiF": 72.5,
+            "loF": 45.2,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-24",
+            "hiF": 79.2,
+            "loF": 50.5,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-25",
+            "hiF": 82.1,
+            "loF": 52.1,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-26",
+            "hiF": 69,
+            "loF": 48.7,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-27",
+            "hiF": 74.5,
+            "loF": 44.7,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-28",
+            "hiF": 78.7,
+            "loF": 51.3,
+            "precipIn": 0
+          },
+          {
+            "date": "2025-09-29",
+            "hiF": 76.6,
+            "loF": 52.9,
+            "precipIn": 0.016
+          },
+          {
+            "date": "2025-09-30",
+            "hiF": 69.9,
+            "loF": 54.5,
+            "precipIn": 0.177
+          }
+        ]
       },
       "normal": {
         "flow": 286.735,
@@ -30959,9 +31213,9 @@
             {
               "date": "2026-09-10",
               "min": 1220,
-              "max": 1240,
-              "mean": 1227.65,
-              "n": 17
+              "max": 1230,
+              "mean": 1222,
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -31037,10 +31291,10 @@
           "lastYear": [
             {
               "date": "2025-09-10",
-              "min": 465,
+              "min": 472,
               "max": 472,
-              "mean": 470.35,
-              "n": 17
+              "mean": 472,
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -31179,8 +31433,8 @@
               "date": "2025-09-30",
               "min": 448,
               "max": 487,
-              "mean": 464.01,
-              "n": 79
+              "mean": 466.89,
+              "n": 91
             }
           ],
           "forecast": [
@@ -31243,9 +31497,9 @@
             {
               "date": "2026-09-10",
               "min": 3.7,
-              "max": 3.72,
-              "mean": 3.71,
-              "n": 17
+              "max": 3.71,
+              "mean": 3.7,
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -31321,10 +31575,10 @@
           "lastYear": [
             {
               "date": "2025-09-10",
-              "min": 2.76,
+              "min": 2.77,
               "max": 2.77,
               "mean": 2.77,
-              "n": 17
+              "n": 5
             },
             {
               "date": "2025-09-11",
@@ -31463,8 +31717,8 @@
               "date": "2025-09-30",
               "min": 2.74,
               "max": 2.8,
-              "mean": 2.76,
-              "n": 79
+              "mean": 2.77,
+              "n": 91
             }
           ],
           "forecast": [
@@ -31495,17 +31749,17 @@
             },
             {
               "date": "2026-09-26",
-              "mean": 2.9,
+              "mean": 2.91,
               "forecast": true
             },
             {
               "date": "2026-09-27",
-              "mean": 2.85,
+              "mean": 2.86,
               "forecast": true
             },
             {
               "date": "2026-09-28",
-              "mean": 2.85,
+              "mean": 2.86,
               "forecast": true
             },
             {
@@ -31526,9 +31780,9 @@
             {
               "date": "2026-09-10",
               "min": 63.32,
-              "max": 64.4,
-              "mean": 63.79,
-              "n": 17
+              "max": 63.5,
+              "mean": 63.43,
+              "n": 5
             },
             {
               "date": "2026-09-11",
@@ -31605,65 +31859,65 @@
           "forecast": [
             {
               "date": "2026-09-21",
-              "mean": 62.49,
-              "min": 59.64,
-              "max": 66.05,
+              "mean": 62.37,
+              "min": 59.57,
+              "max": 65.85,
               "forecast": true
             },
             {
               "date": "2026-09-22",
-              "mean": 62.44,
-              "min": 59.59,
-              "max": 66,
+              "mean": 63.18,
+              "min": 60.38,
+              "max": 66.66,
               "forecast": true
             },
             {
               "date": "2026-09-23",
-              "mean": 61.67,
+              "mean": 61.62,
               "min": 58.82,
-              "max": 65.23,
+              "max": 65.1,
               "forecast": true
             },
             {
               "date": "2026-09-24",
-              "mean": 63.67,
-              "min": 60.82,
-              "max": 67.23,
+              "mean": 63.58,
+              "min": 60.78,
+              "max": 67.06,
               "forecast": true
             },
             {
               "date": "2026-09-25",
-              "mean": 56.8,
-              "min": 55.05,
-              "max": 58.98,
+              "mean": 56.86,
+              "min": 55.12,
+              "max": 59.02,
               "forecast": true
             },
             {
               "date": "2026-09-26",
-              "mean": 54.21,
-              "min": 51.36,
-              "max": 57.77,
+              "mean": 54.32,
+              "min": 51.52,
+              "max": 57.8,
               "forecast": true
             },
             {
               "date": "2026-09-27",
-              "mean": 55.31,
-              "min": 52.46,
-              "max": 58.87,
+              "mean": 55.4,
+              "min": 52.6,
+              "max": 58.88,
               "forecast": true
             },
             {
               "date": "2026-09-28",
-              "mean": 56.98,
-              "min": 55.41,
-              "max": 58.94,
+              "mean": 57.03,
+              "min": 55.47,
+              "max": 58.97,
               "forecast": true
             },
             {
               "date": "2026-09-29",
-              "mean": 54.34,
-              "min": 51.49,
-              "max": 57.9,
+              "mean": 54.45,
+              "min": 51.65,
+              "max": 57.93,
               "forecast": true
             }
           ]
@@ -33437,346 +33691,346 @@
           },
           {
             "t": "2026-09-20T12:00",
-            "tempF": 62.1,
+            "tempF": 62.4,
             "precipIn": 0,
             "cloudPct": 1,
-            "pressureHpa": 912.4
+            "pressureHpa": 912.3
           },
           {
             "t": "2026-09-20T13:00",
-            "tempF": 66.8,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 913.3
-          },
-          {
-            "t": "2026-09-20T14:00",
-            "tempF": 70.2,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 913.2
-          },
-          {
-            "t": "2026-09-20T15:00",
-            "tempF": 72.8,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 913.4
-          },
-          {
-            "t": "2026-09-20T16:00",
-            "tempF": 74.1,
+            "tempF": 66.7,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 912.9
           },
           {
+            "t": "2026-09-20T14:00",
+            "tempF": 69.8,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 912.6
+          },
+          {
+            "t": "2026-09-20T15:00",
+            "tempF": 72.4,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 913
+          },
+          {
+            "t": "2026-09-20T16:00",
+            "tempF": 74,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 913
+          },
+          {
             "t": "2026-09-20T17:00",
-            "tempF": 74.7,
+            "tempF": 74.6,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 912.7
           },
           {
             "t": "2026-09-20T18:00",
-            "tempF": 74.6,
+            "tempF": 74.4,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 912.8
+            "pressureHpa": 912.6
           },
           {
             "t": "2026-09-20T19:00",
             "tempF": 71,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 911.9
+            "pressureHpa": 911.3
           },
           {
             "t": "2026-09-20T20:00",
-            "tempF": 65.4,
+            "tempF": 65.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 910.9
+            "pressureHpa": 911
           },
           {
             "t": "2026-09-20T21:00",
-            "tempF": 63.7,
+            "tempF": 63.8,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 910.6
           },
           {
             "t": "2026-09-20T22:00",
-            "tempF": 62.7,
+            "tempF": 62.8,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 910
+            "pressureHpa": 910.2
           },
           {
             "t": "2026-09-20T23:00",
-            "tempF": 61.6,
+            "tempF": 60.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 909.9
+            "pressureHpa": 909.6
           },
           {
             "t": "2026-09-21T00:00",
-            "tempF": 60.3,
+            "tempF": 59.5,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 909.3
+            "pressureHpa": 909.2
           },
           {
             "t": "2026-09-21T01:00",
-            "tempF": 58.1,
+            "tempF": 58.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 908.8
+            "pressureHpa": 908.7
           },
           {
             "t": "2026-09-21T02:00",
-            "tempF": 57.1,
+            "tempF": 56.8,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 908.4
+          },
+          {
+            "t": "2026-09-21T03:00",
+            "tempF": 55.4,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 908.2
           },
           {
-            "t": "2026-09-21T03:00",
-            "tempF": 56.1,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 908.3
-          },
-          {
             "t": "2026-09-21T04:00",
-            "tempF": 54.7,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 908.1
-          },
-          {
-            "t": "2026-09-21T05:00",
-            "tempF": 53.9,
+            "tempF": 54.5,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 908
           },
           {
-            "t": "2026-09-21T06:00",
-            "tempF": 52.4,
+            "t": "2026-09-21T05:00",
+            "tempF": 53.5,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 907.9
           },
           {
+            "t": "2026-09-21T06:00",
+            "tempF": 52.9,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 908
+          },
+          {
             "t": "2026-09-21T07:00",
-            "tempF": 51.8,
+            "tempF": 51.7,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 907.8
           },
           {
             "t": "2026-09-21T08:00",
-            "tempF": 51.4,
+            "tempF": 51.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 907.8
+            "pressureHpa": 908
           },
           {
             "t": "2026-09-21T09:00",
-            "tempF": 55.4,
+            "tempF": 55,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 908.4
+            "pressureHpa": 908.3
           },
           {
             "t": "2026-09-21T10:00",
             "tempF": 61.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 909.5
+            "pressureHpa": 909.6
           },
           {
             "t": "2026-09-21T11:00",
-            "tempF": 67.2,
+            "tempF": 67.3,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 910.5
+            "pressureHpa": 910.4
           },
           {
             "t": "2026-09-21T12:00",
-            "tempF": 72.8,
+            "tempF": 73.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 911.2
+            "pressureHpa": 910.9
           },
           {
             "t": "2026-09-21T13:00",
             "tempF": 75.6,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 911.1
+            "pressureHpa": 910.7
           },
           {
             "t": "2026-09-21T14:00",
-            "tempF": 78.2,
+            "tempF": 78.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 911.1
+            "pressureHpa": 910.7
           },
           {
             "t": "2026-09-21T15:00",
-            "tempF": 80.1,
+            "tempF": 79.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 910.9
+            "pressureHpa": 910.3
           },
           {
             "t": "2026-09-21T16:00",
-            "tempF": 81,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 910.5
-          },
-          {
-            "t": "2026-09-21T17:00",
-            "tempF": 81,
+            "tempF": 80.8,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 909.8
           },
           {
-            "t": "2026-09-21T18:00",
-            "tempF": 80.3,
+            "t": "2026-09-21T17:00",
+            "tempF": 80.9,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 909.3
+            "pressureHpa": 909.2
+          },
+          {
+            "t": "2026-09-21T18:00",
+            "tempF": 80.2,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 908.9
           },
           {
             "t": "2026-09-21T19:00",
-            "tempF": 76.5,
+            "tempF": 76.2,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 908.6
+            "pressureHpa": 908.4
           },
           {
             "t": "2026-09-21T20:00",
-            "tempF": 71.3,
+            "tempF": 71.1,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 907.8
+            "pressureHpa": 907.3
           },
           {
             "t": "2026-09-21T21:00",
             "tempF": 68.4,
             "precipIn": 0,
             "cloudPct": 0,
-            "pressureHpa": 907.3
+            "pressureHpa": 906.9
           },
           {
             "t": "2026-09-21T22:00",
-            "tempF": 68.1,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 907.2
-          },
-          {
-            "t": "2026-09-21T23:00",
-            "tempF": 66.8,
-            "precipIn": 0,
-            "cloudPct": 0,
-            "pressureHpa": 907
-          },
-          {
-            "t": "2026-09-22T00:00",
-            "tempF": 65.5,
+            "tempF": 67.5,
             "precipIn": 0,
             "cloudPct": 0,
             "pressureHpa": 906.6
           },
           {
-            "t": "2026-09-22T01:00",
-            "tempF": 64,
+            "t": "2026-09-21T23:00",
+            "tempF": 66.4,
             "precipIn": 0,
-            "cloudPct": 12,
+            "cloudPct": 0,
             "pressureHpa": 906.2
           },
           {
-            "t": "2026-09-22T02:00",
-            "tempF": 62.4,
+            "t": "2026-09-22T00:00",
+            "tempF": 65.2,
             "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 905.7
+            "cloudPct": 0,
+            "pressureHpa": 906
+          },
+          {
+            "t": "2026-09-22T01:00",
+            "tempF": 63.8,
+            "precipIn": 0,
+            "cloudPct": 0,
+            "pressureHpa": 905.5
+          },
+          {
+            "t": "2026-09-22T02:00",
+            "tempF": 62,
+            "precipIn": 0,
+            "cloudPct": 96,
+            "pressureHpa": 905
           },
           {
             "t": "2026-09-22T03:00",
-            "tempF": 61.2,
+            "tempF": 60.6,
             "precipIn": 0,
             "cloudPct": 100,
-            "pressureHpa": 905.2
+            "pressureHpa": 904.7
           },
           {
             "t": "2026-09-22T04:00",
-            "tempF": 58.4,
-            "precipIn": 0,
-            "cloudPct": 67,
-            "pressureHpa": 904.5
-          },
-          {
-            "t": "2026-09-22T05:00",
-            "tempF": 55.9,
-            "precipIn": 0,
-            "cloudPct": 56,
-            "pressureHpa": 904.1
-          },
-          {
-            "t": "2026-09-22T06:00",
-            "tempF": 53.7,
-            "precipIn": 0,
-            "cloudPct": 63,
-            "pressureHpa": 904.1
-          },
-          {
-            "t": "2026-09-22T07:00",
-            "tempF": 52.6,
-            "precipIn": 0,
-            "cloudPct": 100,
-            "pressureHpa": 904.3
-          },
-          {
-            "t": "2026-09-22T08:00",
-            "tempF": 53.3,
-            "precipIn": 0,
-            "cloudPct": 96,
-            "pressureHpa": 904.5
-          },
-          {
-            "t": "2026-09-22T09:00",
-            "tempF": 59.2,
-            "precipIn": 0,
-            "cloudPct": 50,
-            "pressureHpa": 904.8
-          },
-          {
-            "t": "2026-09-22T10:00",
-            "tempF": 65,
-            "precipIn": 0,
-            "cloudPct": 82,
-            "pressureHpa": 904.8
-          },
-          {
-            "t": "2026-09-22T11:00",
-            "tempF": 69.1,
+            "tempF": 59.8,
             "precipIn": 0,
             "cloudPct": 100,
             "pressureHpa": 904.6
           },
           {
-            "t": "2026-09-22T12:00",
-            "tempF": 73.8,
+            "t": "2026-09-22T05:00",
+            "tempF": 58.2,
+            "precipIn": 0,
+            "cloudPct": 97,
+            "pressureHpa": 904.2
+          },
+          {
+            "t": "2026-09-22T06:00",
+            "tempF": 57.8,
             "precipIn": 0,
             "cloudPct": 100,
-            "pressureHpa": 904.5
+            "pressureHpa": 904.4
+          },
+          {
+            "t": "2026-09-22T07:00",
+            "tempF": 56.9,
+            "precipIn": 0,
+            "cloudPct": 100,
+            "pressureHpa": 904.7
+          },
+          {
+            "t": "2026-09-22T08:00",
+            "tempF": 55.8,
+            "precipIn": 0,
+            "cloudPct": 100,
+            "pressureHpa": 904.8
+          },
+          {
+            "t": "2026-09-22T09:00",
+            "tempF": 57.8,
+            "precipIn": 0,
+            "cloudPct": 100,
+            "pressureHpa": 905.5
+          },
+          {
+            "t": "2026-09-22T10:00",
+            "tempF": 64.6,
+            "precipIn": 0,
+            "cloudPct": 96,
+            "pressureHpa": 906.6
+          },
+          {
+            "t": "2026-09-22T11:00",
+            "tempF": 69.4,
+            "precipIn": 0,
+            "cloudPct": 100,
+            "pressureHpa": 906.5
+          },
+          {
+            "t": "2026-09-22T12:00",
+            "tempF": 73.9,
+            "precipIn": 0,
+            "cloudPct": 100,
+            "pressureHpa": 905.7
           },
           {
             "t": "2026-09-22T13:00",
@@ -35115,7 +35369,7 @@
           },
           {
             "date": "2026-09-20",
-            "hiF": 74.7,
+            "hiF": 74.6,
             "loF": 41.6,
             "precipIn": 0,
             "sunrise": "2026-09-20T07:20",
@@ -35123,8 +35377,8 @@
           },
           {
             "date": "2026-09-21",
-            "hiF": 81,
-            "loF": 51.4,
+            "hiF": 80.9,
+            "loF": 51.3,
             "precipIn": 0,
             "sunrise": "2026-09-21T07:21",
             "sunset": "2026-09-21T19:35"
@@ -35132,7 +35386,7 @@
           {
             "date": "2026-09-22",
             "hiF": 79.6,
-            "loF": 52.6,
+            "loF": 55.8,
             "precipIn": 0,
             "sunrise": "2026-09-22T07:23",
             "sunset": "2026-09-22T19:33"
