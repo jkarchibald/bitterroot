@@ -37,7 +37,7 @@ jobs:
           ls -la debug-bro-html
 
       - name: Upload HTML as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: debug-bro-html
           path: debug-bro-html/
